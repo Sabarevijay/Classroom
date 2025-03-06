@@ -61,10 +61,16 @@ const Login=async(req,res)=>{
                 message:"Invalid password"
             })
         }
+
+        const token = jwt.sign(
+            {Register:FindUser.Register},
+            process.env.JWT_SECRET,
+        )
         res.status(200).json({
             success:true,
             message:"Login successfully",
-            user:FindUser
+            user:FindUser,
+            token
         })
     } catch (error) {
         console.log(error)
