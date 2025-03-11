@@ -11,7 +11,7 @@ const classSchema=new mongoose.Schema({
     otpExpiresAt:{
         type:String,
     }
-})
+},{timestamps:true})
 
 const ClassModel=mongoose.model('Class',classSchema)
 

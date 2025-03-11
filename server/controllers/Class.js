@@ -49,5 +49,29 @@ const getClasses=async(req,res)=>{
         })
     }
 }
+const getClassById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const classData = await ClassModel.findById(id);
+        if (!classData) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Class data retrieved successfully",
+            classData
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
 
-export {CreateClass,getClasses}
+
+export {CreateClass,getClasses,getClassById}
