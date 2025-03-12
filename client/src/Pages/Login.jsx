@@ -3,6 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { post } from "../services/Endpoint";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
+import { SetUser } from "../redux/AuthSlice";
 
 const Login = () => {
 

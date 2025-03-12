@@ -6,6 +6,7 @@ import ClassRoutes from "./routes/Class.js";
 import OTPRoutes from "./routes/otp.js";
 import AttendanceRoutes from "./routes/attendance.js";
 import cors from 'cors'
+import StudentRoutes from "./routes/students.js";
 
 dotenv.config()
 
@@ -29,6 +30,8 @@ app.use('/auth',AuthRoutes)
 app.use('/class',ClassRoutes)
 app.use('/otp',OTPRoutes)
 app.use('/attendance',AttendanceRoutes)
+app.use('/students',StudentRoutes)
+
 
 // app.use("/api", router);
 

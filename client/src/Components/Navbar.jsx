@@ -36,7 +36,7 @@ const Navbar = () => {
       try {
         setIsLoading(true)
         const response = await classPost('/class/createclass', { ClassName: className });
-        console.log('Class created:', response.data);
+        // console.log('Class created:', response.data);
         closePopup();
         setClassName('');
     

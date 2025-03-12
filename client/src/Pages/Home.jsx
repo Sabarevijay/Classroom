@@ -3,12 +3,15 @@ import Navbar from '../Components/Navbar';
 import Sidebar from '../Components/Sidebar';
 import { classGet } from '../services/Endpoint';
 import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 
 
 const Home = () => {
   const navigate=useNavigate()
   const [classes, setClasses] = useState([])
   const [isLoading,setIsLoading] = useState(true)
+  const user = useSelector((state) => state.auth.user);
+  
 
   const handleNewClass = (newClass) => {
     console.log("New class received:", newClass);
@@ -46,9 +49,22 @@ const Home = () => {
       </div>
     );
   }
- const handleClassClick=(classId)=>{
-  navigate(`/admin/classadmin/${classId}`)
- }
+  const handleClassClick = (classId) => {
+    if (!user) {
+      console.error("User not found!");
+      navigate('/');
+      return;
+    }
+  
+    if (user.role === 'admin') {
+      navigate(`/admin/classadmin/${classId}`);
+    } else if (user.role === 'user') {
+      navigate(`/home/classstudents/${classId}`);
+    } else {
+      console.error("Unknown role:", user.role);
+      navigate('/');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-100 flex">

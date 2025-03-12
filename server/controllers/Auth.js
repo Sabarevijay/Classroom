@@ -90,5 +90,30 @@ const Logout=async(req,res)=>{
     }
 }
 
-export {Register,Login,Logout}
+const getUsers=async(req,res)=>{
+    try {
+        
+        const getUser=await UserModel.find({},'Register')
+        if (!getUser) {
+            return res.status(400).json({
+                success:false,
+                message:"No User Found"
+               
+            })
+        }
+        return res.status(200).json({
+            success:true,
+            message:"User displayed successfully",
+            getUser
+        })
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({
+            success:true,
+            message:"Internal server occured"
+        })
+    }
+}
+
+export {Register,Login,Logout,getUsers}
 

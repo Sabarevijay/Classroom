@@ -1,12 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { classGet } from '../services/Endpoint';
+import { addstudentsPost, classGet } from '../services/Endpoint';
+import { UserPlus } from 'lucide-react';
+import toast from 'react-hot-toast';
+import axios from 'axios';
 
 const ClassAdmin = () => {
   const { id } = useParams();
+  const [isModalOpen,setIsModalOpen]=useState(false)
+  const [registerNumber,setRegisterNumber]=useState("")
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [otp, setOtp] = useState('');
+  const [timeLeft, setTimeLeft] = useState(20);
   
   const students = [
     { id: "7376241MZ154", name: "LAKSHEN V", time: "08:45 am to 09:40 am" },
@@ -15,11 +22,52 @@ const ClassAdmin = () => {
     { id: "7376241EC183", name: "JAYASURYA", time: "08:55 am to 09:45 am" },
   ];
 
+  const openModal=()=>{
+    setIsModalOpen(true)
+  }
+  const closeModal=()=>{
+    setIsModalOpen(false)
+    setRegisterNumber("")
+  }
+
+  const generateOTP = async () => {
+    const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
+    setOtp(newOtp);
+    setTimeLeft(20);
+    await axios.post('http://localhost:8000/otp/generate', { otp: newOtp });
+  };
+
+  const handleSubmit=async(e)=>{
+    
+   try {
+    setIsLoading(true)
+    e.preventDefault()
+    const response = await addstudentsPost('/students/addstudents', { RegisterNumber:registerNumber });
+    // console.log('Students added:', response.data);
+    setRegisterNumber("")
+    closeModal()
+    toast.success("Student Added successfully ")
+   } catch (error) {
+    console.log(error)
+    if (error.response.status === 409) {
+      toast.error(error.response.data.message); 
+      
+    } else {
+      toast.error("An unexpected error occurred");
+    }
+   }
+   finally{
+    setIsLoading(false)
+  }
+
+  }
+
   useEffect(() => {
     const fetchClassData = async () => {
       try {
         const response = await classGet(`/class/getclass/${id}`);
-        setClassData(response.data.class);
+        setClassData(response.data.classData);
+        // console.log(response.data.classData)
       } catch (error) {
         console.error("Failed to fetch class data:", error);
         setError('Failed to load class data. Please try again later.');
@@ -29,6 +77,16 @@ const ClassAdmin = () => {
     };
     fetchClassData();
   }, [id]);
+
+
+  useEffect(() => {
+    if (timeLeft > 0 && otp) {
+      const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
+      return () => clearTimeout(timer);
+    } else if (timeLeft === 0) {
+      setOtp('');
+    }
+  }, [timeLeft, otp]);
 
   if (isLoading) {
     return (
@@ -44,7 +102,67 @@ const ClassAdmin = () => {
 
   return (
     <div className="p-8 bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen flex flex-col items-center">
-      <h2 className="text-4xl font-extrabold mb-8 text-blue-700" style={{marginTop:'130px'}}>{classData?.ClassName || 'Class'}</h2>
+      <h2 className="text-4xl font-extrabold mb-8 text-blue-700" style={{marginTop:'130px'}}>{classData ? classData.ClassName : 'No class data available'}</h2>
+          <div>
+            <button className=" text-black  w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115" style={{cursor:'pointer'}}
+            onClick={openModal}
+            >
+              <UserPlus size={54} />
+            </button>
+          </div>
+
+          {isModalOpen && (
+        <div className="absolute inset-0 flex items-center justify-center z-50 top-25 ">
+          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg border border-gray-300 relative ">
+            {/* Close button */}
+            <button 
+              className="absolute right-4 top-4 text-black" 
+              style={{cursor:'pointer'}}
+              onClick={closeModal}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="24" 
+                height="24" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+              >
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="15" y1="9" x2="9" y2="15"></line>
+                <line x1="9" y1="9" x2="15" y2="15"></line>
+              </svg>
+            </button>
+
+            <h2 className="text-xl font-semibold mb-6 text-center ">
+              Enter the Students register number:
+            </h2>
+
+            <form onSubmit={handleSubmit} >
+              <input
+                type="text"
+                placeholder="register number"
+                className="w-100 pr-3 border border-gray-300 rounded mb-4 text-gray-400"
+                value={registerNumber}
+                onChange={(e) => setRegisterNumber(e.target.value)}
+                required
+              />
+
+              <div className="text-center mt-4">
+                <button
+                  type="submit"
+                  className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
+                >
+                  Submit
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       <div className="w-full max-w-lg mb-6">
         <label className="block font-semibold mb-2 text-lg">Select Date:</label>
@@ -65,11 +183,16 @@ const ClassAdmin = () => {
       </div>
 
       <div className="w-full max-w-lg flex gap-4 mb-8">
-        <input type="text" placeholder="Enter OTP" className="flex-1 p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg">Generate OTP</button>
+        {/* <input type="text" placeholder="Enter OTP" className="flex-1 p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /> */}
+        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg" onClick={generateOTP} >Generate OTP</button>
+        {otp && (
+      <div className="mt-4 text-lg font-medium text-gray-800">
+        Current OTP: <span className="text-blue-600">{otp}</span> (Expires in {timeLeft}s)
+      </div>
+    )}
       </div>
 
-      <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl">
+      {/* <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl">
         <h3 className="text-xl font-bold mb-4 text-blue-700">Recent Attendance ({students.length} Students)</h3>
         <ul className="list-none p-0">
           {students.map((student, index) => (
@@ -80,7 +203,7 @@ const ClassAdmin = () => {
             </li>
           ))}
         </ul>
-      </div>
+      </div> */}
     </div>
   );
 };
