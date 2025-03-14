@@ -4,9 +4,12 @@ import toast from 'react-hot-toast';
 import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
 import { useNavigate } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
+
 
 const Navbar = () => {
   const navigate=useNavigate()
+  const dispatch = useDispatch();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
