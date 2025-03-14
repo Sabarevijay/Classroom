@@ -2,16 +2,16 @@ import StudentsModel from "../models/students.js"
 
 const addstudents=async(req,res)=>{
     try {
-        const {RegisterNumber}=req.body
+        const {Register,classId }=req.body
         // console.log("Request body:", req.body);
-        const existStudent=await StudentsModel.findOne({RegisterNumber})
+        const existStudent=await StudentsModel.findOne({Register,ClassId: classId })
         if(existStudent){
             return res.status(409).json({
                 success:"false",
                 message:"Stduent Already Exist"
             })
         }
-        const NewStudents = new StudentsModel({RegisterNumber})
+        const NewStudents = new StudentsModel({Register,ClassId: classId })
         await NewStudents.save()
         return res.status(201).json({
             success:true,

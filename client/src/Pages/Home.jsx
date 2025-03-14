@@ -14,7 +14,7 @@ const Home = () => {
   
 
   const handleNewClass = (newClass) => {
-    console.log("New class received:", newClass);
+    // console.log("New class received:", newClass);
     setClasses(prevClasses => [newClass, ...prevClasses]);
   };
    const getClass=async()=>{
@@ -25,10 +25,19 @@ const Home = () => {
       const data = response.data;     
       const sortedClass = data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       if (response.data.success && response.data.newClass) {
-         console.log("New class received:", newClass);
+        //  console.log("New class received:", newClass);
         handleNewClass(response.data.newClass); // Assuming the response sends back the new class
       }
       setClasses(sortedClass);
+
+      // if (user.role === 'user') {
+      //   const studentResponse = await classGet(`/students/getstudent/${user.register}`);
+      //   const userClassIds = studentResponse.data.classes.map((student) => student.ClassId);
+      //   const filteredClasses = sortedClass.filter((cls) => userClassIds.includes(cls._id));
+      //   setClasses(filteredClasses);
+      // } else {
+      //   setClasses(sortedClass);
+      // }
      
     } catch (error) {
       console.error("Error fetching classes:", error);

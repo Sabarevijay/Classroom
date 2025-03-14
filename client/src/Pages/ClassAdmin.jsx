@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { addstudentsPost, classGet } from '../services/Endpoint';
+import { addstudentsPost, classGet, get, getUser } from '../services/Endpoint';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import axios from 'axios';
@@ -14,13 +14,9 @@ const ClassAdmin = () => {
   const [error, setError] = useState(null);
   const [otp, setOtp] = useState('');
   const [timeLeft, setTimeLeft] = useState(20);
+  const [attendance, setAttendance] = useState([]);
   
-  const students = [
-    { id: "7376241MZ154", name: "LAKSHEN V", time: "08:45 am to 09:40 am" },
-    { id: "7376241MZ155", name: "VAISHAK K", time: "08:55 am to 09:45 am" },
-    { id: "7376241EC164", name: "HARIHARAN P", time: "08:55 am to 09:45 am" },
-    { id: "7376241EC183", name: "JAYASURYA", time: "08:55 am to 09:45 am" },
-  ];
+  
 
   const openModal=()=>{
     setIsModalOpen(true)
@@ -34,7 +30,8 @@ const ClassAdmin = () => {
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
     setTimeLeft(20);
-    await axios.post('http://localhost:8000/otp/generate', { otp: newOtp });
+    await axios.post('http://localhost:8000/otp/generate', { otp: newOtp, classId: id  });
+  
   };
 
   const handleSubmit=async(e)=>{
@@ -42,13 +39,16 @@ const ClassAdmin = () => {
    try {
     setIsLoading(true)
     e.preventDefault()
-    const response = await addstudentsPost('/students/addstudents', { RegisterNumber:registerNumber });
+
+   
+
+    const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });
     // console.log('Students added:', response.data);
     setRegisterNumber("")
     closeModal()
     toast.success("Student Added successfully ")
    } catch (error) {
-    console.log(error)
+    // console.log(error)
     if (error.response.status === 409) {
       toast.error(error.response.data.message); 
       
@@ -59,6 +59,7 @@ const ClassAdmin = () => {
    finally{
     setIsLoading(false)
   }
+
 
   }
 
@@ -75,16 +76,34 @@ const ClassAdmin = () => {
         setIsLoading(false);
       }
     };
+
+   
+
     fetchClassData();
+    fetchAttendanceData();
+
+  
   }, [id]);
+  const fetchAttendanceData = async () => {
+    try {
+      const response = await get('/attendance/getattendance');
+      // console.log("Attendance response:", response.data); 
+      const userAttendance = response.data.attendance.filter(record =>  record.classId === id);
+      setAttendance(userAttendance);
+    } catch (error) {
+      console.error("Failed to fetch attendance data:", error);
+    }
+  };
 
 
   useEffect(() => {
     if (timeLeft > 0 && otp) {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
+      
     } else if (timeLeft === 0) {
       setOtp('');
+      fetchAttendanceData();
     }
   }, [timeLeft, otp]);
 
@@ -192,20 +211,26 @@ const ClassAdmin = () => {
     )}
       </div>
 
-      {/* <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl">
-        <h3 className="text-xl font-bold mb-4 text-blue-700">Recent Attendance ({students.length} Students)</h3>
-        <ul className="list-none p-0">
-          {students.map((student, index) => (
-            <li key={index} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
-              <span className="font-medium text-blue-700">{student.id}</span>
-              <span className="text-lg font-semibold">{student.name}</span>
-              <span className="italic text-gray-600">({student.time})</span>
-            </li>
-          ))}
-        </ul>
-      </div> */}
+      
+
+{attendance.length > 0 ?(
+        <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl mt-8">
+          <h3 className="text-xl font-bold mb-4 text-blue-700">Attendance Details</h3>
+          <ul className="list-none p-0">
+            {attendance.map((record) => (
+              <li key={record._id} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
+                <span className="font-medium text-blue-700">{record.user}</span>
+                <span className="text-lg font-semibold">Status: {record.status}</span>
+                <span className="italic text-gray-600">{new Date(record.createdAt).toLocaleString()}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ): (
+        <div className="text-center text-gray-600 text-lg mt-8">No attendance data found</div>)}
     </div>
   );
 };
+
 
 export default ClassAdmin;

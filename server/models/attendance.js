@@ -10,8 +10,13 @@ const attendanceSchema=new mongoose.Schema({
       enum:['present','absent'],
       // default:'absent',
       required:true  
-    }
-})
+    }, 
+    classId: {
+       type: mongoose.Schema.Types.ObjectId,
+        ref: 'Class', 
+        required: true
+       }
+},{timestamps:true})
 
 const AttendanceModel=mongoose.model("Attendance",attendanceSchema)
 export default AttendanceModel

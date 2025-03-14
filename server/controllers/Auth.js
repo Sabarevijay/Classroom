@@ -63,7 +63,7 @@ const Login=async(req,res)=>{
         }
 
         const token = jwt.sign(
-            {Register:FindUser.Register},
+            {id: FindUser._id, Register: FindUser.Register },
             process.env.JWT_SECRET,
         )
         res.status(200).json({
@@ -88,12 +88,19 @@ const Logout=async(req,res)=>{
         console.log(error);
         return res.status(500).json({success:false,message:"Internal server error"})
     }
+    
 }
 
 const getUsers=async(req,res)=>{
     try {
-        
-        const getUser=await UserModel.find({},'Register')
+        const userId = req.user && req.user.id;
+        if (!userId) {
+            return res.status(400).json({
+              success: false,
+              message: "Invalid token or user not authenticated"
+            });
+          }
+        const getUser=await UserModel.findById(userId, 'Register');
         if (!getUser) {
             return res.status(400).json({
                 success:false,
@@ -104,7 +111,7 @@ const getUsers=async(req,res)=>{
         return res.status(200).json({
             success:true,
             message:"User displayed successfully",
-            getUser
+            user:getUser
         })
     } catch (error) {
         console.log(error)

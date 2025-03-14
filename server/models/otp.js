@@ -8,6 +8,9 @@ const otpSchema= new mongoose.Schema({
     otpExpiresAt:{
         type:Date,
         required:true
+    },
+    classId:{
+        type:String
     }
 })
 

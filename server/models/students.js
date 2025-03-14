@@ -1,9 +1,12 @@
 import mongoose from "mongoose";
 
 const StudentsSchema=new mongoose.Schema({
-    RegisterNumber:{
+    Register:{
         type:String,
         required:true
+    },
+    ClassId:{
+        type:String,required: true
     }
 },{timestamps:true})
 
