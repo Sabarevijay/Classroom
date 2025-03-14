@@ -1,7 +1,7 @@
 import express from "express";
 import { getUsers, Login, Logout, Register } from "../controllers/Auth.js";
 import upload from "../middleware/Multer.js";
-import authMiddleware from "../middleware/authMiddleware.js";
+import authMiddleware from "../middleware/Authmiddleware.js";
 
 const AuthRoutes=express.Router()
 
