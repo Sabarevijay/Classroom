@@ -15,13 +15,13 @@ const Register=async(req,res)=>{
             message:"User Already Exist"
         })
     }
-    const imagePath=req.file.filename
+    // const imagePath=req.file.filename
     const hasepassword =await bcryptjs.hashSync(password,10)
      const NewUser=await UserModel({
         Register,
         email,
         password:hasepassword,
-        profile:imagePath
+        // profile:imagePath
      })
      await NewUser.save()
      return res.status(201).json({
@@ -88,7 +88,7 @@ const Logout=async(req,res)=>{
         console.log(error);
         return res.status(500).json({success:false,message:"Internal server error"})
     }
-    
+
 }
 
 const getUsers=async(req,res)=>{
