@@ -17,7 +17,7 @@ DBcon()
 
 app.use(express.json())
 app.use(cors({
-    origin: "https://classroom-lime-mu.vercel.app",
+    origin: process.env.FRONTEND_URL,
     credentials: true 
     
 }));
