@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { addstudentsPost, classGet, get, getUser } from '../services/Endpoint';
+import { addstudentsPost, classGet, get, getUser, post } from '../services/Endpoint';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
-import axios from 'axios';
+// import axios from 'axios';
 
 const ClassAdmin = () => {
   const { id } = useParams();
@@ -30,7 +30,7 @@ const ClassAdmin = () => {
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
     setTimeLeft(20);
-    await axios.post('http://localhost:8000/otp/generate', { otp: newOtp, classId: id  });
+    await post('/otp/generate', { otp: newOtp, classId: id  });
   
   };
 

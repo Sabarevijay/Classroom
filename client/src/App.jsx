@@ -1,7 +1,5 @@
 import React from 'react'
 import {BrowserRouter, Route, Routes} from 'react-router-dom'
-import AdminOTP from './Pages/AdminOTP'
-import UserOTP from './Pages/UserOTP'
 import Login from './Pages/Login'
 import Home from './Pages/Home'
 import Register from './Pages/Register'
