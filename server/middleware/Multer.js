@@ -1,11 +1,7 @@
 import multer from 'multer'
 import path from'path'
-import fs from 'fs';
 
-const imageDir = 'public/images';
-if (!fs.existsSync(imageDir)) {
-    fs.mkdirSync(imageDir, { recursive: true });
-}
+
 
 const storage =multer.diskStorage({
     destination:function(req,file,cb){
