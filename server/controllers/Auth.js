@@ -8,6 +8,8 @@ dotenv.config()
 const Register=async(req,res)=>{
   try {
     const {Register,email,password}=req.body
+    // console.log(req.body); // Check incoming data
+    // console.log(req.file); // If using image upload
     const existUser=await UserModel.findOne({email})
     if (existUser) {
         return res.status(409).json({

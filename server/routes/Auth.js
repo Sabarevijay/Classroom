@@ -1,12 +1,12 @@
 import express from "express";
 import { getUsers, Login, Logout, Register } from "../controllers/Auth.js";
-// import upload from "../middleware/Multer.js";
+import upload from "../middleware/Multer.js";
 import authMiddleware from "../middleware/Authmiddleware.js";
 
 const AuthRoutes=express.Router()
 
-// AuthRoutes.post('/register',upload.single('profile'),Register)
-AuthRoutes.post('/register',Register)
+AuthRoutes.post('/register',upload.single('profile'),Register)
+// AuthRoutes.post('/register',Register)
 AuthRoutes.post('/login',Login)
 AuthRoutes.post('/logout',Logout)
 AuthRoutes.get('/getusers', authMiddleware,getUsers)
