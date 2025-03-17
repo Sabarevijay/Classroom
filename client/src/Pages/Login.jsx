@@ -33,7 +33,7 @@ const handleSubmit=async(e)=>{
         if (data.user.role === "admin") {
           navigate("/home");
         } else {
-          navigate("/");
+          navigate("/home");
         }
         
           toast.success(data.message)
