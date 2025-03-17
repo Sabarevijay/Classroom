@@ -19,25 +19,27 @@ const App = () => {
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} ></Route>
 
-        <Route path='/home' element={
-            <ProtectedRoute allowedRoles={['user']}>
-              <UserLayout />
-            </ProtectedRoute>
-          }>
+        <Route path='/home' element={<UserLayout />} >
         <Route index element={<Home />} />
         <Route
             path='classstudents/:id'
-            element={<ClassStudents /> }  />
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <ClassStudents /> 
+              </ProtectedRoute>
+            }
+          />
         </Route>
         
-        <Route path='/admin' element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminLayout />
-            </ProtectedRoute>
-          } >
+        <Route path='/admin' element={<AdminLayout />}>
           <Route
             path='classadmin/:id'
-            element={<ClassAdmin />  }  />
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ClassAdmin /> 
+              </ProtectedRoute>
+            }
+          />
         </Route>
         
         

@@ -28,9 +28,16 @@ const handleSubmit=async(e)=>{
         localStorage.setItem('token', response.data.token);
       const data =response.data
       if (response.status===200) {
-          navigate('/home')
+        localStorage.setItem("token", data.token);
+        dispatch(SetUser(data.user))
+        if (data.user.role === "admin") {
+          navigate("/home");
+        } else {
+          navigate("/");
+        }
+        
           toast.success(data.message)
-          dispatch(SetUser(data.user))
+         
       }
       else{
           toast.error("User not found")
