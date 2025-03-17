@@ -6,14 +6,14 @@ const ProtectedRoute = ({ allowedRoles, children }) => {
   const user = useSelector((state) => state.auth.user);
 
   if (!user) {
-    return <Navigate to='/' />; // Redirect to login if user is not authenticated
+    return <Navigate to='/' />; 
   }
 
   if (!allowedRoles.includes(user.role)) {
-    return <Navigate to='/' />; // Redirect if user role is not allowed
+    return <Navigate to='/' />; 
   }
 
-  return children ? children : <Outlet />; // Render the component if allowed
+  return children ? children : <Outlet />;
 };
 
 export default ProtectedRoute;

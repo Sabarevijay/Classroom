@@ -13,31 +13,37 @@ const Home = () => {
   const user = useSelector((state) => state.auth.user);
   
 
+  
+
+
+
   const handleNewClass = (newClass) => {
-    // console.log("New class received:", newClass);
+   
     setClasses(prevClasses => [newClass, ...prevClasses]);
   };
    const getClass=async()=>{
     setIsLoading(true)
+    
    
     try {
-      const response = await classGet("/class/getclass");
-      const data = response.data;     
-      const sortedClass = data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-      if (response.data.success && response.data.newClass) {
-        //  console.log("New class received:", newClass);
-        handleNewClass(response.data.newClass); // Assuming the response sends back the new class
-      }
-      setClasses(sortedClass);
-
-      // if (user.role === 'user') {
-      //   const studentResponse = await classGet(`/students/getstudent/${user.register}`);
-      //   const userClassIds = studentResponse.data.classes.map((student) => student.ClassId);
-      //   const filteredClasses = sortedClass.filter((cls) => userClassIds.includes(cls._id));
-      //   setClasses(filteredClasses);
-      // } else {
-      //   setClasses(sortedClass);
-      // }
+      
+      const userRegister = user?.Register;
+      if (user.role === 'admin') {
+      
+        const response = await classGet("/class/getclass");
+        const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setClasses(sortedClass);
+    } else if (user.role === 'user') {
+      
+        
+        const studentResponse = await classGet(`/class/studentclasses/${userRegister}`);
+        if (studentResponse.data.success) {
+            const sortedClass = studentResponse.data.classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+            setClasses(sortedClass);
+        } else {
+            setClasses([]); 
+        }
+    }
      
     } catch (error) {
       console.error("Error fetching classes:", error);
@@ -105,6 +111,9 @@ const Home = () => {
       </div>
     );
   })}
+  {classes.length === 0 && !isLoading && (
+  <p className="text-gray-500 text-2xl " style={{alignItems:"center",textAlign:"center",marginLeft:"350px"}}>No classes assigned to you.</p>
+)}
 </div>
 
          

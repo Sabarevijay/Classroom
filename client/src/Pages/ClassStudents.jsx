@@ -49,9 +49,16 @@ const ClassStudents = () => {
     
     } catch (error) {
       if (error.response.status === 400) {
+        setSubmittedOtp("")
         toast.error(error.response.data.message); 
         
-      } else {
+      }
+      else if(error.response.status === 402){
+        setSubmittedOtp("")
+        toast.error(error.response.data.message); 
+      }
+      
+      else {
         toast.error("An unexpected error occurred");
       }
       // console.log('Error submitting OTP',error)

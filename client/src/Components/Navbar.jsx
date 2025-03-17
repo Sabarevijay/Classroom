@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
 import { useNavigate } from 'react-router-dom';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 
 
 const Navbar = () => {
@@ -16,6 +16,9 @@ const Navbar = () => {
   const [isLoading,setIsLoading]=useState(false)
   const [className, setClassName] = useState('');
   
+  const user = useSelector((state) => state.auth.user);
+  const userRole = user?.role;
+
 
   const openPopup = () => {
     setIsPopupOpen(true);
@@ -110,13 +113,15 @@ const Navbar = () => {
           <span className="text-[40px] font-semibold text-[#3A2C76]">BIT ClassRoom</span>
         </div>
         <div className="flex items-center space-x-4">
-          <button 
-            className="border-2 border-black text-black rounded-full w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115"
-            onClick={openPopup}
-            style={{cursor:'pointer' }}
-          >
-            <Plus size={25} />
-          </button>
+         {userRole === "admin" && (
+            <button 
+              className="border-2 border-black text-black rounded-full w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115"
+              onClick={openPopup}
+              style={{ cursor: 'pointer' }}
+            >
+              <Plus size={25} />
+            </button>
+          )}
           <button 
             className="rounded-full w-10 h-10 flex items-center justify-center absolute right-15 transform transition-transform hover:scale-115"
             onClick={toggleUserMenu}

@@ -53,12 +53,23 @@ const submitOTP=async(req,res)=>{
  
         //   console.log("Stored OTP:", currentOtp.otp);
         // console.log("OTP Expiration:", currentOtp.otpExpiresAt);
-          const status = currentOtp.otp === otp ? "present" : "absent";
-          const attendance = await AttendanceModel.create({ user, status,classId });
+
+       if(currentOtp.otp === otp)  { 
+          const attendance = await AttendanceModel.create({ user, status: "present",classId });
           res.status(201).json({
              message: "Attendance recorded",
              status: attendance.status
              });
+            }
+            else {
+                
+                return res.status(402).json({ 
+                    success: false, 
+                    message: "Incorrect OTP. Please try again." 
+                });
+            }
+
+
     } catch (error) {
         console.error(error);
          res.status(500).json({

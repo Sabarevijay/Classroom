@@ -1,4 +1,5 @@
 import ClassModel from "../models/Class.js";
+import StudentsModel from "../models/students.js";
 
 const CreateClass=async(req,res)=>{
     try {
@@ -74,4 +75,42 @@ const getClassById = async (req, res) => {
 }
 
 
-export {CreateClass,getClasses,getClassById}
+const getStudentsClasses =async(req,res)=>{
+    try {
+        
+        const {register}=req.params
+        const studentRecords=await StudentsModel.find({Register:register})
+      
+        if (!studentRecords.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No classes found for this student"
+            });
+        }
+        const classIds = studentRecords.map(student => student.ClassId);
+         
+        if (!classIds.length) {
+            return res.status(404).json({
+                success: false,
+                message: "No class IDs found for this student"
+            });
+        }
+
+        const studentClasses = await ClassModel.find({_id:{ $in: classIds } })
+        return res.status(200).json({
+            success: true,
+            message: "Student's classes retrieved successfully",
+            classes: studentClasses
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+}
+
+
+export {CreateClass,getClasses,getClassById,getStudentsClasses}
