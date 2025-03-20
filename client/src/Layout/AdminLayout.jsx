@@ -27,7 +27,7 @@ const AdminLayout = () => {
           navigate('/')
         }
         else if(user.role !=='admin'){
-            navigate('/')
+            navigate('/home')
         }
       })
   return (

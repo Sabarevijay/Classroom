@@ -1,9 +1,17 @@
 import React from 'react'
 import Navbar from '../Components/Navbar'
-import { Outlet } from 'react-router-dom'
+import { Outlet, useNavigate } from 'react-router-dom'
 import Sidebar from '../Components/Sidebar'
 
 const UserLayout = () => {
+  const user = useSelector((state) => state.auth.user);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!user) {
+      navigate('/');
+    }
+  }, [user, navigate]);
   return (
     <div>
       <Navbar />
