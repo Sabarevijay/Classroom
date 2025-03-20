@@ -3,6 +3,7 @@ import {useSelector} from 'react-redux'
 import { Outlet, useNavigate } from 'react-router-dom'
 import Navbar from '../Components/Navbar'
 import Sidebar from '../Components/Sidebar'
+import { classGet } from '../services/Endpoint'
 
 const AdminLayout = () => {
   const [classes, setClasses] = useState([]);
@@ -27,7 +28,7 @@ const AdminLayout = () => {
           navigate('/')
         }
         else if(user.role !=='admin'){
-            navigate('/home')
+            navigate('/')
         }
       })
   return (
