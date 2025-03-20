@@ -19,7 +19,7 @@ const App = () => {
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} ></Route>
 
-        <Route path='/home' element={<UserLayout />} >
+        {/* <Route path='/home' element={<UserLayout />} >
         <Route index element={<Home />} />
         <Route
             path='classstudents/:id'
@@ -40,7 +40,47 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+        </Route> */}
+
+      <Route 
+          path='/home' 
+          element={
+            <ProtectedRoute allowedRoles={['user', 'admin']}>
+              <UserLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Home />} />
+          <Route
+            path='classstudents/:id'
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <ClassStudents />
+              </ProtectedRoute>
+            }
+          />
         </Route>
+
+         {/* Protect Admin Pages */}
+         <Route 
+          path='/admin' 
+          element={
+            <ProtectedRoute allowedRoles={['admin']}>
+              <AdminLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route
+            path='classadmin/:id'
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <ClassAdmin />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+
+
 
 
         
