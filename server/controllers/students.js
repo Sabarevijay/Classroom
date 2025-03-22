@@ -3,7 +3,13 @@ import StudentsModel from "../models/students.js"
 const addstudents=async(req,res)=>{
     try {
         const {Register,classId }=req.body
-        // console.log("Request body:", req.body);
+        console.log("Request body:", req.body);
+         if (!Register || !classId) {
+            return res.status(400).json({
+                success: false,
+                message: "Register number and classId are required",
+            });
+        }
         const existStudent=await StudentsModel.findOne({Register,ClassId: classId })
         if(existStudent){
             return res.status(409).json({

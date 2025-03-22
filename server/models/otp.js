@@ -11,6 +11,9 @@ const otpSchema= new mongoose.Schema({
     },
     classId:{
         type:String
+    },
+    hour:{
+        type:String
     }
 })
 

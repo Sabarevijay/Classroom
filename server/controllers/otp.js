@@ -3,15 +3,15 @@ import OTPModel from "../models/otp.js";
 
 const generateOTP=async(req,res)=>{
     try {
-        const { otp,classId } = req.body; 
-        if (!otp || !classId) {
+        const { otp,classId,hour } = req.body; 
+        if (!otp || !classId ||!hour) {
             return res.status(400).json({ 
                 success: false, 
                 message: "OTP is required" 
             });
           }
           await OTPModel.deleteMany({});
-          const newOtp = await OTPModel.create({ otp,classId, otpExpiresAt: new Date(Date.now() + 20000) });
+          const newOtp = await OTPModel.create({ otp,classId,hour, otpExpiresAt: new Date(Date.now() + 20000) });
             res.status(201).json({
                  message: "OTP generated successfully",
                   otp: newOtp 
@@ -27,8 +27,8 @@ const generateOTP=async(req,res)=>{
 }
 const submitOTP=async(req,res)=>{
     try {
-        const { otp,user ,classId} = req.body;
-        if (!otp || !user || !classId) {
+        const { otp,user ,classId ,hour} = req.body;
+        if (!otp || !user || !classId || !hour) {
             return res.status(400).json({ 
               success: false, 
               message: 'All fields are required' 
@@ -54,8 +54,8 @@ const submitOTP=async(req,res)=>{
         //   console.log("Stored OTP:", currentOtp.otp);
         // console.log("OTP Expiration:", currentOtp.otpExpiresAt);
 
-       if(currentOtp.otp === otp)  { 
-          const attendance = await AttendanceModel.create({ user, status: "present",classId });
+       if(currentOtp.otp === otp || currentOtp.hour !== hour)  { 
+          const attendance = await AttendanceModel.create({ user, status: "present",classId,hour });
           res.status(201).json({
              message: "Attendance recorded",
              status: attendance.status

@@ -13,12 +13,12 @@ const ClassStudents = () => {
   // const [isLoading, setIsLoading] = useState(true)
   const [attendance, setAttendance] = useState([]);
   const [classData, setClassData] = useState(null);
-
+  const [hour,setHour]=useState("")
   
 
   const submitOTP = async () => {
-    if (!submittedOtp) {
-      setStatus('Please enter an OTP');
+    if (!submittedOtp || !hour) {
+      setStatus('Please enter an OTP and select an hour ');
       return;
   }
 
@@ -26,23 +26,24 @@ const ClassStudents = () => {
     setStatus('Class data not available');
     return;
   }
-  if (!classData) {
-    try {
-      await fetchClassData(); // Fetch class data if not already available
-    } catch (error) {
-      setStatus('Failed to fetch class data');
-      return;
-    }
+
+  const alreadyMarked = attendance.some(record => record.hour === hour);
+  if (alreadyMarked) {
+    toast.error(`Attendance for ${hour} is already marked.`);
+    setHour("--Select Hour--")
+    setSubmittedOtp("")
+    return;
   }
   // console.log("Submitted OTP:", submittedOtp); 
 
     try {
      
-      const response = await post('/otp/submit', { otp: submittedOtp ,user: registerNumber, classId: classData._id });
+      const response = await post('/otp/submit', { otp: submittedOtp ,user: registerNumber, classId: classData._id ,hour :hour });
       // console.log("Response from server:", response.data);
 
       
       setStatus(response.data.status);
+      setHour("--Select Hour--")
       setSubmittedOtp("")
       fetchAttendance(registerNumber,classData._id);     
       
@@ -66,15 +67,33 @@ const ClassStudents = () => {
     }
   };
 
-  const fetchAttendance = async (registerNumber,classId) => {
+  // const fetchAttendance = async (registerNumber,classId) => {
+  //   try {
+  //     const response = await get('/attendance/getattendance');
+  //     const userAttendance = response.data.attendance.filter(record => record.user === registerNumber&& record.classId === classId);
+  //     setAttendance(userAttendance);
+  //   } catch (error) {
+  //     console.error("Failed to fetch attendance data:", error);
+  //   }
+  // };
+  const fetchAttendance = async (registerNumber, classId) => {
     try {
       const response = await get('/attendance/getattendance');
-      const userAttendance = response.data.attendance.filter(record => record.user === registerNumber&& record.classId === classId);
+  
+      const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+  
+      const userAttendance = response.data.attendance.filter(record => {
+        const recordDate = new Date(record.createdAt).toISOString().split('T')[0]; // Convert createdAt to YYYY-MM-DD
+        return record.user === registerNumber && record.classId === classId && recordDate === today;
+      });
+  
       setAttendance(userAttendance);
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
     }
   };
+  
+
 
   const fetchClassData = async () => {
     try {
@@ -140,27 +159,58 @@ const ClassStudents = () => {
   </div>
 )}
 
-    <div className="w-full max-w-sm mb-4">
+    {/* <div className="w-full max-w-sm mb-4">
       <label className="block font-semibold mb-1">Select Date:</label>
-      <input type="date" className="w-full p-2 border border-gray-400 rounded-md text-lg"
+      <input type="date" className="w-full p-2 border border-gray-400 rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       
       />
-    </div>
+    </div> */}
+    <form 
+  className="w-full max-w-sm mb-6"
+  onSubmit={(e) => {
+    e.preventDefault();  // Prevent page reload
+    submitOTP();
+  }}
+>
+  <div className="mb-6">
+    <label className="block font-semibold mb-2 text-lg">Select Time:</label>
+    <select 
+      className="w-full p-2 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      value={hour}
+      onChange={(e) => setHour(e.target.value)}
+      required
+    >
+      <option value="">-- Select Hour --</option>
+      <option value="I Hour">I Hour</option>
+      <option value="II Hour">II Hour</option>
+      <option value="III Hour">III Hour</option>
+      <option value="IV Hour">IV Hour</option>
+      <option value="V Hour">V Hour</option>
+      <option value="VI Hour">VI Hour</option>
+      <option value="VII Hour">VII Hour</option>
+    </select>
+  </div>
 
-    <div className="w-full max-w-sm mb-4">
-      <label className="block font-semibold mb-1">Enter OTP:</label>
-      <input type="text" className="w-full p-2 border border-gray-400 rounded-md text-lg"
+  <div className="mb-4">
+    <label className="block font-semibold mb-1">Enter OTP:</label>
+    <input 
+      type="text" 
+      className="w-full p-2 border border-gray-400 rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
       value={submittedOtp}
       onChange={(e) => setSubmittedOtp(e.target.value)}
       placeholder="Enter OTP"
-       />
+      required
+    />
+  </div>
 
-    </div>
+  <button 
+    type="submit" 
+    className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
+  >
+    Submit OTP
+  </button>
+</form>
 
-    <button className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
-    onClick={submitOTP}>
-      Submit OTP
-    </button>
     {status && (
         <div className={`mt-4 text-lg font-medium ${status === 'present' ? 'text-green-600' : 'text-red-600'}`}>
           Status: {status} 
@@ -175,7 +225,7 @@ const ClassStudents = () => {
               <li key={record._id} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
                 <span className="font-medium text-blue-700">{record.user}</span>
                 <span className="text-lg font-semibold">Status: {record.status}</span>
-                <span className="italic text-gray-600">{new Date(record.createdAt).toLocaleString()}</span>
+                <span className="italic text-gray-600">{record.hour}</span>
               </li>
             ))}
           </ul>

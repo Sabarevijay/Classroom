@@ -9,6 +9,7 @@ import UserLayout from './Layout/UserLayout'
 import ClassAdmin from './Pages/ClassAdmin'
 import ProtectedRoute from './Components/ProtectedRoute'
 import AdminLayout from './Layout/AdminLayout'
+import Addstudents from './Components/Addstudents'
 
 const App = () => {
   return (
@@ -18,6 +19,7 @@ const App = () => {
 
         <Route path='/' element={<Login />} />
         <Route path='/register' element={<Register />} ></Route>
+        
 
         {/* <Route path='/home' element={<UserLayout />} >
         <Route index element={<Home />} />
@@ -78,6 +80,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
         </Route>
 
 

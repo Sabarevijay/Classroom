@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { addstudentsPost, classGet, get, getUser, post } from '../services/Endpoint';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -15,53 +15,67 @@ const ClassAdmin = () => {
   const [otp, setOtp] = useState('');
   const [timeLeft, setTimeLeft] = useState(20);
   const [attendance, setAttendance] = useState([]);
+  const [hour,setHour]=useState("");
+  const navigate =useNavigate()
   
   
 
-  const openModal=()=>{
-    setIsModalOpen(true)
-  }
-  const closeModal=()=>{
-    setIsModalOpen(false)
-    setRegisterNumber("")
+  // const openModal=()=>{
+  //   setIsModalOpen(true)
+  // }
+  // const closeModal=()=>{
+  //   setIsModalOpen(false)
+  //   setRegisterNumber("")
+  // }
+
+  const addStudentsRedirect=()=>{
+     navigate(`/admin/classadmin/${classId}/addStudents`)
   }
 
   const generateOTP = async () => {
+    if (!hour) {
+      toast.error("Please select an hour before generating OTP.");
+      return;
+    }
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
     setTimeLeft(20);
-    await post('/otp/generate', { otp: newOtp, classId: id  });
+    try {
+      await post('/otp/generate', { otp: newOtp, classId: id, hour });
+      toast.success("OTP generated successfully!");
+      setHour("--Select Hour--")
+    } catch (error) {
+      console.error("Failed to generate OTP:", error);
+      toast.error("Failed to generate OTP. Please try again.");
+    }
   
   };
+  
 
-  const handleSubmit=async(e)=>{
-    
-   try {
-    setIsLoading(true)
-    e.preventDefault()
-
-   
-
-    const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });
-    // console.log('Students added:', response.data);
-    setRegisterNumber("")
-    closeModal()
-    toast.success("Student Added successfully ")
-   } catch (error) {
-    // console.log(error)
-    if (error.response.status === 409) {
-      toast.error(error.response.data.message); 
+  // const handleSubmit=async(e)=>{
+  //   e.preventDefault()
+  //  try {
+  //   setIsLoading(true)
+  //   const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });
+  //   // console.log('Students added:', response.data);
+  //   setRegisterNumber("")
+  //   closeModal()
+  //   toast.success("Student Added successfully ")
+  //  } catch (error) {
+  //   // console.log(error)
+  //   if (error.response.status === 409) {
+  //     toast.error(error.response.data.message); 
       
-    } else {
-      toast.error("An unexpected error occurred");
-    }
-   }
-   finally{
-    setIsLoading(false)
-  }
+  //   } else {
+  //     toast.error("An unexpected error occurred");
+  //   }
+  //  }
+  //  finally{
+  //   setIsLoading(false)
+  // }
 
 
-  }
+  // }
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -84,17 +98,34 @@ const ClassAdmin = () => {
 
   
   }, [id]);
+  // const fetchAttendanceData = async () => {
+  //   try {
+  //     const response = await get('/attendance/getattendance');
+  //     // console.log("Attendance response:", response.data); 
+  //     const userAttendance = response.data.attendance.filter(record =>  record.classId === id);
+  //     setAttendance(userAttendance);
+  //   } catch (error) {
+  //     console.error("Failed to fetch attendance data:", error);
+  //   }
+  // };
+
   const fetchAttendanceData = async () => {
     try {
       const response = await get('/attendance/getattendance');
-      // console.log("Attendance response:", response.data); 
-      const userAttendance = response.data.attendance.filter(record =>  record.classId === id);
+      const today = new Date().toISOString().split('T')[0]; 
+      // console.log(today)
+  
+      const userAttendance = response.data.attendance.filter(record => {
+        const recordDate = new Date(record.createdAt).toISOString().split('T')[0]; 
+        return record.classId === id && recordDate === today;
+      });
+  
       setAttendance(userAttendance);
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
     }
   };
-
+  
 
   useEffect(() => {
     if (timeLeft > 0 && otp) {
@@ -124,16 +155,16 @@ const ClassAdmin = () => {
       <h2 className="text-4xl font-extrabold mb-8 text-blue-700" style={{marginTop:'130px'}}>{classData ? classData.ClassName : 'No class data available'}</h2>
           <div>
             <button className=" text-black  w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115" style={{cursor:'pointer'}}
-            onClick={openModal}
+            onClick={addStudentsRedirect}
             >
               <UserPlus size={54} />
             </button>
           </div>
 
-          {isModalOpen && (
+          {/* {isModalOpen && (
         <div className="absolute inset-0 flex items-center justify-center z-50 top-25 ">
           <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg border border-gray-300 relative ">
-            {/* Close button */}
+            
             <button 
               className="absolute right-4 top-4 text-black" 
               style={{cursor:'pointer'}}
@@ -181,35 +212,74 @@ const ClassAdmin = () => {
             </form>
           </div>
         </div>
-      )}
+      )} */}
 
-      <div className="w-full max-w-lg mb-6">
+      {/* <div className="w-full max-w-lg mb-6">
         <label className="block font-semibold mb-2 text-lg">Select Date:</label>
         <input type="date" className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      </div>
+      </div> */}
 
-      <div className="w-full max-w-lg mb-6">
+      {/* <div className="w-full max-w-lg mb-6">
         <label className="block font-semibold mb-2 text-lg">Select Time:</label>
         <select className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="08:00">08:00 AM</option>
-          <option value="09:00">09:00 AM</option>
-          <option value="10:00">10:00 AM</option>
-          <option value="11:00">11:00 AM</option>
-          <option value="12:00">12:00 PM</option>
-          <option value="13:00">01:00 PM</option>
-          <option value="14:00">02:00 PM</option>
+          <option value="08:00">I Hour</option>
+          <option value="09:00">II Hour</option>
+          <option value="10:00">III Hour</option>
+          <option value="11:00">IV Hour</option>
+          <option value="12:00">V Hour</option>
+          <option value="13:00">VI Hour</option>
+          <option value="14:00">VII Hour</option>
         </select>
       </div>
 
       <div className="w-full max-w-lg flex gap-4 mb-8">
-        {/* <input type="text" placeholder="Enter OTP" className="flex-1 p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" /> */}
+       
         <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg" onClick={generateOTP} >Generate OTP</button>
         {otp && (
       <div className="mt-4 text-lg font-medium text-gray-800">
         Current OTP: <span className="text-blue-600">{otp}</span> (Expires in {timeLeft}s)
       </div>
     )}
+      </div> */}
+
+<form className="w-full max-w-lg mb-8 p-6 border border-gray-300 rounded-lg shadow-md">
+      {/* Select Time */}
+      <div className="mb-6">
+        <label className="block font-semibold mb-2 text-lg">Select Time:</label>
+        <select
+          className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          value={hour}
+          onChange={(e) => setHour(e.target.value)}
+        >
+           <option value="">-- Select Hour --</option>
+          <option value="I Hour">I Hour</option>
+          <option value="II Hour">II Hour</option>
+          <option value="III Hour">III Hour</option>
+          <option value="IV Hour">IV Hour</option>
+          <option value="V Hour">V Hour</option>
+          <option value="VI Hour">VI Hour</option>
+          <option value="VII Hour">VII Hour</option>
+        </select>
       </div>
+
+      {/* OTP Generation Button & Display */}
+      <div className="flex gap-4 items-center">
+        <button
+        type='button'
+          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg"
+          onClick={generateOTP}
+        >
+          Generate OTP
+        </button>
+
+        {otp && (
+          <div className="text-lg font-medium text-gray-800">
+            Current OTP: <span className="text-blue-600">{otp}</span> (Expires in
+            {timeLeft}s)
+          </div>
+        )}
+      </div>
+    </form>
 
       
 
@@ -221,7 +291,7 @@ const ClassAdmin = () => {
               <li key={record._id} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
                 <span className="font-medium text-blue-700">{record.user}</span>
                 <span className="text-lg font-semibold">Status: {record.status}</span>
-                <span className="italic text-gray-600">{new Date(record.createdAt).toLocaleString()}</span>
+                <span className="italic text-gray-600">{record.hour}</span>
               </li>
             ))}
           </ul>
