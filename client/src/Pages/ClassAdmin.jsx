@@ -29,8 +29,9 @@ const ClassAdmin = () => {
   // }
 
   const addStudentsRedirect=()=>{
-     navigate(`/admin/classadmin/${classId}/addStudents`)
+     navigate(`/admin/classadmin/${id}/addStudents`)
   }
+
 
   const generateOTP = async () => {
     if (!hour) {

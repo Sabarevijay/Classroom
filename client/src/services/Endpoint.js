@@ -19,6 +19,8 @@ export const post=(url,data)=>instance.post(url,data)
 export const classPost = (url, data) => instance.post(url, data);
 export const classGet =(url,params)=>instance.get(url,{params})
 export const addstudentsPost=(url,data)=>instance.post(url,data)
+export const deleteRequest = (url, data) => instance.delete(url, { data });
+
 // export const getUser=(url,params)=>instance.get(url,{params})
 
 

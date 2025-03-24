@@ -21,6 +21,9 @@ const Home = () => {
    
     setClasses(prevClasses => [newClass, ...prevClasses]);
   };
+
+
+  
    const getClass=async()=>{
     setIsLoading(true)
     

@@ -3,11 +3,12 @@ import { Plus, User, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
 
 const Navbar = () => {
+  const location = useLocation();
   const navigate=useNavigate()
   const dispatch = useDispatch();
   const [isPopupOpen, setIsPopupOpen] = useState(false);
@@ -113,7 +114,7 @@ const Navbar = () => {
           <span className="text-[40px] font-semibold text-[#3A2C76]">BIT ClassRoom</span>
         </div>
         <div className="flex items-center space-x-4">
-         {userRole === "admin" && (
+         {userRole === "admin" && location.pathname === "/home" && (
             <button 
               className="border-2 border-black text-black rounded-full w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115"
               onClick={openPopup}
