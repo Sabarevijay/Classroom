@@ -1,20 +1,237 @@
-import React, { useEffect, useState } from 'react'
-import { addstudentsPost,  deleteRequest,  get } from '../services/Endpoint'
+import React, { useEffect, useRef, useState } from 'react'
+import { addstudentsPost,  classGet,  deleteRequest,  get } from '../services/Endpoint'
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
 
+
+
+const styles = `
+  /* Page Background */
+  .page-container {
+    background-color: #d3d8e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 200px 20px 20px;
+    position: relative;
+  }
+
+  /* Headings */
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Form Container */
+  .form-container {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-input:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .form-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .form-button:hover {
+    background-color: #5a3de6;
+    cursor: pointer; /* Ensure cursor is pointer on hover */
+    transform: scale(1.02); /* Slight scale effect for better UX */
+  }
+
+  .form-button:disabled {
+    background-color: #a3a3a3;
+    cursor: not-allowed;
+  }
+
+  /* Table Styles */
+  .students-table {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .students-table thead {
+    background-color: #1a2526;
+    color: #fff;
+  }
+
+  .students-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+
+  .students-table tbody tr:nth-child(odd) {
+    background-color: #f1f7ff;
+  }
+
+  .students-table tbody tr:nth-child(even) {
+    background-color: #fff;
+  }
+
+  .students-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .delete-button {
+    color: #dc3545;
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .delete-button:hover {
+    color: #b02a37;
+    cursor: pointer; /* Ensure cursor is pointer on hover */
+    transform: scale(1.1); /* Slight scale effect for better UX */
+  }
+
+  /* Notification Modal */
+  .notification-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 15px 5px rgba(107, 72, 255, 0.3),
+                0 0 15px 5px rgba(0, 122, 255, 0.3);
+    text-align: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .notification-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .notification-message {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  .notification-success .notification-title,
+  .notification-success .notification-message {
+    color: #28a745;
+  }
+
+  .notification-error .notification-title,
+  .notification-error .notification-message {
+    color: #dc3545;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  /* No Data Message */
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    padding: 2rem;
+    background-color: #f9fafb;
+    border-radius: 0.5rem;
+  }
+
+  /* Loading Spinner */
+  .spinner {
+    width: 4rem;
+    height: 4rem;
+    border: 4px solid #6b48ff;
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const Addstudents = () => {
   const { id } = useParams(); 
+  const effectRan = useRef(false);
   // console.log("Class ID from params:", id);
   const [students, setStudents] = useState([]);
   const [registerNumber, setRegisterNumber] = useState("")
   const [isLoading, setIsLoading] = useState(false);
-  // const [classData, setClassData] = useState('')
+  const [classData, setClassData] = useState('')
+  const [notification, setNotification] = useState(null); 
 
 
-
-
+  const showNotification = (title, message, type) => {
+    setNotification({ title, message, type });
+    setTimeout(() => setNotification(null), 2000); 
+  };
 
   const getStudents=async()=>{
     try {
@@ -23,15 +240,21 @@ const Addstudents = () => {
       // const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setStudents(response.data.students || []);
     } catch (error) {
-      console.log("Error fetching students",error)
-      toast.error("Failed to fetch students");
+      // console.log("Error fetching students",error)
+      // toast.error("Failed to fetch students");
+      showNotification('Error', 'Failed to fetch students', 'error');
     } finally{
       setIsLoading(false)
     }
     
   }
   useEffect(() => {
-    getStudents(); 
+    if (effectRan.current === false) {
+      getStudents();
+    } 
+    return () => {
+      effectRan.current = true;
+    };
   }, []);
 
   const handleDelete = async (register) => {
@@ -41,36 +264,55 @@ const Addstudents = () => {
             Register: register,
             classId: id,  
         });
-
-        toast.success(response.data.message);
+        showNotification('Success', response.data.message, 'success');
+        // toast.success(response.data.message);
         getStudents();  
     } catch (error) {
         console.error("Error deleting student", error);
-        toast.error(error.response?.data?.message || "Failed to delete student");
+        // toast.error(error.response?.data?.message || "Failed to delete student");
+        showNotification('Error', error.response?.data?.message || 'Failed to delete student', 'error');
     } finally {
         setIsLoading(false);
     }
 };
+useEffect(() => {
+  const fetchClassData = async () => {
+    try {
+      const response = await classGet(`/class/getclass/${id}`);
+      setClassData(response.data.classData);
+      // console.log(response.data.classData)
+    } catch (error) {
+      console.error("Failed to fetch class data:", error);
+      setError('Failed to load class data. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+ 
+
+  fetchClassData();
+}, [id]);
   
 
   const handleSubmit=async(e)=>{
     e.preventDefault()
    try {
     setIsLoading(true)
-    const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });
-    // console.log('Students added:', response.data);
+    const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });;
     setRegisterNumber("")
     // closeModal()
-    toast.success("Student Added successfully ")
+    // toast.success("Student Added successfully ")
+    showNotification('Success', 'Student added successfully', 'success');
     getStudents();
    } catch (error) {
     console.log(error)
     if (error.response.status === 409) {
-      toast.error(error.response.data.message); 
-      
+      // toast.error(error.response.data.message); 
+      showNotification('Error', error.response.data.message, 'error');
     } else {
-      toast.error("An unexpected error occurred");
+      // toast.error("An unexpected error occurred");
+      showNotification('Error', 'An unexpected error occurred', 'error');
     }
    }
    finally{
@@ -83,7 +325,7 @@ const Addstudents = () => {
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
-        <div className="h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <div className="spinner"></div>
       </div>
     );
   }
@@ -93,80 +335,79 @@ const Addstudents = () => {
 
   }
   return (
-    <div className="relative min-h-screen flex justify-center items-start" style={{paddingTop:'200px'}}>
-    <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg border border-gray-300">
-      <h2 className="text-xl font-semibold mb-6 text-center">
-        Enter the Student's Register Number:
-      </h2>
+    <div className="page-container">
+    {/* Inject the CSS styles */}
+    <style>{styles}</style>
+
+    <div className="form-container">
+      <h2 className="section-title text-center">Enter the Student's Register Number:</h2>
 
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Register number"
-          className="w-full p-2 border border-gray-300 rounded mb-4 text-gray-700"
-          value={registerNumber}
-          onChange={(e) => setRegisterNumber(e.target.value)}
-          required
-        />
+        <div className="mb-4">
+          <label className="form-label">Register Number:</label>
+          <input
+            type="text"
+            placeholder="Register number"
+            className="form-input"
+            value={registerNumber}
+            onChange={(e) => setRegisterNumber(e.target.value)}
+            required
+          />
+        </div>
 
-        <div className="text-center mt-4">
-          <button
-            type="submit"
-            className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-            disabled={isLoading}
-          >
-            {/* Submit */}
-            {isLoading ? "Submitting..." : "Submit"}
+        <div className="text-center">
+          <button type="submit" className="form-button" disabled={isLoading}>
+            {isLoading ? 'Submitting...' : 'Submit'}
           </button>
         </div>
       </form>
     </div>
-    <div className="bg-white rounded-lg p-6 shadow-lg border border-gray-300">
-        <h2 className="text-xl font-semibold text-center mb-6">
-          Registered Students
-        </h2>
-        
-        {isLoading ? (
-          <div className="flex justify-center items-center py-8">
-            <div className="h-12 w-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          </div>
-        ) : students.length === 0 ? (
-          <div className="text-center py-8 text-gray-500 bg-gray-50 rounded-lg">
-            <svg className="w-12 h-12 mx-auto text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-            </svg>
-            <p className="mt-2">No students found. Add your first student above.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300">
-              <thead>
-                <tr className="bg-gray-100">
-                  <th className="border p-2 text-left">S.no</th>
-                  <th className="border p-2 text-left">Register Number</th>
-                  <th className="border p-2 text-left">Action</th>
+
+    <div className="w-full max-w-2xl">
+      <h2 className="section-title text-center">Registered Students</h2>
+
+      {students.length === 0 ? (
+        <div className="no-data">
+          <p>No students found. Add your first student above.</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="students-table">
+            <thead>
+              <tr>
+                <th>S.no</th>
+                <th>Register Number</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {students.map((register, index) => (
+                <tr key={index}>
+                  <td>{index + 1}</td>
+                  <td>{register}</td>
+                  <td className="text-center">
+                    <button
+                      onClick={() => handleDelete(register)}
+                      className="delete-button"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {students.map((register, index) => (
-                  <tr key={index} className={index % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                    <td className="border p-2">{index + 1}</td>
-                    <td className="border p-2 font-medium">{register}</td>
-                    <td className="border p-2 text-center">
-                      <button
-                        onClick={() => handleDelete(register)}
-                        className="text-red-500 hover:text-red-700" style={{cursor:'pointer'}}
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+
+    {/* Notification Modal */}
+    {notification && (
+      <div className={`notification-modal notification-${notification.type}`}>
+        <div className="notification-title">{notification.title}</div>
+        <div className="notification-message">{notification.message}</div>
       </div>
+    )}
   </div>
   )
 }

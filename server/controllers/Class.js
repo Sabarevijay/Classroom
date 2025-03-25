@@ -111,6 +111,156 @@ const getStudentsClasses =async(req,res)=>{
         });
     }
 }
+const archiveClass = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const classToArchive = await ClassModel.findById(id);
+        if (!classToArchive) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        classToArchive.isArchived = true;
+        await classToArchive.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Class archived successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+const unarchiveClass = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const classToUnarchive = await ClassModel.findById(id);
+        if (!classToUnarchive) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        classToUnarchive.isArchived = false;
+        await classToUnarchive.save();
+
+        return res.status(200).json({
+            success: true,
+            message: "Class unarchived successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+const getArchivedClasses = async (req, res) => {
+    try {
+        const archivedClasses = await ClassModel.find({ isArchived: true });
+        if (!archivedClasses || archivedClasses.length === 0) {
+            return res.status(404).json({
+                success: false,
+                message: "No archived classes found"
+            });
+        }
+        return res.status(200).json({
+            success: true,
+            message: "Archived classes retrieved successfully",
+            archivedClasses
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+const editClass = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { ClassName } = req.body;
+
+        if (!ClassName) {
+            return res.status(400).json({
+                success: false,
+                message: "Class name is required"
+            });
+        }
+
+        const updatedClass = await ClassModel.findByIdAndUpdate(
+            id,
+            { ClassName },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedClass) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+        
+
+        return res.status(200).json({
+            success: true,
+            message: "Class updated successfully",
+            class: updatedClass
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
+const deleteClass = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const classToDelete = await ClassModel.findById(id);
+        if (!classToDelete) {
+            return res.status(404).json({
+                success: false,
+                message: "Class not found"
+            });
+        }
+
+        await ClassModel.findByIdAndDelete(id);
+
+        await StudentsModel.updateMany(
+            { ClassId: id },
+            { $pull: { ClassId: id } }
+        );
+
+        return res.status(200).json({
+            success: true,
+            message: "Class deleted successfully"
+        });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({
+            success: false,
+            message: "Internal server error"
+        });
+    }
+};
 
 
-export {CreateClass,getClasses,getClassById,getStudentsClasses}
+export { CreateClass, getClasses, getClassById, getStudentsClasses, archiveClass, editClass, deleteClass, unarchiveClass, getArchivedClasses };

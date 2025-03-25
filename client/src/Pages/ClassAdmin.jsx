@@ -5,10 +5,314 @@ import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 // import axios from 'axios';
 
+const styles = `
+  /* Page Background */
+  .page-container {
+    background-color: #d3d8e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 130px 20px 20px;
+    position: relative;
+  }
+
+  /* Headings */
+  .class-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #6b48ff;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Form Styles */
+  .form-container {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .form-label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-select {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-select:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .form-button {
+    padding: 0.75rem 1.5rem;
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .form-button:hover {
+    background-color: #5a3de6;
+    cursor: pointer;
+    transform: scale(1.02);
+  }
+
+  /* Add Students Button */
+  .add-students-button {
+    color: #6b48ff;
+    transition: transform 0.2s;
+  }
+
+  .add-students-button:hover {
+    transform: scale(1.15);
+    cursor: pointer;
+  }
+
+  /* Button Row */
+  .button-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 1.5rem; /* Increased spacing between dropdown and buttons */
+  }
+
+  /* Space for OTP Card */
+  .otp-card-space {
+    min-height: 150px; /* Reserve space for the OTP card */
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  /* Search and Filter Styles */
+  .table-controls {
+    width: 100%;
+    max-width: 600px;
+    margin-bottom: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .search-input {
+    width: 200px; /* Reduced width for a minimal look */
+    padding: 0.5rem 0.75rem; /* Smaller padding for a compact design */
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.9rem; /* Smaller font size */
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .search-input:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .search-input::placeholder {
+    color: #999; /* Lighter placeholder text */
+    font-style: italic;
+  }
+
+  .filter-select {
+    width: 120px; /* Reduced width for a minimal look */
+    padding: 0.5rem 0.75rem; /* Smaller padding */
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.9rem; /* Smaller font size */
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .filter-select:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  /* Table Styles */
+  .attendance-table {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .attendance-table thead {
+    background-color: #1a2526;
+    color: #fff;
+  }
+
+  .attendance-table th {
+    padding: 16px 20px; /* Increased padding for better spacing */
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    line-height: 1.5; /* Better vertical alignment */
+  }
+
+  .attendance-table th.sortable {
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .attendance-table th.sortable:hover {
+    background-color: #2a3b3c;
+  }
+
+  .attendance-table th.sortable::after {
+    content: '↕';
+    margin-left: 0.5rem;
+    font-size: 12px;
+  }
+
+  .attendance-table tbody tr:nth-child(odd) {
+    background-color: #f1f7ff;
+  }
+
+  .attendance-table tbody tr:nth-child(even) {
+    background-color: #fff;
+  }
+
+  .attendance-table td {
+    padding: 16px 20px; /* Increased padding for better spacing */
+    font-size: 14px;
+    color: #333;
+    line-height: 1.5; /* Better vertical alignment */
+  }
+
+  /* Success Card */
+  .success-card {
+    position: absolute;
+    top: 400px; /* Position it above the table */
+    background-color: #fff; /* White background */
+    color: #000; /* Black text for readability */
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 0 15px 5px rgba(107, 72, 255, 0.3), /* Purple blur */
+              0 0 15px 5px rgba(0, 122, 255, 0.3); /* Blue blur */
+    text-align: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .success-card.boom {
+    animation: boom 0.5s ease-in-out forwards;
+  }
+
+  .otp-value {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #28a745; /* Green OTP */
+    margin-bottom: 0.5rem;
+  }
+
+  .timer-text {
+    font-size: 1rem;
+    font-weight: 400;
+    color: #333; /* Darker text for readability */
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes boom {
+    0% {
+      transform: scale(1);
+      opacity: 1;
+    }
+    50% {
+      transform: scale(1.2);
+      opacity: 0.8;
+    }
+    100% {
+      transform: scale(0);
+      opacity: 0;
+    }
+  }
+
+  /* No Data Message */
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-top: 2rem;
+  }
+
+  /* Loading Spinner */
+  .spinner {
+    width: 4rem;
+    height: 4rem;
+    border: 4px solid #6b48ff;
+    border-top: 4px solid transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+`;
+
 const ClassAdmin = () => {
   const { id } = useParams();
-  const [isModalOpen,setIsModalOpen]=useState(false)
-  const [registerNumber,setRegisterNumber]=useState("")
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -16,17 +320,14 @@ const ClassAdmin = () => {
   const [timeLeft, setTimeLeft] = useState(20);
   const [attendance, setAttendance] = useState([]);
   const [hour,setHour]=useState("");
+  const [showSuccessCard, setShowSuccessCard] = useState(false); // State for success card
+  const [searchTerm, setSearchTerm] = useState(''); // State for search term
+  const [sortOrder, setSortOrder] = useState('asc'); // State for sorting order
+  const [hourFilter, setHourFilter] = useState(''); // State for hour filter
   const navigate =useNavigate()
   
   
 
-  // const openModal=()=>{
-  //   setIsModalOpen(true)
-  // }
-  // const closeModal=()=>{
-  //   setIsModalOpen(false)
-  //   setRegisterNumber("")
-  // }
 
   const addStudentsRedirect=()=>{
      navigate(`/admin/classadmin/${id}/addStudents`)
@@ -34,49 +335,28 @@ const ClassAdmin = () => {
 
 
   const generateOTP = async () => {
-    if (!hour) {
+    if (!hour || hour === "-- Select Hour --") {
       toast.error("Please select an hour before generating OTP.");
       return;
     }
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
     setTimeLeft(20);
+    setShowSuccessCard(true); 
     try {
       await post('/otp/generate', { otp: newOtp, classId: id, hour });
       toast.success("OTP generated successfully!");
-      setHour("--Select Hour--")
+      setHour("")
     } catch (error) {
       console.error("Failed to generate OTP:", error);
       toast.error("Failed to generate OTP. Please try again.");
+      setShowSuccessCard(false);
     }
   
   };
   
 
-  // const handleSubmit=async(e)=>{
-  //   e.preventDefault()
-  //  try {
-  //   setIsLoading(true)
-  //   const response = await addstudentsPost('/students/addstudents', { Register:registerNumber, classId: id  });
-  //   // console.log('Students added:', response.data);
-  //   setRegisterNumber("")
-  //   closeModal()
-  //   toast.success("Student Added successfully ")
-  //  } catch (error) {
-  //   // console.log(error)
-  //   if (error.response.status === 409) {
-  //     toast.error(error.response.data.message); 
-      
-  //   } else {
-  //     toast.error("An unexpected error occurred");
-  //   }
-  //  }
-  //  finally{
-  //   setIsLoading(false)
-  // }
-
-
-  // }
+ 
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -99,16 +379,7 @@ const ClassAdmin = () => {
 
   
   }, [id]);
-  // const fetchAttendanceData = async () => {
-  //   try {
-  //     const response = await get('/attendance/getattendance');
-  //     // console.log("Attendance response:", response.data); 
-  //     const userAttendance = response.data.attendance.filter(record =>  record.classId === id);
-  //     setAttendance(userAttendance);
-  //   } catch (error) {
-  //     console.error("Failed to fetch attendance data:", error);
-  //   }
-  // };
+
 
   const fetchAttendanceData = async () => {
     try {
@@ -135,14 +406,37 @@ const ClassAdmin = () => {
       
     } else if (timeLeft === 0) {
       setOtp('');
+      setShowSuccessCard(false);
       fetchAttendanceData();
     }
   }, [timeLeft, otp]);
 
+  const filteredAndSortedAttendance = attendance
+  .filter((record) => {
+    // Filter by search term (register number)
+    const matchesSearch = record.user.toLowerCase().includes(searchTerm.toLowerCase());
+    // Filter by hour
+    const matchesHour = hourFilter ? record.hour === hourFilter : true;
+    return matchesSearch && matchesHour;
+  })
+  .sort((a, b) => {
+    // Sort by register number
+    if (sortOrder === 'asc') {
+      return a.user.localeCompare(b.user);
+    } else {
+      return b.user.localeCompare(a.user);
+    }
+  });
+
+// Toggle sort order
+const toggleSortOrder = () => {
+  setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+};
+
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="h-16 w-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+     <div className="flex justify-center items-center min-h-screen">
+        <div className="spinner"></div>
       </div>
     );
   }
@@ -152,107 +446,22 @@ const ClassAdmin = () => {
   }
 
   return (
-    <div className="p-8 bg-gradient-to-br from-gray-100 to-gray-300 min-h-screen flex flex-col items-center">
-      <h2 className="text-4xl font-extrabold mb-8 text-blue-700" style={{marginTop:'130px'}}>{classData ? classData.ClassName : 'No class data available'}</h2>
-          <div>
-            <button className=" text-black  w-10 h-10 flex items-center justify-center absolute right-35 transform transition-transform hover:scale-115" style={{cursor:'pointer'}}
-            onClick={addStudentsRedirect}
-            >
-              <UserPlus size={54} />
-            </button>
-          </div>
+    <div className="page-container">
+    {/* Inject the CSS styles */}
+    <style>{styles}</style>
 
-          {/* {isModalOpen && (
-        <div className="absolute inset-0 flex items-center justify-center z-50 top-25 ">
-          <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg border border-gray-300 relative ">
-            
-            <button 
-              className="absolute right-4 top-4 text-black" 
-              style={{cursor:'pointer'}}
-              onClick={closeModal}
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="24" 
-                height="24" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round"
-              >
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="15" y1="9" x2="9" y2="15"></line>
-                <line x1="9" y1="9" x2="15" y2="15"></line>
-              </svg>
-            </button>
+    <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
 
-            <h2 className="text-xl font-semibold mb-6 text-center ">
-              Enter the Students register number:
-            </h2>
-
-            <form onSubmit={handleSubmit} >
-              <input
-                type="text"
-                placeholder="register number"
-                className="w-100 pr-3 border border-gray-300 rounded mb-4 text-gray-400"
-                value={registerNumber}
-                onChange={(e) => setRegisterNumber(e.target.value)}
-                required
-              />
-
-              <div className="text-center mt-4">
-                <button
-                  type="submit"
-                  className="bg-blue-500 text-white px-6 py-2 rounded hover:bg-blue-600"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )} */}
-
-      {/* <div className="w-full max-w-lg mb-6">
-        <label className="block font-semibold mb-2 text-lg">Select Date:</label>
-        <input type="date" className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
-      </div> */}
-
-      {/* <div className="w-full max-w-lg mb-6">
-        <label className="block font-semibold mb-2 text-lg">Select Time:</label>
-        <select className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option value="08:00">I Hour</option>
-          <option value="09:00">II Hour</option>
-          <option value="10:00">III Hour</option>
-          <option value="11:00">IV Hour</option>
-          <option value="12:00">V Hour</option>
-          <option value="13:00">VI Hour</option>
-          <option value="14:00">VII Hour</option>
-        </select>
-      </div>
-
-      <div className="w-full max-w-lg flex gap-4 mb-8">
-       
-        <button className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg" onClick={generateOTP} >Generate OTP</button>
-        {otp && (
-      <div className="mt-4 text-lg font-medium text-gray-800">
-        Current OTP: <span className="text-blue-600">{otp}</span> (Expires in {timeLeft}s)
-      </div>
-    )}
-      </div> */}
-
-<form className="w-full max-w-lg mb-8 p-6 border border-gray-300 rounded-lg shadow-md">
+    <form className="form-container">
       {/* Select Time */}
       <div className="mb-6">
-        <label className="block font-semibold mb-2 text-lg">Select Time:</label>
+        <label className="form-label">Select Time:</label>
         <select
-          className="w-full p-3 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="form-select"
           value={hour}
           onChange={(e) => setHour(e.target.value)}
         >
-           <option value="">-- Select Hour --</option>
+          <option value="">-- Select Hour --</option>
           <option value="I Hour">I Hour</option>
           <option value="II Hour">II Hour</option>
           <option value="III Hour">III Hour</option>
@@ -263,43 +472,81 @@ const ClassAdmin = () => {
         </select>
       </div>
 
-      {/* OTP Generation Button & Display */}
-      <div className="flex gap-4 items-center">
-        <button
-        type='button'
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition shadow-lg"
-          onClick={generateOTP}
-        >
+      {/* Button Row: Generate OTP and Add Students */}
+      <div className="button-row">
+        <button type="button" className="form-button" onClick={generateOTP}>
           Generate OTP
         </button>
-
-        {otp && (
-          <div className="text-lg font-medium text-gray-800">
-            Current OTP: <span className="text-blue-600">{otp}</span> (Expires in
-            {timeLeft}s)
-          </div>
-        )}
+        <button className="add-students-button" onClick={addStudentsRedirect}>
+          <UserPlus size={32} />
+        </button>
       </div>
     </form>
 
-      
-
-{attendance.length > 0 ?(
-        <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl mt-8">
-          <h3 className="text-xl font-bold mb-4 text-blue-700">Attendance Details</h3>
-          <ul className="list-none p-0">
-            {attendance.map((record) => (
-              <li key={record._id} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
-                <span className="font-medium text-blue-700">{record.user}</span>
-                <span className="text-lg font-semibold">Status: {record.status}</span>
-                <span className="italic text-gray-600">{record.hour}</span>
-              </li>
-            ))}
-          </ul>
+    {/* Space for OTP Card */}
+    <div className="otp-card-space">
+      {showSuccessCard && otp && (
+        <div className={`success-card ${timeLeft === 0 ? 'boom' : ''}`}>
+          <div className="otp-value">{otp}</div>
+          <div className="timer-text">Expires in {timeLeft}s</div>
         </div>
-      ): (
-        <div className="text-center text-gray-600 text-lg mt-8">No attendance data found</div>)}
+      )}
     </div>
+
+    {attendance.length > 0 ? (
+      <div className="w-full max-w-2xl mt-8">
+        <h3 className="section-title">Attendance Details</h3>
+
+        {/* Table Controls: Search and Filter */}
+        <div className="table-controls">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Search by Register Number"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+          <select
+            className="filter-select"
+            value={hourFilter}
+            onChange={(e) => setHourFilter(e.target.value)}
+          >
+            <option value="">All Hours</option>
+            <option value="I Hour">I Hour</option>
+            <option value="II Hour">II Hour</option>
+            <option value="III Hour">III Hour</option>
+            <option value="IV Hour">IV Hour</option>
+            <option value="V Hour">V Hour</option>
+            <option value="VI Hour">VI Hour</option>
+            <option value="VII Hour">VII Hour</option>
+          </select>
+        </div>
+
+        <table className="attendance-table">
+          <thead>
+            <tr>
+              <th className="sortable" onClick={toggleSortOrder}>
+                Register Number {sortOrder === 'asc' ? '↑' : '↓'}
+              </th>
+              <th>Status</th>
+              <th>Hour</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filteredAndSortedAttendance.map((record) => (
+              <tr key={record._id}>
+                <td>{record.user}</td>
+                <td>{record.status}</td>
+                <td>{record.hour}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <div className="no-data">No attendance data found</div>
+    )}
+  </div>
   );
 };
 

@@ -3,6 +3,250 @@ import { classGet, get, getUser, post } from '../services/Endpoint';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 
+const styles = `
+  /* Page Background */
+  .page-container {
+    background-color: #d3d8e0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 130px 20px 20px;
+  }
+
+  /* Headings */
+  .class-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #6b48ff;
+    margin-bottom: 1rem;
+  }
+
+  .section-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+    margin-bottom: 1.5rem;
+  }
+
+  /* Register Number */
+  .register-number {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #6b48ff;
+    margin-bottom: 1.5rem;
+  }
+
+  .loading-text {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: #6b48ff;
+    display: flex;
+    align-items: center;
+  }
+
+  .loading-dot {
+    width: 1rem;
+    height: 1rem;
+    background-color: #6b48ff;
+    border-radius: 50%;
+    margin: 0 0.25rem;
+    animation: bounce 0.6s infinite;
+  }
+
+  .loading-dot:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+
+  .loading-dot:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+
+  @keyframes bounce {
+    0%, 100% {
+      transform: translateY(0);
+    }
+    50% {
+      transform: translateY(-0.5rem);
+    }
+  }
+
+  /* Form Styles */
+  .form-container {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 2rem;
+  }
+
+  .form-label {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: 0.5rem;
+  }
+
+  .form-select,
+  .form-input {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .form-select:focus,
+  .form-input:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .form-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .form-button:hover {
+    background-color: #5a3de6;
+    cursor: pointer; /* Ensure cursor is pointer on hover */
+  }
+
+  /* Button Row */
+  .button-row {
+    margin-top: 1.5rem; /* Match the spacing from ClassAdmin */
+  }
+
+  /* Status Message */
+  .status-message {
+    margin-top: 1rem;
+    font-size: 1.1rem;
+    font-weight: 500;
+  }
+
+  .status-present {
+    color: #28a745;
+  }
+
+  .status-error {
+    color: #dc3545;
+  }
+
+  /* Table Styles */
+  .attendance-table {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    border-collapse: collapse;
+    background-color: #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .attendance-table thead {
+    background-color: #1a2526;
+    color: #fff;
+  }
+
+  .attendance-table th {
+    padding: 12px 16px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+  }
+
+  .attendance-table tbody tr:nth-child(odd) {
+    background-color: #f1f7ff;
+  }
+
+  .attendance-table tbody tr:nth-child(even) {
+    background-color: #fff;
+  }
+
+  .attendance-table td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #333;
+  }
+
+  /* Success Modal */
+  .success-modal {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #2d3748;
+    color: #fff;
+    padding: 2rem;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    text-align: center;
+    z-index: 1000;
+    animation: fadeIn 0.3s ease-in-out;
+  }
+
+  .success-checkmark {
+    font-size: 3rem;
+    color: #28a745;
+    margin-bottom: 1rem;
+    animation: scaleIn 0.5s ease-in-out;
+  }
+
+  .success-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+
+  .success-message {
+    font-size: 1rem;
+    font-weight: 400;
+  }
+
+  /* Animations */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -60%);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, -50%);
+    }
+  }
+
+  @keyframes scaleIn {
+    from {
+      transform: scale(0);
+    }
+    to {
+      transform: scale(1);
+    }
+  }
+
+  /* No Data Message */
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-top: 2rem;
+  }
+`;
+
 
 
 const ClassStudents = () => {
@@ -10,15 +254,16 @@ const ClassStudents = () => {
   const [submittedOtp, setSubmittedOtp] = useState('');
   const [status, setStatus] = useState('absent');
   const [registerNumber, setRegisterNumber] = useState('');
-  // const [isLoading, setIsLoading] = useState(true)
   const [attendance, setAttendance] = useState([]);
   const [classData, setClassData] = useState(null);
-  const [hour,setHour]=useState("")
+  const [hour,setHour]=useState("");
+  const [showSuccess, setShowSuccess] = useState(false);
   
 
   const submitOTP = async () => {
-    if (!submittedOtp || !hour) {
-      setStatus('Please enter an OTP and select an hour ');
+    if (!submittedOtp ) {
+      toast.error('Please enter an OTP');
+      // setStatus('Please enter an OTP and select an hour ');
       return;
   }
 
@@ -30,21 +275,24 @@ const ClassStudents = () => {
   const alreadyMarked = attendance.some(record => record.hour === hour);
   if (alreadyMarked) {
     toast.error(`Attendance for ${hour} is already marked.`);
-    setHour("--Select Hour--")
+    setHour("")
     setSubmittedOtp("")
     return;
   }
-  // console.log("Submitted OTP:", submittedOtp); 
 
     try {
      
-      const response = await post('/otp/submit', { otp: submittedOtp ,user: registerNumber, classId: classData._id ,hour :hour });
+      const response = await post('/otp/submit', { otp: submittedOtp ,user: registerNumber, classId: classData._id  });
       // console.log("Response from server:", response.data);
 
       
       setStatus(response.data.status);
-      setHour("--Select Hour--")
+      setHour("")
       setSubmittedOtp("")
+      if (response.data.status === 'present') {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 2000); // Hide after 2 seconds
+      }
       fetchAttendance(registerNumber,classData._id);     
       
     
@@ -54,6 +302,10 @@ const ClassStudents = () => {
         toast.error(error.response.data.message); 
         
       }
+      else if(error.response.status === 403){
+        setSubmittedOtp("")
+        toast.error(error.response.data.message); 
+      }
       else if(error.response.status === 402){
         setSubmittedOtp("")
         toast.error(error.response.data.message); 
@@ -62,28 +314,20 @@ const ClassStudents = () => {
       else {
         toast.error("An unexpected error occurred");
       }
-      // console.log('Error submitting OTP',error)
-      setStatus('Error submitting OTP');
+ 
+      setStatus('Invalid OTP');
     }
   };
 
-  // const fetchAttendance = async (registerNumber,classId) => {
-  //   try {
-  //     const response = await get('/attendance/getattendance');
-  //     const userAttendance = response.data.attendance.filter(record => record.user === registerNumber&& record.classId === classId);
-  //     setAttendance(userAttendance);
-  //   } catch (error) {
-  //     console.error("Failed to fetch attendance data:", error);
-  //   }
-  // };
+ 
   const fetchAttendance = async (registerNumber, classId) => {
     try {
       const response = await get('/attendance/getattendance');
   
-      const today = new Date().toISOString().split('T')[0]; // Get today's date in YYYY-MM-DD format
+      const today = new Date().toISOString().split('T')[0]; 
   
       const userAttendance = response.data.attendance.filter(record => {
-        const recordDate = new Date(record.createdAt).toISOString().split('T')[0]; // Convert createdAt to YYYY-MM-DD
+        const recordDate = new Date(record.createdAt).toISOString().split('T')[0]; 
         return record.user === registerNumber && record.classId === classId && recordDate === today;
       });
   
@@ -135,67 +379,40 @@ const ClassStudents = () => {
   
 
   return (
-    <div className="p-5 bg-gray-300 min-h-screen flex flex-col items-center" style={{paddingTop:'130px'}}>
-      <h2 className="text-4xl font-extrabold mb-8 text-blue-700" >{classData ? classData.ClassName : 'No class data available'}</h2>
-    <h2 className="text-2xl font-bold mb-5">Student Attendance</h2>
+    <div className="page-container">
+      <style>{styles}</style>
+      <h2 className="class-name" >{classData ? classData.ClassName : 'No class data available'}</h2>
+    <h2 className="section-title">Student Attendance</h2>
     
     
     {registerNumber ? (
-  <div className="text-xl font-medium mb-5 text-blue-700">
+  <div className="register-number">
     Register Number: {registerNumber}
   </div>
 ) : (
-  <div className="text-xl font-medium mb-5 text-yellow-600 flex items-center">
-    <span>Loading register number .</span>
-    
-    <span className="ml-1 flex">
-      <span className="h-4 w-4 bg-yellow-600 rounded-full mx-0.5 animate-bounce" 
-            style={{animationDelay: "0ms"}}></span>
-      <span className="h-4 w-4 bg-yellow-600 rounded-full mx-0.5 animate-bounce" 
-            style={{animationDelay: "150ms"}}></span>
-      <span className="h-4 w-4 bg-yellow-600 rounded-full mx-0.5 animate-bounce" 
-            style={{animationDelay: "300ms"}}></span>
-    </span>
-  </div>
+  <div className="loading-text">
+          <span>Loading register number</span>
+          <span className="loading-dot"></span>
+          <span className="loading-dot"></span>
+          <span className="loading-dot"></span>
+        </div>
 )}
 
-    {/* <div className="w-full max-w-sm mb-4">
-      <label className="block font-semibold mb-1">Select Date:</label>
-      <input type="date" className="w-full p-2 border border-gray-400 rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      
-      />
-    </div> */}
+    
     <form 
-  className="w-full max-w-sm mb-6"
+  className="form-container"
   onSubmit={(e) => {
-    e.preventDefault();  // Prevent page reload
+    e.preventDefault(); 
     submitOTP();
   }}
 >
-  <div className="mb-6">
-    <label className="block font-semibold mb-2 text-lg">Select Time:</label>
-    <select 
-      className="w-full p-2 border border-gray-400 rounded-lg text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      value={hour}
-      onChange={(e) => setHour(e.target.value)}
-      required
-    >
-      <option value="">-- Select Hour --</option>
-      <option value="I Hour">I Hour</option>
-      <option value="II Hour">II Hour</option>
-      <option value="III Hour">III Hour</option>
-      <option value="IV Hour">IV Hour</option>
-      <option value="V Hour">V Hour</option>
-      <option value="VI Hour">VI Hour</option>
-      <option value="VII Hour">VII Hour</option>
-    </select>
-  </div>
+  
 
-  <div className="mb-4">
-    <label className="block font-semibold mb-1">Enter OTP:</label>
+  <div className="mb-6">
+    <label className="form-label">Enter OTP:</label>
     <input 
       type="text" 
-      className="w-full p-2 border border-gray-400 rounded-md text-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+      className="form-input"
       value={submittedOtp}
       onChange={(e) => setSubmittedOtp(e.target.value)}
       placeholder="Enter OTP"
@@ -205,33 +422,53 @@ const ClassStudents = () => {
 
   <button 
     type="submit" 
-    className="bg-blue-600 text-white px-5 py-2 rounded-md hover:bg-blue-700 transition"
+    className="form-button"
   >
     Submit OTP
   </button>
 </form>
 
     {status && (
-        <div className={`mt-4 text-lg font-medium ${status === 'present' ? 'text-green-600' : 'text-red-600'}`}>
-          Status: {status} 
-        </div>
+         <div
+         className={`status-message ${
+           status === 'present' ? 'status-present' : 'status-error'
+         }`}
+       >
+         Status: {status}
+       </div>
       )}
 
 {attendance.length > 0 ?(
-        <div className="w-full max-w-2xl bg-white p-6 rounded-2xl shadow-xl mt-8">
-          <h3 className="text-xl font-bold mb-4 text-blue-700">Attendance Details</h3>
-          <ul className="list-none p-0">
+        <div className="w-full max-w-2xl mt-8">
+        <h3 className="section-title">Attendance Details</h3>
+        <table className="attendance-table">
+          <thead>
+            <tr>
+              <th>Status</th>
+              <th>Hour</th>
+            </tr>
+          </thead>
+          <tbody>
             {attendance.map((record) => (
-              <li key={record._id} className="bg-blue-100 p-4 rounded-lg mb-3 flex justify-between items-center shadow-sm">
-                <span className="font-medium text-blue-700">{record.user}</span>
-                <span className="text-lg font-semibold">Status: {record.status}</span>
-                <span className="italic text-gray-600">{record.hour}</span>
-              </li>
+              <tr key={record._id}>
+                <td>{record.status}</td>
+                <td>{record.hour}</td>
+              </tr>
             ))}
-          </ul>
-        </div>
+          </tbody>
+        </table>
+      </div>
       ): (
-        <div className="text-center text-gray-600 text-lg mt-8">No attendance data found</div>)}
+        <div className="no-data">No attendance data found</div>
+        )}
+
+{showSuccess && (
+        <div className="success-modal">
+          <div className="success-checkmark">✔</div>
+          <div className="success-title">Success!</div>
+          <div className="success-message">Attendance marked successfully.</div>
+        </div>
+      )}
   </div>
   )
 }
