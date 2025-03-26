@@ -149,7 +149,7 @@ const Sidebar = () => {
           </div>
           <div
             className={`nav-item ${window.location.pathname === "/archived" ? "active" : ""}`}
-            onClick={() => navigate("/archived")}
+            onClick={() => navigate("/admin/archived")}
           >
             <Archive size={30} className="nav-icon" />
             <span className="nav-text">Archived Class</span>

@@ -10,6 +10,7 @@ import ClassAdmin from './Pages/ClassAdmin'
 import ProtectedRoute from './Components/ProtectedRoute'
 import AdminLayout from './Layout/AdminLayout'
 import Addstudents from './Components/Addstudents'
+import ArchivedClass from './Pages/ArchivedClass'
 
 const App = () => {
   return (
@@ -72,6 +73,12 @@ const App = () => {
             </ProtectedRoute>
           }
         >
+         <Route path='archived' element={ 
+          <ProtectedRoute allowedRoles={['admin']}>
+                <ArchivedClass />
+              </ProtectedRoute>}
+               /> 
+
           <Route
             path='classadmin/:id'
             element={
