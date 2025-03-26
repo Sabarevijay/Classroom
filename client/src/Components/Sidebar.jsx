@@ -1,8 +1,11 @@
-import React, { useState } from "react";
-import { Home, Archive, AlignJustify } from "lucide-react";
+// src/Components/Sidebar.jsx
+import React, { useState } from 'react';
+import { Home, Archive, AlignJustify } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useRef } from 'react';
+import { useSelector } from 'react-redux'; // Import useSelector to access user role
 
-// Inline CSS for the Sidebar
+// Inline CSS for the Sidebar (unchanged)
 const styles = `
   /* Sidebar */
   .sidebar {
@@ -116,6 +119,9 @@ const styles = `
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const userMenuRef = useRef();
+  const user = useSelector((state) => state.auth.user); // Get user from Redux state
+  const userRole = user?.role; // Define userRole
 
   return (
     <>
@@ -147,13 +153,15 @@ const Sidebar = () => {
             <Home size={30} className="nav-icon" />
             <span className="nav-text">Home</span>
           </div>
-          <div
-            className={`nav-item ${window.location.pathname === "/archived" ? "active" : ""}`}
-            onClick={() => navigate("/admin/archived")}
-          >
-            <Archive size={30} className="nav-icon" />
-            <span className="nav-text">Archived Class</span>
-          </div>
+          {userRole === 'admin' && (
+            <div
+              className={`nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
+              onClick={() => navigate('/admin/archived')}
+            >
+              <Archive size={30} className="nav-icon" />
+              <span className="nav-text">Archived Class</span>
+            </div>
+          )}
         </nav>
       </div>
     </>

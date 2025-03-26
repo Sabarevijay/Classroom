@@ -11,6 +11,8 @@ import ProtectedRoute from './Components/ProtectedRoute'
 import AdminLayout from './Layout/AdminLayout'
 import Addstudents from './Components/Addstudents'
 import ArchivedClass from './Pages/ArchivedClass'
+import Classwork from './Pages/Classwork'
+import ClassworkUs from './Pages/ClassworkUs'
 
 const App = () => {
   return (
@@ -62,6 +64,7 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+           <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
         </Route>
 
          {/* Protect Admin Pages */}
@@ -88,6 +91,7 @@ const App = () => {
             }
           />
           <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
+          <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
         </Route>
 
 

@@ -3,11 +3,19 @@ import { addstudentsPost,  classGet,  deleteRequest,  get } from '../services/En
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Trash2 } from 'lucide-react';
+import SecondNav from './SecondNav';
 
 
 
 const styles = `
   /* Page Background */
+    .class-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #6b48ff;
+    margin-bottom: 0.2rem;
+  }
+
   .page-container {
     background-color: #d3d8e0;
     min-height: 100vh;
@@ -29,7 +37,7 @@ const styles = `
   /* Form Container */
   .form-container {
     width: 100%;
-    max-width: 400px;
+    max-width: 600px;
     margin-bottom: 2rem;
     padding: 1.5rem;
     background-color: #fff;
@@ -65,7 +73,8 @@ const styles = `
   }
 
   .form-button {
-    width: 100%;
+    width: 50%;
+    margin-top:20px;
     padding: 0.75rem;
     background-color: #6b48ff;
     color: #fff;
@@ -242,7 +251,7 @@ const Addstudents = () => {
     } catch (error) {
       // console.log("Error fetching students",error)
       // toast.error("Failed to fetch students");
-      showNotification('Error', 'Failed to fetch students', 'error');
+      // showNotification('Error', 'Failed to fetch students', 'error');
     } finally{
       setIsLoading(false)
     }
@@ -338,16 +347,17 @@ useEffect(() => {
     <div className="page-container">
     {/* Inject the CSS styles */}
     <style>{styles}</style>
-
+    <SecondNav classId={id} />
+    <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
     <div className="form-container">
-      <h2 className="section-title text-center">Enter the Student's Register Number:</h2>
+      {/* <h2 className="section-title text-center">Add via Register Number:</h2> */}
 
       <form onSubmit={handleSubmit}>
         <div className="mb-4">
-          <label className="form-label">Register Number:</label>
+          {/* <label className="form-label">Register Number:</label> */}
           <input
             type="text"
-            placeholder="Register number"
+            placeholder="Enter Register number"
             className="form-input"
             value={registerNumber}
             onChange={(e) => setRegisterNumber(e.target.value)}
@@ -357,7 +367,7 @@ useEffect(() => {
 
         <div className="text-center">
           <button type="submit" className="form-button" disabled={isLoading}>
-            {isLoading ? 'Submitting...' : 'Submit'}
+            {isLoading ? 'Adding...' : 'Add'}
           </button>
         </div>
       </form>

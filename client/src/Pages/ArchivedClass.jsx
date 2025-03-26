@@ -1,5 +1,6 @@
+// src/pages/Archived.jsx
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useOutletContext } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
@@ -16,7 +17,9 @@ const styles = `
   .archived-page {
     min-height: 100vh;
     background-color: #f5f5f5 !important;
-    padding: 2rem;
+    flex: 1;
+    padding-top: 70px; /* Match navbar height */
+    padding-left: 80px; /* Match sidebar collapsed width */
   }
 
   /* Grid for Cards */
@@ -24,6 +27,7 @@ const styles = `
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 2rem;
+    padding: 2rem;
     justify-items: center;
   }
 
@@ -38,11 +42,23 @@ const styles = `
     display: flex;
     flex-direction: column;
     justify-content: center;
-    align-items: center;
+    align-items: flex-start; /* Align items to the left */
     padding: 1rem;
     color: #fff;
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: pointer;
+    /* Diagonal white stripes */
+    background-image: linear-gradient(
+      45deg,
+      rgba(255, 255, 255, 0.2) 25%,
+      transparent 25%,
+      transparent 50%,
+      rgba(255, 255, 255, 0.2) 50%,
+      rgba(255, 255, 255, 0.2) 75%,
+      transparent 75%,
+      transparent
+    );
+    background-size: 20px 20px; /* Adjust stripe size */
   }
 
   .class-card:hover {
@@ -55,12 +71,13 @@ const styles = `
     font-weight: 700;
     line-height: 1;
     margin-bottom: 0.5rem;
+    text-align: left; /* Explicitly align text to the left */
   }
 
   .class-name {
     font-size: 1.25rem;
     font-weight: 600;
-    text-align: center;
+    text-align: left; /* Align text to the left */
   }
 
   /* Icons on Card */
@@ -184,12 +201,10 @@ const styles = `
   }
 `;
 
-
-
 const ArchivedClass = () => {
-
-    const navigate = useNavigate();
+  const navigate = useNavigate();
   const user = useSelector((state) => state.auth.user);
+  const { archivedClasses: contextArchivedClasses, getClass } = useOutletContext(); // Use context from AdminLayout
   const [archivedClasses, setArchivedClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
@@ -201,6 +216,10 @@ const ArchivedClass = () => {
     '#4CAF50', // Green
     '#FFCA28', // Yellow
     '#1E88E5', // Blue
+    '#009688', // Teal
+    '#795548', // Brown
+    '#FF9800', // Orange
+    '#3F51B5' // Indigo
   ];
 
   const fetchArchivedClasses = async () => {
@@ -213,20 +232,27 @@ const ArchivedClass = () => {
         return;
       }
 
-      const response = await classGet('/class/getarchived');
-      console.log('API Response from /class/getarchived:', response.data); // Debug log
-      if (response.data.success) {
-        const sortedClasses = response.data.archivedClasses.sort(
-          (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
-        );
-        setArchivedClasses(sortedClasses);
+      // Use context if available, otherwise fetch from API
+      if (contextArchivedClasses && contextArchivedClasses.length > 0) {
+        console.log('Using archived classes from context:', contextArchivedClasses); // Debug log
+        setArchivedClasses(contextArchivedClasses);
       } else {
-        setArchivedClasses([]);
-        toast.error(response.data.message || 'No archived classes found');
+        console.log('Fetching archived classes from API'); // Debug log
+        const response = await classGet('/class/getarchived');
+        console.log('API Response from /class/getarchived:', response.data); // Debug log
+        if (response.data.success) {
+          const sortedClasses = response.data.archivedClasses.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+          );
+          setArchivedClasses(sortedClasses);
+        } else {
+          setArchivedClasses([]);
+          toast.error(response.data.message || 'No archived classes found');
+        }
       }
     } catch (error) {
-      console.error('Error fetching archived classes:', error);
-      toast.error('Failed to fetch archived classes');
+      //console.error('Error fetching archived classes:', error);
+      //toast.error('Failed to fetch archived classes');
       setArchivedClasses([]);
     } finally {
       setIsLoading(false);
@@ -242,6 +268,10 @@ const ArchivedClass = () => {
       if (response.data.success) {
         setArchivedClasses(archivedClasses.filter((cls) => cls._id !== classToUnarchive._id));
         toast.success('Class unarchived successfully');
+        // Refresh the classes in AdminLayout to reflect the change
+        if (getClass) {
+          await getClass();
+        }
       } else {
         toast.error(response.data.message || 'Failed to unarchive class');
       }
@@ -272,7 +302,7 @@ const ArchivedClass = () => {
       return;
     }
     fetchArchivedClasses();
-  }, [user, navigate]);
+  }, [user, navigate, contextArchivedClasses]);
 
   if (isLoading) {
     return (
@@ -281,8 +311,9 @@ const ArchivedClass = () => {
       </div>
     );
   }
+
   return (
-     <>
+    <>
       <style>{styles}</style>
       <div className="archived-page">
         <div className="class-grid">
@@ -342,7 +373,7 @@ const ArchivedClass = () => {
         )}
       </div>
     </>
-  )
-}
+  );
+};
 
-export default ArchivedClass
+export default ArchivedClass;

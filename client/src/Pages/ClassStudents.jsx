@@ -2,6 +2,7 @@ import React, { useState , useEffect} from 'react'
 import { classGet, get, getUser, post } from '../services/Endpoint';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import SecondNavUs from '../Components/SecondNavUs';
 
 const styles = `
   /* Page Background */
@@ -12,6 +13,16 @@ const styles = `
     flex-direction: column;
     align-items: center;
     padding: 130px 20px 20px;
+  }
+    .form-container {
+    width: 100%;
+    max-width: 400px;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   }
 
   /* Headings */
@@ -381,11 +392,12 @@ const ClassStudents = () => {
   return (
     <div className="page-container">
       <style>{styles}</style>
+      <SecondNavUs classId={id} />
       <h2 className="class-name" >{classData ? classData.ClassName : 'No class data available'}</h2>
-    <h2 className="section-title">Student Attendance</h2>
+    {/* <h2 className="section-title">Student Attendance</h2> */}
     
     
-    {registerNumber ? (
+    {/* {registerNumber ? (
   <div className="register-number">
     Register Number: {registerNumber}
   </div>
@@ -396,7 +408,7 @@ const ClassStudents = () => {
           <span className="loading-dot"></span>
           <span className="loading-dot"></span>
         </div>
-)}
+)} */}
 
     
     <form 
@@ -409,7 +421,7 @@ const ClassStudents = () => {
   
 
   <div className="mb-6">
-    <label className="form-label">Enter OTP:</label>
+    {/* <label className="form-label">Enter OTP:</label> */}
     <input 
       type="text" 
       className="form-input"
