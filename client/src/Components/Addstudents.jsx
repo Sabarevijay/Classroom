@@ -305,8 +305,8 @@ const Addstudents = () => {
       }));
       setStudents(studentList);
     } catch (error) {
-      console.error('Error fetching students', error);
-      showNotification('Error', 'Failed to fetch students', 'error');
+      // console.error('Error fetching students', error);
+      // showNotification('Error', 'Failed to fetch students', 'error');
     } finally {
       setIsLoading(false);
     }
