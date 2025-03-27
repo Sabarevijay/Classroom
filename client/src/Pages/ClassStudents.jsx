@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { classGet, get, getUser, post } from '../services/Endpoint';
-import { useParams } from 'react-router-dom';
-import toast from 'react-hot-toast';
-import SecondNavUs from '../Components/SecondNavUs';
+import React, { useState, useEffect } from "react";
+import { classGet, get, getUser, post } from "../services/Endpoint";
+import { useParams } from "react-router-dom";
+import toast from "react-hot-toast";
+import SecondNavUs from "../Components/SecondNavUs";
 
 const styles = `
   /* Page Background */
@@ -306,72 +306,82 @@ const styles = `
 
 const ClassStudents = () => {
   const { id } = useParams();
-  const [submittedOtp, setSubmittedOtp] = useState('');
-  const [status, setStatus] = useState('absent');
-  const [registerNumber, setRegisterNumber] = useState('');
+  const [submittedOtp, setSubmittedOtp] = useState("");
+  const [status, setStatus] = useState("absent");
+  const [registerNumber, setRegisterNumber] = useState("");
   const [attendance, setAttendance] = useState([]);
   const [classData, setClassData] = useState(null);
-  const [hour, setHour] = useState('');
+  const [hour, setHour] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
 
   const submitOTP = async () => {
     if (!submittedOtp) {
-      toast.error('Please enter an OTP');
+      toast.error("Please enter an OTP");
       // setStatus('Please enter an OTP and select an hour ');
       return;
     }
 
     if (!classData) {
-      setStatus('Class data not available');
+      setStatus("Class data not available");
       return;
     }
 
-    const alreadyMarked = attendance.some(record => record.hour === hour);
+    const alreadyMarked = attendance.some((record) => record.hour === hour);
     if (alreadyMarked) {
       toast.error(`Attendance for ${hour} is already marked.`);
-      setHour('');
-      setSubmittedOtp('');
+      setHour("");
+      setSubmittedOtp("");
       return;
     }
 
     try {
-      const response = await post('/otp/submit', { otp: submittedOtp, user: registerNumber, classId: classData._id });
+      const response = await post("/otp/submit", {
+        otp: submittedOtp,
+        user: registerNumber,
+        classId: classData._id,
+      });
       setStatus(response.data.status);
-      setHour('');
-      setSubmittedOtp('');
-      if (response.data.status === 'present') {
+      setHour("");
+      setSubmittedOtp("");
+      if (response.data.status === "present") {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
       }
       fetchAttendance(registerNumber, classData._id);
     } catch (error) {
       if (error.response.status === 400) {
-        setSubmittedOtp('');
+        setSubmittedOtp("");
         toast.error(error.response.data.message);
       } else if (error.response.status === 403) {
-        setSubmittedOtp('');
+        setSubmittedOtp("");
         toast.error(error.response.data.message);
       } else if (error.response.status === 402) {
-        setSubmittedOtp('');
+        setSubmittedOtp("");
         toast.error(error.response.data.message);
       } else {
-        toast.error('An unexpected error occurred');
+        toast.error("An unexpected error occurred");
       }
-      setStatus('Invalid OTP');
+      setStatus("Invalid OTP");
     }
   };
 
   const fetchAttendance = async (registerNumber, classId) => {
     try {
-      const response = await get('/attendance/getattendance');
-      const today = new Date().toISOString().split('T')[0];
-      const userAttendance = response.data.attendance.filter(record => {
-        const recordDate = new Date(record.createdAt).toISOString().split('T')[0];
-        return record.user === registerNumber && record.classId === classId && recordDate === today;
+      const response = await get("/attendance/getattendance");
+      const today = new Date().toISOString().split("T")[0];
+      const userAttendance = response.data.attendance.filter((record) => {
+        const recordDate = new Date(record.createdAt)
+          .toISOString()
+          .split("T")[0];
+        return (
+          record.user === registerNumber &&
+          record.classId === classId &&
+          recordDate === today
+        );
       });
       setAttendance(userAttendance);
     } catch (error) {
-      console.error('Failed to fetch attendance data:', error);
+      console.error("Failed to fetch attendance data:", error);
     }
   };
 
@@ -380,7 +390,7 @@ const ClassStudents = () => {
       const classresponse = await classGet(`/class/getclass/${id}`);
       setClassData(classresponse.data.classData);
     } catch (error) {
-      console.error('Failed to fetch class data:', error);
+      console.error("Failed to fetch class data:", error);
     }
   };
 
@@ -391,7 +401,7 @@ const ClassStudents = () => {
         const userData = response.data.user;
         setRegisterNumber(userData.Register);
       } catch (error) {
-        console.error('Failed to fetch current user:', error);
+        console.error("Failed to fetch current user:", error);
       }
     };
 
@@ -409,12 +419,13 @@ const ClassStudents = () => {
     <div className="page-container">
       <style>{styles}</style>
 
-    
       <div className="card-container">
         <div className="second-nav">
           <SecondNavUs classId={id} />
         </div>
-        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
+        <h2 className="class-name">
+          {classData ? classData.ClassName : "No class data available"}
+        </h2>
         {/* <h2 className="section-title">Student Attendance</h2> */}
         {/* {registerNumber ? (
           <div className="register-number">
@@ -456,7 +467,7 @@ const ClassStudents = () => {
         {status && (
           <div
             className={`status-message ${
-              status === 'present' ? 'status-present' : 'status-error'
+              status === "present" ? "status-present" : "status-error"
             }`}
           >
             Status: {status}
@@ -468,14 +479,14 @@ const ClassStudents = () => {
             <h3 className="section-title">Attendance Details</h3>
             <table className="attendance-table">
               <thead>
-                <tr>                  
+                <tr>
                   <th>Hour</th>
                   <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {attendance.map((record) => (
-                  <tr key={record._id}>                   
+                  <tr key={record._id}>
                     <td>{record.hour}</td>
                     <td>{record.status}</td>
                   </tr>
@@ -488,7 +499,6 @@ const ClassStudents = () => {
         )}
       </div>
 
-      
       {showSuccess && (
         <div className="success-modal">
           <div className="success-checkmark">✔</div>
