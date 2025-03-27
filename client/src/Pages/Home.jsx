@@ -7,28 +7,29 @@ import { useSelector } from 'react-redux';
 import { Edit, Trash2, Archive, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-
 const styles = `
   /* Main Container */
   .home-container {
     min-height: 100vh;
-    background-color: #f5f5f5; /* Light gray background */
+    background-color: #f5f5f5;
     display: flex;
+    flex-direction: column; /* Stack vertically on mobile */
   }
 
   /* Content Area */
   .content-area {
     flex: 1;
     padding-top: 70px; /* Match navbar height */
-    padding-left: 80px; /* Match sidebar collapsed width */
+    padding-left: 80px; /* Match sidebar collapsed width on desktop */
+    transition: padding-left 0.3s ease; /* Smooth transition for sidebar */
   }
 
   /* Grid for Cards */
   .class-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 2rem;
+    gap: 1.5rem; /* Reduced gap for smaller screens */
+    padding: 1rem;
     justify-items: center;
   }
 
@@ -55,7 +56,7 @@ const styles = `
   }
 
   .class-initial {
-    font-size: 3rem;
+    font-size: 2.5rem; /* Slightly smaller for mobile */
     font-weight: 700;
     line-height: 1;
     margin-bottom: 0.5rem;
@@ -64,6 +65,7 @@ const styles = `
   .class-name {
     font-size: 1.25rem;
     font-weight: 600;
+    word-wrap: break-word; /* Ensure long names wrap */
   }
 
   /* Icons on Card */
@@ -71,7 +73,7 @@ const styles = `
     position: absolute;
     background-color: #fff;
     border-radius: 50%;
-    padding: 0.5rem;
+    padding: 0.4rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, background-color 0.2s;
   }
@@ -117,8 +119,8 @@ const styles = `
   .modal {
     background-color: #fff;
     border-radius: 1rem;
-    padding: 2rem;
-    width: 100%;
+    padding: 1.5rem;
+    width: 90%; /* Responsive width */
     max-width: 400px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -129,22 +131,23 @@ const styles = `
   }
 
   .modal-text {
-    font-size: 1.25rem;
+    font-size: 1.1rem; /* Slightly smaller for mobile */
     font-weight: 500;
     color: #333;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
   }
 
   .modal-buttons {
     display: flex;
-    gap: 1rem;
+    gap: 0.75rem;
     justify-content: center;
+    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
   }
 
   .modal-button {
-    padding: 0.75rem 1.5rem;
+    padding: 0.5rem 1rem;
     border-radius: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     transition: background-color 0.2s, transform 0.2s;
   }
@@ -194,16 +197,16 @@ const styles = `
     background-color: #fff;
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    padding: 2rem;
-    width: 100%;
+    padding: 1.5rem;
+    width: 90%; /* Responsive width */
     max-width: 400px;
     position: relative;
   }
 
   .close-button {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     padding: 0.25rem;
     border-radius: 50%;
     color: #6b48ff;
@@ -217,20 +220,20 @@ const styles = `
   }
 
   .edit-modal-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem; /* Smaller for mobile */
     font-weight: 700;
     color: #000;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
   }
 
   .edit-modal-input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.5rem;
     background-color: #fff;
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     color: #333;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: border-color 0.2s, box-shadow 0.2s;
@@ -244,12 +247,12 @@ const styles = `
 
   .edit-modal-button {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.5rem;
     background-color: #6b48ff;
     color: #fff;
     border: none;
     border-radius: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.9rem;
     font-weight: 600;
     transition: background-color 0.2s, transform 0.2s;
   }
@@ -264,35 +267,125 @@ const styles = `
   .no-classes {
     text-align: center;
     color: #6b7280;
-    font-size: 1.5rem;
-    margin: 2rem 0;
+    font-size: 1.25rem; /* Smaller for mobile */
+    margin: 1.5rem 0;
   }
 
   /* Loading Spinner */
   .spinner {
-    width: 2.5rem;
-    height: 2.5rem;
-    border: 4px solid #6b48ff;
-    border-top: 4px solid transparent;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #6b48ff;
+    border-top: 3px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Responsive Adjustments */
+  @media (max-width: 768px) {
+    .home-container {
+      flex-direction: column;
     }
-    100% {
-      transform: rotate(360deg);
+
+    .content-area {
+      padding-left: 0; /* Remove sidebar padding on mobile */
+      padding-top: 60px; /* Adjust for smaller navbar */
+    }
+
+    .class-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Smaller cards on mobile */
+      gap: 1rem;
+      padding: 2rem 0.5rem 0.5rem; /* Increased top padding for spacing */
+    }
+
+    .class-card {
+      max-width: 100%; /* Full width on mobile */
+      height: 150px; /* Shorter height */
+    }
+
+    .class-initial {
+      font-size: 2rem;
+    }
+
+    .class-name {
+      font-size: 1rem;
+    }
+
+    .card-icon {
+      padding: 0.3rem;
+    }
+
+    .modal {
+      padding: 1rem;
+      max-width: 90%;
+    }
+
+    .modal-text {
+      font-size: 1rem;
+    }
+
+    .modal-button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .edit-modal {
+      padding: 1rem;
+    }
+
+    .edit-modal-title {
+      font-size: 1.1rem;
+    }
+
+    .edit-modal-input {
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .edit-modal-button {
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .no-classes {
+      font-size: 1rem;
+    }
+
+    .spinner {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .class-grid {
+      grid-template-columns: 1fr; /* Single column on very small screens */
+      padding: 2.5rem 0.5rem 0.5rem; /* Further increased top padding */
+    }
+
+    .class-card {
+      height: 120px; /* Even shorter */
+    }
+
+    .class-initial {
+      font-size: 1.5rem;
+    }
+
+    .class-name {
+      font-size: 0.9rem;
     }
   }
 `;
 
-
 const Home = () => {
-  const navigate=useNavigate()
-  const [classes, setClasses] = useState([])
-  const [isLoading,setIsLoading] = useState(true)
+  const navigate = useNavigate();
+  const [classes, setClasses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -301,48 +394,35 @@ const Home = () => {
   const [editClassName, setEditClassName] = useState('');
   const user = useSelector((state) => state.auth.user);
   const colors = [
-   '#FF6F61', // Coral
-    '#6B48FF', // Purple
-    '#4CAF50', // Green
-    '#FFCA28', // Yellow
-    '#1E88E5', // Blue
-    '#009688', // Teal
-    '#795548',  // Brown
-    '#FF9800', // Orange
-    '#3F51B5'  // Indigo
+    '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
+    '#009688', '#795548', '#FF9800', '#3F51B5'
   ];
-    
-   const getClass=async()=>{
-    setIsLoading(true)    
-   
+
+  const getClass = async () => {
+    setIsLoading(true);
     try {
-      
       const userRegister = user?.Register;
       if (user.role === 'admin') {
-      
         const response = await classGet("/class/getclass");
         const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setClasses(sortedClass);
-    } else if (user.role === 'user') {
-      
-        
+      } else if (user.role === 'user') {
         const studentResponse = await classGet(`/class/studentclasses/${userRegister}`);
         if (studentResponse.data.success) {
-            const sortedClass = studentResponse.data.classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-            setClasses(sortedClass);
+          const sortedClass = studentResponse.data.classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setClasses(sortedClass);
         } else {
-            setClasses([]); 
+          setClasses([]);
         }
-    }
-     
+      }
     } catch (error) {
       console.error("Error fetching classes:", error);
     } finally {
       setIsLoading(false);
     }
-   }
+  };
 
-   const handleRemoveClass = async () => {
+  const handleRemoveClass = async () => {
     if (!selectedClass) return;
     try {
       setIsLoading(true);
@@ -362,6 +442,7 @@ const Home = () => {
       setIsLoading(false);
     }
   };
+
   const handleArchiveClass = async () => {
     if (!selectedClass) return;
     try {
@@ -426,7 +507,6 @@ const Home = () => {
       navigate('/');
     }
   };
-   
 
   useEffect(() => {
     if (user) {
@@ -436,8 +516,6 @@ const Home = () => {
     }
   }, [user, navigate]);
 
-
-
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -445,197 +523,196 @@ const Home = () => {
       </div>
     );
   }
- 
 
   return (
     <>
-    <style>{styles}</style>
-    <div className="home-container">
-      <Sidebar />
-      <div className="content-area">
-        <Navbar />
-        <div className="class-grid">
-          {classes.map((cls, index) => {
-            const color = colors[index % colors.length];
-            const initial = cls.ClassName.charAt(0).toUpperCase();
-            return (
-              <div
-                key={cls._id}
-                className="class-card"
-                style={{ backgroundColor: color }}
-                onClick={() => handleClassClick(cls._id)}
+      <style>{styles}</style>
+      <div className="home-container">
+        <Sidebar />
+        <div className="content-area">
+          <Navbar />
+          <div className="class-grid">
+            {classes.map((cls, index) => {
+              const color = colors[index % colors.length];
+              const initial = cls.ClassName.charAt(0).toUpperCase();
+              return (
+                <div
+                  key={cls._id}
+                  className="class-card"
+                  style={{ backgroundColor: color }}
+                  onClick={() => handleClassClick(cls._id)}
+                >
+                  <div className="class-initial">{initial}</div>
+                  <div className="class-name">{cls.ClassName}</div>
+                  {user.role === 'admin' && (
+                    <>
+                      <button
+                        className="card-icon rename-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedClass(cls);
+                          setEditClassName(cls.ClassName);
+                          setIsEditModalOpen(true);
+                        }}
+                      >
+                        <Edit size={20} />
+                      </button>
+                      <button
+                        className="card-icon remove-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedClass(cls);
+                          setIsRemoveModalOpen(true);
+                        }}
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                      <button
+                        className="card-icon archive-icon"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setSelectedClass(cls);
+                          setIsArchiveModalOpen(true);
+                        }}
+                      >
+                        <Archive size={20} />
+                      </button>
+                    </>
+                  )}
+                </div>
+              );
+            })}
+            {classes.length === 0 && !isLoading && (
+              <p className="no-classes">No classes assigned to you.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Remove Confirmation Modal */}
+      {isRemoveModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <Trash2 size={40} className="modal-icon" style={{ color: '#ff4d4f' }} />
+            <p className="modal-text">Are you sure you want to remove this classroom?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsRemoveModalOpen(false);
+                  setSelectedClass(null);
+                }}
               >
-                <div className="class-initial">{initial}</div>
-                <div className="class-name">{cls.ClassName}</div>
-                {user.role === 'admin' && (
-                  <>
-                    <button
-                      className="card-icon rename-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedClass(cls);
-                        setEditClassName(cls.ClassName);
-                        setIsEditModalOpen(true);
-                      }}
-                    >
-                      <Edit size={20} />
-                    </button>
-                    <button
-                      className="card-icon remove-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedClass(cls);
-                        setIsRemoveModalOpen(true);
-                      }}
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                    <button
-                      className="card-icon archive-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        setSelectedClass(cls);
-                        setIsArchiveModalOpen(true);
-                      }}
-                    >
-                      <Archive size={20} />
-                    </button>
-                  </>
-                )}
-              </div>
-            );
-          })}
-          {classes.length === 0 && !isLoading && (
-            <p className="no-classes">No classes assigned to you.</p>
-          )}
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm"
+                onClick={handleRemoveClass}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
+      )}
 
-    {/* Remove Confirmation Modal */}
-    {isRemoveModalOpen && (
-      <div className="modal-container">
-        <div className="modal">
-          <Trash2 size={40} className="modal-icon" style={{ color: '#ff4d4f' }} />
-          <p className="modal-text">Are you sure you want to remove this classroom?</p>
-          <div className="modal-buttons">
+      {/* Archive Confirmation Modal */}
+      {isArchiveModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <Archive size={40} className="modal-icon" style={{ color: '#6b48ff' }} />
+            <p className="modal-text">Are you sure you want to archive this classroom?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsArchiveModalOpen(false);
+                  setSelectedClass(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm-archive"
+                onClick={handleArchiveClass}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Class Modal */}
+      {isEditModalOpen && (
+        <div className="modal-container">
+          <div className="edit-modal">
             <button
-              className="modal-button cancel"
               onClick={() => {
-                setIsRemoveModalOpen(false);
+                setIsEditModalOpen(false);
                 setSelectedClass(null);
+                setEditClassName('');
               }}
+              className="close-button"
             >
-              Cancel
+              <X size={24} />
             </button>
+            <h2 className="edit-modal-title">Rename Classroom</h2>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Classroom Name
+              </label>
+              <input
+                type="text"
+                value={editClassName}
+                onChange={(e) => setEditClassName(e.target.value)}
+                className="edit-modal-input"
+                placeholder="Enter new classroom name"
+              />
+            </div>
             <button
-              className="modal-button confirm"
-              onClick={handleRemoveClass}
-            >
-              Yes
-            </button>
-          </div>
-        </div>
-      </div>
-    )}
-
-    {/* Archive Confirmation Modal */}
-    {isArchiveModalOpen && (
-      <div className="modal-container">
-        <div className="modal">
-          <Archive size={40} className="modal-icon" style={{ color: '#6b48ff' }} />
-          <p className="modal-text">Are you sure you want to archive this classroom?</p>
-          <div className="modal-buttons">
-            <button
-              className="modal-button cancel"
+              className="edit-modal-button"
               onClick={() => {
-                setIsArchiveModalOpen(false);
-                setSelectedClass(null);
+                if (!editClassName.trim()) {
+                  toast.error("Class name cannot be empty");
+                  return;
+                }
+                setIsEditModalOpen(false);
+                setIsEditConfirmModalOpen(true);
               }}
             >
-              Cancel
-            </button>
-            <button
-              className="modal-button confirm-archive"
-              onClick={handleArchiveClass}
-            >
-              Yes
+              Save
             </button>
           </div>
         </div>
-      </div>
-    )}
+      )}
 
-    {/* Edit Class Modal */}
-    {isEditModalOpen && (
-      <div className="modal-container">
-        <div className="edit-modal">
-          <button
-            onClick={() => {
-              setIsEditModalOpen(false);
-              setSelectedClass(null);
-              setEditClassName('');
-            }}
-            className="close-button"
-          >
-            <X size={24} />
-          </button>
-          <h2 className="edit-modal-title">Rename Classroom</h2>
-          <div className="mb-4">
-            <label className="block text-lg font-medium text-gray-700 mb-2">
-              Classroom Name
-            </label>
-            <input
-              type="text"
-              value={editClassName}
-              onChange={(e) => setEditClassName(e.target.value)}
-              className="edit-modal-input"
-              placeholder="Enter new classroom name"
-            />
-          </div>
-          <button
-            className="edit-modal-button"
-            onClick={() => {
-              if (!editClassName.trim()) {
-                toast.error("Class name cannot be empty");
-                return;
-              }
-              setIsEditModalOpen(false);
-              setIsEditConfirmModalOpen(true);
-            }}
-          >
-            Save
-          </button>
-        </div>
-      </div>
-    )}
-
-    {/* Edit Confirmation Modal */}
-    {isEditConfirmModalOpen && (
-      <div className="modal-container">
-        <div className="modal">
-          <p className="modal-text">Are you sure you want to save the changes?</p>
-          <div className="modal-buttons">
-            <button
-              className="modal-button cancel"
-              onClick={() => {
-                setIsEditConfirmModalOpen(false);
-                setIsEditModalOpen(true);
-              }}
-            >
-              Cancel
-            </button>
-            <button
-              className="modal-button confirm-edit"
-              onClick={handleEditClass}
-            >
-              Yes
-            </button>
+      {/* Edit Confirmation Modal */}
+      {isEditConfirmModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <p className="modal-text">Are you sure you want to save the changes?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsEditConfirmModalOpen(false);
+                  setIsEditModalOpen(true);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm-edit"
+                onClick={handleEditClass}
+              >
+                Yes
+              </button>
+            </div>
           </div>
         </div>
-      </div>
-    )}
-  </>
+      )}
+    </>
   );
 };
 
