@@ -261,7 +261,7 @@ const styles = `
   .otp-value {
     font-size: 2.5rem;
     font-weight: 800;
-    color: #28a745;
+    color:  #6b48ff;
     margin-bottom: 0.5rem;
   }
 
