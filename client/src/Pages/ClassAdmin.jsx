@@ -13,8 +13,32 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 20px 20px; /* Reduced padding-top from 70px to 20px to move nav-bar upwards */
+    padding: 20px;
     position: relative;
+  }
+
+  /* Card Container for all content */
+  .card-container {
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    padding: 0 2rem 2rem 2rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Style for SecondNav to merge with the top of the card */
+  .second-nav {
+    background-color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 0rem 0;
+    margin: 0 -2rem;
+    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -23,6 +47,7 @@ const styles = `
     font-weight: 800;
     color: #6b48ff;
     margin-bottom: 0.2rem;
+    text-align: center;
   }
 
   .section-title {
@@ -30,18 +55,16 @@ const styles = `
     font-weight: 700;
     color: #000;
     margin-bottom: 1.5rem;
+    text-align: center;
   }
 
   /* Form Styles */
   .form-container {
     width: 100%;
-    max-width: 600px;
-    margin-bottom: 2rem;
     padding: 1.5rem;
-    background-color: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
   }
 
   .form-label {
@@ -100,7 +123,7 @@ const styles = `
 
   .button-row {
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
     align-items: center;
     margin-top: 1.5rem;
   }
@@ -115,10 +138,9 @@ const styles = `
 
   .table-controls {
     width: 100%;
-    max-width: 800px;
     margin-bottom: 1rem;
     display: flex;
-    justify-content: center; /* Center the search input and filter select */
+    justify-content: center;
     gap: 1rem;
     flex-wrap: wrap;
     align-items: center;
@@ -167,8 +189,6 @@ const styles = `
 
   .attendance-table {
     width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
     border-collapse: collapse;
     background-color: #fff;
     border-radius: 8px;
@@ -221,8 +241,8 @@ const styles = `
   }
 
   .success-card {
-    position: absolute;
-    top: 400px;
+    position: relative;
+    top: auto;
     background-color: #fff;
     color: #000;
     padding: 1.5rem;
@@ -301,6 +321,32 @@ const styles = `
       transform: rotate(360deg);
     }
   }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-container {
+      padding: 0 1rem 1rem 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .second-nav {
+      margin: 0 -1rem;
+      padding: 0.75rem 0;
+    }
+
+    .class-name {
+      font-size: 1.8rem;
+    }
+
+    .search-input {
+      width: 100%;
+      max-width: 300px;
+    }
+
+    .filter-select {
+      width: 100px;
+    }
+  }
 `;
 
 const ClassAdmin = () => {
@@ -343,7 +389,7 @@ const ClassAdmin = () => {
     }
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
-    setTimeLeft(20);
+    setTimeLeft(15);
     setShowSuccessCard(true);
     try {
       await post('/otp/generate', { otp: newOtp, classId: id, hour });
@@ -418,67 +464,26 @@ const ClassAdmin = () => {
     <div className="page-container">
       <style>{styles}</style>
 
-      {/* Second Navigation Bar */}
-      <SecondNav classId={id} />
-
-      <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
-
-      <form className="form-container">
-        <div className="mb-6">
-          <label className="form-label">Select Time:</label>
-          <select
-            className="form-select"
-            value={hour}
-            onChange={(e) => setHour(e.target.value)}
-          >
-            <option value="">-- Select Hour --</option>
-            <option value="I Hour">I Hour</option>
-            <option value="II Hour">II Hour</option>
-            <option value="III Hour">III Hour</option>
-            <option value="IV Hour">IV Hour</option>
-            <option value="V Hour">V Hour</option>
-            <option value="VI Hour">VI Hour</option>
-            <option value="VII Hour">VII Hour</option>
-          </select>
+      {/* Single Card Container for All Content */}
+      <div className="card-container">
+        {/* Second Navigation Bar - Merged with the top */}
+        <div className="second-nav">
+          <SecondNav classId={id} />
         </div>
 
-        <div className="button-row">
-          <button type="button" className="form-button" onClick={generateOTP}>
-            Generate OTP
-          </button>
-          {/* <button className="add-students-button" onClick={addStudentsRedirect}>
-            <UserPlus size={32} />
-          </button> */}
-        </div>
-      </form>
+        {/* Class Name */}
+        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
 
-      <div className="otp-card-space">
-        {showSuccessCard && otp && (
-          <div className={`success-card ${timeLeft === 0 ? 'boom' : ''}`}>
-            <div className="otp-value">{otp}</div>
-            <div className="timer-text">Expires in {timeLeft}s</div>
-          </div>
-        )}
-      </div>
-
-      {attendance.length > 0 ? (
-        <div className="w-full max-w-2xl mt-8">
-          {/* <h3 className="section-title">Attendance Details</h3> */}
-
-          <div className="table-controls">
-            <input
-              type="text"
-              className="search-input"
-              placeholder="Search by Register Number"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        {/* Form for Generating OTP - Moved to the Top */}
+        <form className="form-container">
+          <div className="mb-6">
+            <label className="form-label">Select Time:</label>
             <select
-              className="filter-select"
-              value={hourFilter}
-              onChange={(e) => setHourFilter(e.target.value)}
+              className="form-select"
+              value={hour}
+              onChange={(e) => setHour(e.target.value)}
             >
-              <option value="">All Hours</option>
+              <option value="">-- Select Hour --</option>
               <option value="I Hour">I Hour</option>
               <option value="II Hour">II Hour</option>
               <option value="III Hour">III Hour</option>
@@ -489,30 +494,82 @@ const ClassAdmin = () => {
             </select>
           </div>
 
-          <table className="attendance-table">
-            <thead>
-              <tr>
-                <th className="sortable" onClick={toggleSortOrder}>
-                  Register Number {sortOrder === 'asc' ? '↑' : '↓'}
-                </th>
-                <th>Status</th>
-                <th>Hour</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredAndSortedAttendance.map((record) => (
-                <tr key={record._id}>
-                  <td>{record.user}</td>
-                  <td>{record.status}</td>
-                  <td>{record.hour}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <div className="button-row">
+            <button type="button" className="form-button" onClick={generateOTP}>
+              Generate OTP
+            </button>
+            {/* Uncomment if you want to include the Add Students button */}
+            {/* <button className="add-students-button" onClick={addStudentsRedirect}>
+              <UserPlus size={32} />
+            </button> */}
+          </div>
+        </form>
+
+        {/* OTP Card - Moved Below the Form */}
+        <div className="otp-card-space">
+          {showSuccessCard && otp && (
+            <div className={`success-card ${timeLeft === 0 ? 'boom' : ''}`}>
+              <div className="otp-value">{otp}</div>
+              <div className="timer-text">Expires in {timeLeft}s</div>
+            </div>
+          )}
         </div>
-      ) : (
-        <div className="no-data">No attendance data found</div>
-      )}
+
+        {/* Attendance Table */}
+        {attendance.length > 0 ? (
+          <div className="w-full">
+            {/* Uncomment if you want to include the section title */}
+            <h3 className="section-title">Attendance Details</h3>
+
+            <div className="table-controls">
+              <input
+                type="text"
+                className="search-input"
+                placeholder="Search by Register Number"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <select
+                className="filter-select"
+                value={hourFilter}
+                onChange={(e) => setHourFilter(e.target.value)}
+              >
+                <option value="">All Hours</option>
+                <option value="I Hour">I Hour</option>
+                <option value="II Hour">II Hour</option>
+                <option value="III Hour">III Hour</option>
+                <option value="IV Hour">IV Hour</option>
+                <option value="V Hour">V Hour</option>
+                <option value="VI Hour">VI Hour</option>
+                <option value="VII Hour">VII Hour</option>
+              </select>
+            </div>
+
+            <table className="attendance-table">
+              <thead>
+                <tr>
+                  <th className="sortable" onClick={toggleSortOrder}>
+                    Register Number {sortOrder === 'asc' ? '↑' : '↓'}
+                  </th>
+                  <th>Status</th>
+                  <th>Hour</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredAndSortedAttendance.map((record) => (
+                  <tr key={record._id}>
+                    <td>{record.user}</td>
+                    <td>{record.status}</td>
+                    <td>{record.hour}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="no-data">No attendance data found</div>
+        )}
+      </div>
     </div>
   );
 };

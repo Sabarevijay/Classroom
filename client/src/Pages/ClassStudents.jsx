@@ -1,4 +1,4 @@
-import React, { useState , useEffect} from 'react'
+import React, { useState, useEffect } from 'react';
 import { classGet, get, getUser, post } from '../services/Endpoint';
 import { useParams } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -12,17 +12,32 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 130px 20px 20px;
+    padding: 20px;
+    position: relative;
   }
-    .form-container {
-    width: 100%;
-    max-width: 400px;
-    margin-bottom: 2rem;
-    padding: 1.5rem;
+
+  /* Card Container for all content */
+  .card-container {
     background-color: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    padding: 0 2rem 2rem 2rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Style for SecondNav to merge with the top of the card */
+  .second-nav {
+    background-color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 0rem 0;
+    margin: 0 -2rem;
+    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -30,7 +45,8 @@ const styles = `
     font-size: 2.5rem;
     font-weight: 800;
     color: #6b48ff;
-    margin-bottom: 1rem;
+    margin-bottom: 0.2rem;
+    text-align: center;
   }
 
   .section-title {
@@ -38,6 +54,7 @@ const styles = `
     font-weight: 700;
     color: #000;
     margin-bottom: 1.5rem;
+    text-align: center;
   }
 
   /* Register Number */
@@ -45,7 +62,7 @@ const styles = `
     font-size: 1.25rem;
     font-weight: 500;
     color: #6b48ff;
-    margin-bottom: 1.5rem;
+    text-align: center;
   }
 
   .loading-text {
@@ -85,8 +102,10 @@ const styles = `
   /* Form Styles */
   .form-container {
     width: 100%;
-    max-width: 400px;
-    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
   }
 
   .form-label {
@@ -117,9 +136,13 @@ const styles = `
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
   }
 
+  .form-input::placeholder {
+    color: #999;
+    font-style: italic;
+  }
+
   .form-button {
-    width: 100%;
-    padding: 0.75rem;
+    padding: 0.75rem 1.5rem;
     background-color: #6b48ff;
     color: #fff;
     border: none;
@@ -127,17 +150,20 @@ const styles = `
     font-size: 1rem;
     font-weight: 600;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: background-color 0.2s, transform 0.2s;
   }
 
   .form-button:hover {
     background-color: #5a3de6;
-    cursor: pointer; /* Ensure cursor is pointer on hover */
+    cursor: pointer;
+    transform: scale(1.02);
   }
 
-  /* Button Row */
   .button-row {
-    margin-top: 1.5rem; /* Match the spacing from ClassAdmin */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1.5rem;
   }
 
   /* Status Message */
@@ -145,6 +171,7 @@ const styles = `
     margin-top: 1rem;
     font-size: 1.1rem;
     font-weight: 500;
+    text-align: center;
   }
 
   .status-present {
@@ -158,8 +185,6 @@ const styles = `
   /* Table Styles */
   .attendance-table {
     width: 100%;
-    max-width: 600px;
-    margin: 0 auto;
     border-collapse: collapse;
     background-color: #fff;
     border-radius: 8px;
@@ -173,11 +198,12 @@ const styles = `
   }
 
   .attendance-table th {
-    padding: 12px 16px;
+    padding: 16px 20px;
     text-align: left;
     font-weight: 600;
     font-size: 14px;
     text-transform: uppercase;
+    line-height: 1.5;
   }
 
   .attendance-table tbody tr:nth-child(odd) {
@@ -189,9 +215,10 @@ const styles = `
   }
 
   .attendance-table td {
-    padding: 12px 16px;
+    padding: 16px 20px;
     font-size: 14px;
     color: #333;
+    line-height: 1.5;
   }
 
   /* Success Modal */
@@ -200,11 +227,12 @@ const styles = `
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    background-color: #2d3748;
-    color: #fff;
-    padding: 2rem;
+    background-color: #fff;
+    color: #000;
+    padding: 1.5rem;
     border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 0 15px 5px rgba(107, 72, 255, 0.3),
+                0 0 15px 5px rgba(0, 122, 255, 0.3);
     text-align: center;
     z-index: 1000;
     animation: fadeIn 0.3s ease-in-out;
@@ -226,6 +254,7 @@ const styles = `
   .success-message {
     font-size: 1rem;
     font-weight: 400;
+    color: #333;
   }
 
   /* Animations */
@@ -256,9 +285,24 @@ const styles = `
     font-size: 1.1rem;
     margin-top: 2rem;
   }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-container {
+      padding: 0 1rem 1rem 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .second-nav {
+      margin: 0 -1rem;
+      padding: 0.75rem 0;
+    }
+
+    .class-name {
+      font-size: 1.8rem;
+    }
+  }
 `;
-
-
 
 const ClassStudents = () => {
   const { id } = useParams();
@@ -267,222 +311,205 @@ const ClassStudents = () => {
   const [registerNumber, setRegisterNumber] = useState('');
   const [attendance, setAttendance] = useState([]);
   const [classData, setClassData] = useState(null);
-  const [hour,setHour]=useState("");
+  const [hour, setHour] = useState('');
   const [showSuccess, setShowSuccess] = useState(false);
-  
 
   const submitOTP = async () => {
-    if (!submittedOtp ) {
+    if (!submittedOtp) {
       toast.error('Please enter an OTP');
       // setStatus('Please enter an OTP and select an hour ');
       return;
-  }
+    }
 
-  if (!classData) {
-    setStatus('Class data not available');
-    return;
-  }
+    if (!classData) {
+      setStatus('Class data not available');
+      return;
+    }
 
-  const alreadyMarked = attendance.some(record => record.hour === hour);
-  if (alreadyMarked) {
-    toast.error(`Attendance for ${hour} is already marked.`);
-    setHour("")
-    setSubmittedOtp("")
-    return;
-  }
+    const alreadyMarked = attendance.some(record => record.hour === hour);
+    if (alreadyMarked) {
+      toast.error(`Attendance for ${hour} is already marked.`);
+      setHour('');
+      setSubmittedOtp('');
+      return;
+    }
 
     try {
-     
-      const response = await post('/otp/submit', { otp: submittedOtp ,user: registerNumber, classId: classData._id  });
-      // console.log("Response from server:", response.data);
-
-      
+      const response = await post('/otp/submit', { otp: submittedOtp, user: registerNumber, classId: classData._id });
       setStatus(response.data.status);
-      setHour("")
-      setSubmittedOtp("")
+      setHour('');
+      setSubmittedOtp('');
       if (response.data.status === 'present') {
         setShowSuccess(true);
-        setTimeout(() => setShowSuccess(false), 2000); // Hide after 2 seconds
+        setTimeout(() => setShowSuccess(false), 2000);
       }
-      fetchAttendance(registerNumber,classData._id);     
-      
-    
+      fetchAttendance(registerNumber, classData._id);
     } catch (error) {
       if (error.response.status === 400) {
-        setSubmittedOtp("")
-        toast.error(error.response.data.message); 
-        
+        setSubmittedOtp('');
+        toast.error(error.response.data.message);
+      } else if (error.response.status === 403) {
+        setSubmittedOtp('');
+        toast.error(error.response.data.message);
+      } else if (error.response.status === 402) {
+        setSubmittedOtp('');
+        toast.error(error.response.data.message);
+      } else {
+        toast.error('An unexpected error occurred');
       }
-      else if(error.response.status === 403){
-        setSubmittedOtp("")
-        toast.error(error.response.data.message); 
-      }
-      else if(error.response.status === 402){
-        setSubmittedOtp("")
-        toast.error(error.response.data.message); 
-      }
-      
-      else {
-        toast.error("An unexpected error occurred");
-      }
- 
       setStatus('Invalid OTP');
     }
   };
 
- 
   const fetchAttendance = async (registerNumber, classId) => {
     try {
       const response = await get('/attendance/getattendance');
-  
-      const today = new Date().toISOString().split('T')[0]; 
-  
+      const today = new Date().toISOString().split('T')[0];
       const userAttendance = response.data.attendance.filter(record => {
-        const recordDate = new Date(record.createdAt).toISOString().split('T')[0]; 
+        const recordDate = new Date(record.createdAt).toISOString().split('T')[0];
         return record.user === registerNumber && record.classId === classId && recordDate === today;
       });
-  
       setAttendance(userAttendance);
     } catch (error) {
-      console.error("Failed to fetch attendance data:", error);
+      console.error('Failed to fetch attendance data:', error);
     }
   };
-  
-
 
   const fetchClassData = async () => {
     try {
       const classresponse = await classGet(`/class/getclass/${id}`);
       setClassData(classresponse.data.classData);
-      // console.log(classresponse.data.classData)
     } catch (error) {
-      console.error("Failed to fetch class data:", error);
-      // setError('Failed to load class data. Please try again later.');
-    } 
+      console.error('Failed to fetch class data:', error);
+    }
   };
-  
+
   useEffect(() => {
-    const fetchUser = async () => {      
+    const fetchUser = async () => {
       try {
-      
-        const response = await getUser() 
-        const userData = response.data.user; 
-        // console.log(userData.Register); 
-    
+        const response = await getUser();
+        const userData = response.data.user;
         setRegisterNumber(userData.Register);
-    
       } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        console.error('Failed to fetch current user:', error);
       }
-    };  
-    
+    };
 
     fetchClassData();
     fetchUser();
-       
   }, []);
 
   useEffect(() => {
     if (registerNumber) {
-      fetchAttendance(registerNumber,classData._id);
+      fetchAttendance(registerNumber, classData._id);
     }
-  }, [registerNumber,classData]);
-  
+  }, [registerNumber, classData]);
 
   return (
     <div className="page-container">
       <style>{styles}</style>
-      <SecondNavUs classId={id} />
-      <h2 className="class-name" >{classData ? classData.ClassName : 'No class data available'}</h2>
-    {/* <h2 className="section-title">Student Attendance</h2> */}
-    
-    
-    {/* {registerNumber ? (
-  <div className="register-number">
-    Register Number: {registerNumber}
-  </div>
-) : (
-  <div className="loading-text">
-          <span>Loading register number</span>
-          <span className="loading-dot"></span>
-          <span className="loading-dot"></span>
-          <span className="loading-dot"></span>
+
+      {/* Single Card Container for All Content */}
+      <div className="card-container">
+        {/* Second Navigation Bar - Merged with the top */}
+        <div className="second-nav">
+          <SecondNavUs classId={id} />
         </div>
-)} */}
 
-    
-    <form 
-  className="form-container"
-  onSubmit={(e) => {
-    e.preventDefault(); 
-    submitOTP();
-  }}
->
-  
+        {/* Class Name */}
+        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
 
-  <div className="mb-6">
-    {/* <label className="form-label">Enter OTP:</label> */}
-    <input 
-      type="text" 
-      className="form-input"
-      value={submittedOtp}
-      onChange={(e) => setSubmittedOtp(e.target.value)}
-      placeholder="Enter OTP"
-      required
-    />
-  </div>
+        {/* Commented-out Section Title */}
+        {/* <h2 className="section-title">Student Attendance</h2> */}
 
-  <button 
-    type="submit" 
-    className="form-button"
-  >
-    Submit OTP
-  </button>
-</form>
+        {/* Commented-out Register Number Loading Animation */}
+        {/* {registerNumber ? (
+          <div className="register-number">
+            Register Number: {registerNumber}
+          </div>
+        ) : (
+          <div className="loading-text">
+            <span>Loading register number</span>
+            <span className="loading-dot"></span>
+            <span className="loading-dot"></span>
+            <span className="loading-dot"></span>
+          </div>
+        )} */}
 
-    {status && (
-         <div
-         className={`status-message ${
-           status === 'present' ? 'status-present' : 'status-error'
-         }`}
-       >
-         Status: {status}
-       </div>
-      )}
+        {/* Form for Submitting OTP */}
+        <form
+          className="form-container"
+          onSubmit={(e) => {
+            e.preventDefault();
+            submitOTP();
+          }}
+        >
+          <div className="mb-6">
+            {/* <label className="form-label">Enter OTP:</label> */}
+            <input
+              type="text"
+              className="form-input"
+              value={submittedOtp}
+              onChange={(e) => setSubmittedOtp(e.target.value)}
+              placeholder="Enter OTP"
+              required
+            />
+          </div>
 
-{attendance.length > 0 ?(
-        <div className="w-full max-w-2xl mt-8">
-        <h3 className="section-title">Attendance Details</h3>
-        <table className="attendance-table">
-          <thead>
-            <tr>
-              <th>Status</th>
-              <th>Hour</th>
-            </tr>
-          </thead>
-          <tbody>
-            {attendance.map((record) => (
-              <tr key={record._id}>
-                <td>{record.status}</td>
-                <td>{record.hour}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      ): (
-        <div className="no-data">No attendance data found</div>
+          <div className="button-row">
+            <button type="submit" className="form-button">
+              Submit OTP
+            </button>
+          </div>
+        </form>
+
+        {/* Status Message */}
+        {status && (
+          <div
+            className={`status-message ${
+              status === 'present' ? 'status-present' : 'status-error'
+            }`}
+          >
+            Status: {status}
+          </div>
         )}
 
-{showSuccess && (
+        {/* Attendance Table */}
+        {attendance.length > 0 ? (
+          <div className="w-full">
+            <h3 className="section-title">Attendance Details</h3>
+            <table className="attendance-table">
+              <thead>
+                <tr>
+                  <th>Status</th>
+                  <th>Hour</th>
+                </tr>
+              </thead>
+              <tbody>
+                {attendance.map((record) => (
+                  <tr key={record._id}>
+                    <td>{record.status}</td>
+                    <td>{record.hour}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <div className="no-data">No attendance data found</div>
+        )}
+      </div>
+
+      {/* Success Modal */}
+      {showSuccess && (
         <div className="success-modal">
           <div className="success-checkmark">✔</div>
           <div className="success-title">Success!</div>
           <div className="success-message">Attendance marked successfully.</div>
         </div>
       )}
-  </div>
-  )
-}
+    </div>
+  );
+};
 
-export default ClassStudents
+export default ClassStudents;

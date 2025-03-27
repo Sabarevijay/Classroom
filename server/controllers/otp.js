@@ -25,71 +25,79 @@ const generateOTP=async(req,res)=>{
             });
     }
 }
-const submitOTP=async(req,res)=>{
+const submitOTP = async (req, res) => {
     try {
-        const { otp,user ,classId } = req.body;
-        if (!otp || !user || !classId ) {
-            return res.status(400).json({ 
-              success: false, 
-              message: 'All fields are required' 
-            });
-          }
-        // console.log("Received OTP:", otp);
-        // console.log("Received User:", user);
-        const currentOtp = await OTPModel.findOne({classId});
-        if (!currentOtp || new Date() > currentOtp.otpExpiresAt) {
-            return res.status(400).json({ 
-                success: false,
-                 message: "Invalid OTP Please check your class" 
-                });
-          }
-          
-          if (currentOtp.classId !== classId) {
-            return res.status(401).json({
-                success: false,
-                message: "Invalid OTP for this class" 
-            });
-        }
  
-        //   console.log("Stored OTP:", currentOtp.otp);
-        // console.log("OTP Expiration:", currentOtp.otpExpiresAt);
-
-
-        const hour = currentOtp.hour;
-        const existingAttendance = await AttendanceModel.findOne({ user, classId, hour });
-
-        if (existingAttendance) {
-            return res.status(403).json({ 
-                success: false, 
-                message: `Attendance for  ${hour} is already marked!` 
-            });
-        }
-
-       if(currentOtp.otp === otp )  { 
-        const hour = currentOtp.hour;
-          const attendance = await AttendanceModel.create({ user, status: "present",classId,hour });
-          res.status(201).json({
-             message: "Attendance recorded",
-             status: attendance.status,
-             hour: attendance.hour
-             });
-            }
-            else {
-                
-                return res.status(402).json({ 
-                    success: false, 
-                    message: "Incorrect OTP. Please try again." 
-                });
-            }
-
-
+      const { otp, user, classId } = req.body;
+      if (!otp || !user || !classId) {
+        return res.status(400).json({
+          success: false,
+          message: 'All fields are required',
+        });
+      }
+  
+      const currentOtp = await OTPModel.findOne({ classId });    
+      if (!currentOtp || new Date() > currentOtp.otpExpiresAt) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid OTP. Please check your class',
+        });
+      }
+  
+      if (currentOtp.classId !== classId) {
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid OTP for this class',
+        });
+      }
+  
+      const today = new Date().toISOString().split('T')[0];
+      const hour = currentOtp.hour;      
+    
+      const existingAttendance = await AttendanceModel.findOne({
+        user,
+        classId,
+        hour,
+        createdAt: {
+          $gte: new Date(today),
+          $lt: new Date(new Date(today).setDate(new Date(today).getDate() + 1)),
+        },
+      });
+   
+  
+      if (existingAttendance) {
+        return res.status(403).json({
+          success: false,
+          message: `Attendance for ${hour} is already marked for today!`,
+        });
+      }
+  
+      if (currentOtp.otp === otp) {
+        
+        const attendance = await AttendanceModel.create({
+          user,
+          status: 'present',
+          classId,
+          hour,
+        });
+        res.status(201).json({
+          message: 'Attendance recorded',
+          status: attendance.status,
+          hour: attendance.hour,
+        });
+      } else {
+        return res.status(402).json({
+          success: false,
+          message: 'Incorrect OTP. Please try again.',
+        });
+      }
     } catch (error) {
-        console.error(error);
-         res.status(500).json({
-             success: false, 
-             message: "Internal server error" 
-            });
+      console.error('Error in submitOTP:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
     }
-}
+  };
 
 export {generateOTP,submitOTP}

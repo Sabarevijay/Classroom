@@ -14,9 +14,9 @@ const styles = `
   }
   .nav-bar {
     width: 100%;
-    max-width: 600px;
+    max-width: 700px;
     background-color: #ffffff;
-    border-radius: 0px 0px 10px 10px;
+    border-radius: 20px 20px 0px 0px;
     display: flex;
     justify-content: space-around;
     padding: 10px 0;

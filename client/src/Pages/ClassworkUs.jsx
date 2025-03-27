@@ -4,7 +4,6 @@ import { classGet } from '../services/Endpoint';
 import toast from 'react-hot-toast';
 import SecondNavUs from '../Components/SecondNavUs';
 
-
 const styles = `
   /* Page Background */
   .page-container {
@@ -13,8 +12,32 @@ const styles = `
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px 20px 20px; /* Consistent with ClassAdmin */
+    padding: 20px;
     position: relative;
+  }
+
+  /* Card Container for all content */
+  .card-container {
+    background-color: #fff;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    padding: 0 2rem 2rem 2rem;
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+  }
+
+  /* Style for SecondNav to merge with the top of the card */
+  .second-nav {
+    background-color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 0rem 0;
+    margin: 0 -2rem;
+    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -23,6 +46,7 @@ const styles = `
     font-weight: 800;
     color: #6b48ff;
     margin-bottom: 0.2rem;
+    text-align: center;
   }
 
   .section-title {
@@ -30,17 +54,16 @@ const styles = `
     font-weight: 700;
     color: #000;
     margin-bottom: 1.5rem;
+    text-align: center;
   }
 
-  /* Placeholder Content */
+  /* Content Container */
   .content-container {
     width: 100%;
-    max-width: 600px;
     padding: 1.5rem;
-    background-color: #fff;
-    border: 1px solid #d1d5db;
-    border-radius: 0.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    background-color: transparent;
+    border: none;
+    box-shadow: none;
     text-align: center;
   }
 
@@ -62,6 +85,23 @@ const styles = `
       transform: rotate(360deg);
     }
   }
+
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .card-container {
+      padding: 0 1rem 1rem 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .second-nav {
+      margin: 0 -1rem;
+      padding: 0.75rem 0;
+    }
+
+    .class-name {
+      font-size: 1.8rem;
+    }
+  }
 `;
 
 const ClassworkUs = () => {
@@ -69,8 +109,6 @@ const ClassworkUs = () => {
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
-  
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -105,16 +143,21 @@ const ClassworkUs = () => {
     <div className="page-container">
       <style>{styles}</style>
 
-     
-        <SecondNavUs classId={id} />
-      
-      
-      <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
+      {/* Single Card Container for All Content */}
+      <div className="card-container">
+        {/* Second Navigation Bar - Merged with the top */}
+        <div className="second-nav">
+          <SecondNavUs classId={id} />
+        </div>
 
-      
-      <div className="content-container">
-        <h3 className="section-title">Classwork</h3>
-        <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia voluptatem vitae cum nesciunt soluta sapiente hic placeat delectus! Delectus unde numquam nihil est nisi molestiae rem vero voluptates quo at!</p>
+        {/* Class Name */}
+        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
+
+        {/* Placeholder Content */}
+        <div className="content-container">
+          <h3 className="section-title">Classwork</h3>
+          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia voluptatem vitae cum nesciunt soluta sapiente hic placeat delectus! Delectus unde numquam nihil est nisi molestiae rem vero voluptates quo at!</p>
+        </div>
       </div>
     </div>
   );
