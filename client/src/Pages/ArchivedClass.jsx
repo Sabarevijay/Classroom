@@ -348,7 +348,7 @@ const ArchivedClass = () => {
           )}
         </div>
 
-        {/* Unarchive Confirmation Modal */}
+       
         {showUnarchiveModal && (
           <div className="modal-overlay">
             <div className="modal-content">

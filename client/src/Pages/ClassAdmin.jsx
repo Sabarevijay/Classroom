@@ -463,18 +463,11 @@ const ClassAdmin = () => {
   return (
     <div className="page-container">
       <style>{styles}</style>
-
-      {/* Single Card Container for All Content */}
-      <div className="card-container">
-        {/* Second Navigation Bar - Merged with the top */}
+        <div className="card-container">
         <div className="second-nav">
           <SecondNav classId={id} />
         </div>
-
-        {/* Class Name */}
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
-
-        {/* Form for Generating OTP - Moved to the Top */}
         <form className="form-container">
           <div className="mb-6">
             <label className="form-label">Select Time:</label>
@@ -498,14 +491,12 @@ const ClassAdmin = () => {
             <button type="button" className="form-button" onClick={generateOTP}>
               Generate OTP
             </button>
-            {/* Uncomment if you want to include the Add Students button */}
+           
             {/* <button className="add-students-button" onClick={addStudentsRedirect}>
               <UserPlus size={32} />
             </button> */}
           </div>
         </form>
-
-        {/* OTP Card - Moved Below the Form */}
         <div className="otp-card-space">
           {showSuccessCard && otp && (
             <div className={`success-card ${timeLeft === 0 ? 'boom' : ''}`}>
@@ -515,10 +506,9 @@ const ClassAdmin = () => {
           )}
         </div>
 
-        {/* Attendance Table */}
+   
         {attendance.length > 0 ? (
           <div className="w-full">
-            {/* Uncomment if you want to include the section title */}
             <h3 className="section-title">Attendance Details</h3>
 
             <div className="table-controls">

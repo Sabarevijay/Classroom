@@ -409,20 +409,13 @@ const ClassStudents = () => {
     <div className="page-container">
       <style>{styles}</style>
 
-      {/* Single Card Container for All Content */}
+    
       <div className="card-container">
-        {/* Second Navigation Bar - Merged with the top */}
         <div className="second-nav">
           <SecondNavUs classId={id} />
         </div>
-
-        {/* Class Name */}
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
-
-        {/* Commented-out Section Title */}
         {/* <h2 className="section-title">Student Attendance</h2> */}
-
-        {/* Commented-out Register Number Loading Animation */}
         {/* {registerNumber ? (
           <div className="register-number">
             Register Number: {registerNumber}
@@ -435,8 +428,6 @@ const ClassStudents = () => {
             <span className="loading-dot"></span>
           </div>
         )} */}
-
-        {/* Form for Submitting OTP */}
         <form
           className="form-container"
           onSubmit={(e) => {
@@ -445,7 +436,6 @@ const ClassStudents = () => {
           }}
         >
           <div className="mb-6">
-            {/* <label className="form-label">Enter OTP:</label> */}
             <input
               type="text"
               className="form-input"
@@ -463,7 +453,6 @@ const ClassStudents = () => {
           </div>
         </form>
 
-        {/* Status Message */}
         {status && (
           <div
             className={`status-message ${
@@ -474,7 +463,6 @@ const ClassStudents = () => {
           </div>
         )}
 
-        {/* Attendance Table */}
         {attendance.length > 0 ? (
           <div className="w-full">
             <h3 className="section-title">Attendance Details</h3>
@@ -500,7 +488,7 @@ const ClassStudents = () => {
         )}
       </div>
 
-      {/* Success Modal */}
+      
       {showSuccess && (
         <div className="success-modal">
           <div className="success-checkmark">✔</div>

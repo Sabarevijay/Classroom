@@ -45,7 +45,7 @@ const styles = `
   }
 `;
 
-// Reusable NavBar component
+
 const SecondNav = ({ classId }) => {
   const location = useLocation();
   const currentPath = location.pathname;

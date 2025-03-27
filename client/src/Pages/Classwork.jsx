@@ -142,18 +142,11 @@ const Classwork = () => {
   return (
     <div className="page-container">
       <style>{styles}</style>
-
-      {/* Single Card Container for All Content */}
       <div className="card-container">
-        {/* Second Navigation Bar - Merged with the top */}
         <div className="second-nav">
           <SecondNav classId={id} />
         </div>
-
-        {/* Class Name */}
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
-
-        {/* Placeholder Content */}
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
           <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia voluptatem vitae cum nesciunt soluta sapiente hic placeat delectus! Delectus unde numquam nihil est nisi molestiae rem vero voluptates quo at!</p>

@@ -54,8 +54,8 @@ const styles = `
     font-size: 1.5rem;
     font-weight: 700;
     color: #000;
-    margin-bottom: 1.5rem;
-    text-align: center;
+    margin-bottom: 1rem;
+    text-align: left;
   }
 
   /* Form Styles */
@@ -128,43 +128,45 @@ const styles = `
     margin-top: 1.5rem;
   }
 
-  /* Table Styles */
-  .students-table {
+  /* Classmates List Styles */
+  .classmates-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+  }
+
+  .classmates-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #000;
+  }
+
+  .student-count {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #666;
+  }
+
+  .classmates-list {
     width: 100%;
-    border-collapse: collapse;
-    background-color: #fff;
-    border-radius: 8px;
-    overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
   }
 
-  .students-table thead {
-    background-color: #1a2526;
-    color: #fff;
+  .classmate-item {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e5e7eb;
   }
 
-  .students-table th {
-    padding: 16px 20px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 14px;
-    text-transform: uppercase;
-    line-height: 1.5;
-  }
-
-  .students-table tbody tr:nth-child(odd) {
-    background-color: #f1f7ff;
-  }
-
-  .students-table tbody tr:nth-child(even) {
-    background-color: #fff;
-  }
-
-  .students-table td {
-    padding: 16px 20px;
-    font-size: 14px;
+  .classmate-register {
+    font-size: 1rem;
+    font-weight: 500;
     color: #333;
-    line-height: 1.5;
+    flex: 1;
   }
 
   .delete-button {
@@ -270,6 +272,10 @@ const styles = `
     .class-name {
       font-size: 1.8rem;
     }
+
+    .classmate-register {
+      font-size: 0.9rem;
+    }
   }
 `;
 
@@ -277,7 +283,7 @@ const Addstudents = () => {
   const { id } = useParams();
   const effectRan = useRef(false);
   const [students, setStudents] = useState([]);
-  const [registerNumber, setRegisterNumber] = useState("");
+  const [registerNumber, setRegisterNumber] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [classData, setClassData] = useState(null);
   const [error, setError] = useState(null);
@@ -292,9 +298,14 @@ const Addstudents = () => {
     try {
       setIsLoading(true);
       const response = await get(`/students/getstudents`, { classId: id });
-      setStudents(response.data.students || []);
+      // The backend returns an array of register numbers (e.g., ["12345", "67890"])
+      // Map the register numbers to an array of objects for consistency
+      const studentList = (response.data.students || []).map(register => ({
+        register,
+      }));
+      setStudents(studentList);
     } catch (error) {
-      console.error("Error fetching students", error);
+      console.error('Error fetching students', error);
       showNotification('Error', 'Failed to fetch students', 'error');
     } finally {
       setIsLoading(false);
@@ -320,7 +331,7 @@ const Addstudents = () => {
       showNotification('Success', response.data.message, 'success');
       getStudents();
     } catch (error) {
-      console.error("Error deleting student", error);
+      console.error('Error deleting student', error);
       showNotification('Error', error.response?.data?.message || 'Failed to delete student', 'error');
     } finally {
       setIsLoading(false);
@@ -333,7 +344,7 @@ const Addstudents = () => {
         const response = await classGet(`/class/getclass/${id}`);
         setClassData(response.data.classData);
       } catch (error) {
-        console.error("Failed to fetch class data:", error);
+        console.error('Failed to fetch class data:', error);
         setError('Failed to load class data. Please try again later.');
       } finally {
         setIsLoading(false);
@@ -348,7 +359,7 @@ const Addstudents = () => {
     try {
       setIsLoading(true);
       const response = await addstudentsPost('/students/addstudents', { Register: registerNumber, classId: id });
-      setRegisterNumber("");
+      setRegisterNumber('');
       showNotification('Success', 'Student added successfully', 'success');
       getStudents();
     } catch (error) {
@@ -379,17 +390,12 @@ const Addstudents = () => {
     <div className="page-container">
       <style>{styles}</style>
 
-      {/* Single Card Container for All Content */}
       <div className="card-container">
-        {/* Second Navigation Bar - Merged with the top */}
         <div className="second-nav">
           <SecondNav classId={id} />
         </div>
-
-        {/* Class Name */}
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
 
-        {/* Form for Adding Students */}
         <form className="form-container" onSubmit={handleSubmit}>
           <div className="mb-6">
             <label className="form-label">Register Number:</label>
@@ -410,45 +416,31 @@ const Addstudents = () => {
           </div>
         </form>
 
-        {/* Students Table */}
         <div className="w-full">
-          <h3 className="section-title">Registered Students</h3>
+          <div className="classmates-header">
+            <h3 className="classmates-title">Register Students </h3>
+            <span className="student-count">{students.length} students</span>
+          </div>
 
           {students.length === 0 ? (
             <div className="no-data">
               <p>No students found. Add your first student above.</p>
             </div>
           ) : (
-            <table className="students-table">
-              <thead>
-                <tr>
-                  <th>S.no</th>
-                  <th>Register Number</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {students.map((register, index) => (
-                  <tr key={index}>
-                    <td>{index + 1}</td>
-                    <td>{register}</td>
-                    <td className="text-center">
-                      <button
-                        onClick={() => handleDelete(register)}
-                        className="delete-button"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+            <div className="classmates-list">
+              {students.map((student, index) => (
+                <div key={index} className="classmate-item">
+                  <span className="classmate-register">{student.register}</span>
+                  <button onClick={() => handleDelete(student.register)} className="delete-button">
+                    <Trash2 size={20} />
+                  </button>
+                </div>
+              ))}
+            </div>
           )}
         </div>
       </div>
 
-      {/* Notification Modal */}
       {notification && (
         <div className={`notification-modal notification-${notification.type}`}>
           <div className="notification-title">{notification.title}</div>
