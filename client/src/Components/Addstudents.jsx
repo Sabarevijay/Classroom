@@ -298,8 +298,6 @@ const Addstudents = () => {
     try {
       setIsLoading(true);
       const response = await get(`/students/getstudents`, { classId: id });
-      // The backend returns an array of register numbers (e.g., ["12345", "67890"])
-      // Map the register numbers to an array of objects for consistency
       const studentList = (response.data.students || []).map(register => ({
         register,
       }));
