@@ -468,16 +468,16 @@ const ClassStudents = () => {
             <h3 className="section-title">Attendance Details</h3>
             <table className="attendance-table">
               <thead>
-                <tr>
-                  <th>Status</th>
+                <tr>                  
                   <th>Hour</th>
+                  <th>Status</th>
                 </tr>
               </thead>
               <tbody>
                 {attendance.map((record) => (
-                  <tr key={record._id}>
-                    <td>{record.status}</td>
+                  <tr key={record._id}>                   
                     <td>{record.hour}</td>
+                    <td>{record.status}</td>
                   </tr>
                 ))}
               </tbody>
