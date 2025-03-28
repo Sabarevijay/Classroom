@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
-import axios from "../utils/axiosInstance";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import Spline from "@splinetool/react-spline";
 import { jwtDecode } from "jwt-decode";
+import { toast } from "react-hot-toast";
+import { get, post } from "../services/Endpoint";
 
-const Login = () => {
+const GoogleLogin1 = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [rememberMe, setRememberMe] = useState(false);
@@ -29,40 +30,46 @@ const Login = () => {
       setIsLoading(true);
       const userInfo = jwtDecode(response.credential);
       
+      const res = await post("/api/auth/google", {
+        token: response.credential,
+      });
+
       const userData = {
         name: userInfo.name,
         email: userInfo.email,
         imageUrl: userInfo.picture,
       };
 
-      const res = await axios.post("http://localhost:5000/api/auth/google", {
-        token: response.credential,
-      });
-
-      // Save user data and token
       saveUserData(userData);
-      localStorage.setItem("token", res.data.token);
+      
+      if (rememberMe) {
+        localStorage.setItem("token", res.data.token);
+      } else {
+        sessionStorage.setItem("token", res.data.token);
+      }
 
-      navigate(res.data.redirectUrl || "/dashboard");
+      toast.success("Login Successful!");
+      navigate(res.data.redirectUrl || "/home");
     } catch (error) {
-      console.error("Login failed:", error);
+      console.error("Google Login Failed:", error);
+      toast.error(error.response?.data?.message || "Google Login Failed");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleFailure = () => {
-    console.error("Google Login Failed");
+  const handleGoogleFailure = (error) => {
+    console.error("Google Login Failed", error);
+    toast.error("Google Login Failed. Please try again.");
   };
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
     try {
       setIsLoading(true);
-      const res = await axios.post("http://localhost:5000/api/auth/login", formData);
+      const res = await post("/api/auth/login", formData);
       
-      // Fetch user details after successful login
-      const userRes = await axios.get("http://localhost:5000/api/user/profile", {
+      const userRes = await get("/api/user/profile", {
         headers: { Authorization: `Bearer ${res.data.token}` }
       });
 
@@ -72,19 +79,20 @@ const Login = () => {
         imageUrl: userRes.data.profileImage || '/default-avatar.png'
       };
 
-      // Save user data
       saveUserData(userData);
 
-      // Save token based on remember me
       if (rememberMe) {
         localStorage.setItem("token", res.data.token);
       } else {
         sessionStorage.setItem("token", res.data.token);
       }
 
-      navigate(res.data.redirectUrl || "/dashboard");
+      toast.success("Login Successful!");
+      navigate("/home");
+      console.log("Google login successful! Navigating to home...");
     } catch (error) {
       console.error("Login failed:", error);
+      toast.error(error.response?.data?.message || "Login Failed");
     } finally {
       setIsLoading(false);
     }
@@ -102,9 +110,17 @@ const Login = () => {
     }, 100);
   };
 
+  const handleForgotPassword = () => {
+    navigate('/forgot-password');
+  };
+
+  const handleSignUp = () => {
+    navigate('/register');
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 px-6 py-12 relative overflow-hidden">
-      {/* Rest of the component remains the same */}
+    <div className="min-h-screen flex items-center justify-center px-6 py-12 relative overflow-hidden" style={{ backgroundColor: "#d4d5e5" }}>
+      {/* Animated Background Elements */}
       <motion.div 
         className="absolute top-5 left-5 w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 opacity-75"
         animate={{ y: [0, -10, 10, 0] }}
@@ -118,7 +134,7 @@ const Login = () => {
       />
 
       {/* Main Login Box */}
-      <div className="flex w-full max-w-4xl bg-gray-800 bg-opacity-90 backdrop-blur-xl shadow-lg rounded-xl overflow-hidden border border-gray-700">
+      <div className="flex w-full max-w-4xl shadow-lg rounded-xl overflow-hidden border border-gray-400" style={{ backgroundColor: "#d4d5e5" }}>
         {/* Left Side - Form */}
         <motion.div
           initial={{ opacity: 0, rotateY: 90 }}
@@ -126,7 +142,7 @@ const Login = () => {
           transition={{ duration: 0.8 }}
           className="w-full md:w-1/2 p-8"
         >
-          <h2 className="text-3xl font-semibold text-white text-center mb-6">
+          <h2 className="text-3xl font-semibold text-gray-900 text-center mb-6">
             Login to Your Account
           </h2>
 
@@ -139,7 +155,7 @@ const Login = () => {
                 value={formData.email}
                 onChange={handleInputChange}
                 placeholder="Email"
-                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300"
+                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 border border-gray-400 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300"
                 required
               />
             </div>
@@ -152,12 +168,12 @@ const Login = () => {
                 value={formData.password}
                 onChange={handleInputChange}
                 placeholder="Password"
-                className="w-full px-4 py-3 rounded-lg bg-gray-700 text-white border border-gray-600 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300"
+                className="w-full px-4 py-3 rounded-lg bg-white text-gray-900 border border-gray-400 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300"
                 required
               />
               <button
                 type="button"
-                className="absolute right-3 top-3 text-gray-400 hover:text-gray-200"
+                className="absolute right-3 top-3 text-gray-600 hover:text-gray-800"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <FaEyeSlash /> : <FaEye />}
@@ -166,7 +182,7 @@ const Login = () => {
 
             {/* Remember Me & Forgot Password */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center text-gray-300 text-sm">
+              <label className="flex items-center text-gray-700 text-sm">
                 <input
                   type="checkbox"
                   checked={rememberMe}
@@ -175,9 +191,13 @@ const Login = () => {
                 />
                 Remember me
               </label>
-              <a href="#" className="text-sm text-blue-400 hover:text-blue-300">
+              <button 
+                type="button"
+                onClick={handleForgotPassword}
+                className="text-sm text-blue-600 hover:text-blue-700"
+              >
                 Forgot password?
-              </a>
+              </button>
             </div>
 
             {/* Submit Button */}
@@ -186,28 +206,53 @@ const Login = () => {
               whileTap={{ scale: 0.95, rotate: -1 }}
               type="submit"
               disabled={isLoading}
-              className="w-full py-2 bg-blue-500 text-white font-semibold rounded-lg transition duration-200"
+              className="w-full py-2 bg-blue-500 text-white font-semibold rounded-lg transition duration-200 disabled:opacity-50"
             >
               {isLoading ? "Signing in..." : "Sign In"}
             </motion.button>
           </form>
 
           {/* OR Separator */}
-          <div className="my-4 text-center text-gray-400">
-            <span className="text-sm">Or continue with</span>
+          <div className="my-4 flex items-center justify-center">
+            <div className="w-1/4 border-t border-gray-400"></div>
+            <span className="mx-4 text-sm text-gray-600">Or continue with</span>
+            <div className="w-1/4 border-t border-gray-400"></div>
           </div>
 
           {/* Google Login */}
-          <div className="flex justify-center">
-            <GoogleLogin onSuccess={handleGoogleSuccess} onError={handleGoogleFailure} />
+          <div className="flex justify-center mb-4">
+            <GoogleLogin 
+              onSuccess={handleGoogleSuccess} 
+              onError={handleGoogleFailure}
+              type="standard"
+              theme="filled_blue"
+              size="large"
+              flow="implicit"
+               useOneTap={false} 
+              text="signin_with"
+            />
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="text-center text-gray-700 text-sm">
+            Don't have an account? 
+            <button 
+              onClick={handleSignUp}
+              className="ml-2 text-blue-600 hover:text-blue-700 font-semibold"
+            >
+              Sign Up
+            </button>
           </div>
         </motion.div>
 
         {/* Right Side - Spline 3D Animation */}
-        <div className="hidden md:block md:w-1/2 relative overflow-hidden" style={{ backgroundColor: "#d4d4e5" }}>
-          <div className="absolute bottom-0 left-0 right-0 h-15 z-10" style={{ backgroundColor: "#d4d4e5" }}></div>
+        <div className="hidden md:block md:w-1/2 relative overflow-hidden" style={{ backgroundColor: "#d4d5e5" }}>
+          <div className="absolute bottom-0 left-0 right-0 h-15 z-10" style={{ backgroundColor: "#d4d5e5" }}></div>
           <div className="absolute inset-0">
-            <Spline scene="https://prod.spline.design/gKiJvDcwelUiyNF4/scene.splinecode" onLoad={handleSplineLoad} />
+            <Spline 
+              scene="https://prod.spline.design/gKiJvDcwelUiyNF4/scene.splinecode" 
+              onLoad={handleSplineLoad} 
+            />
           </div>
         </div>
       </div>
@@ -215,4 +260,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default GoogleLogin1;

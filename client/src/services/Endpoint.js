@@ -1,9 +1,17 @@
 import axios from 'axios'
 export const BaseUrl=import.meta.env.VITE_SERVER_APP_URL
 
-const instance=axios.create({
+ const instance=axios.create({
     baseURL:BaseUrl,
     withCredentials:true,
+    
+    
+})
+export const instance2=axios.create({
+    baseURL:BaseUrl,
+    headers: {
+        'Content-Type': 'application/json',
+      },
     
     
 })

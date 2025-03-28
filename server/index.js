@@ -7,6 +7,7 @@ import OTPRoutes from "./routes/otp.js";
 import AttendanceRoutes from "./routes/attendance.js";
 import cors from 'cors';
 import StudentRoutes from "./routes/students.js";
+import router from "./routes/Authentication.js";
 
 dotenv.config();
 
@@ -18,7 +19,8 @@ DBcon();
 const allowedOrigins = [
     'http://localhost:5173',
     'https://classroom-lime-mu.vercel.app',
-    'https://classroom-798mphos9-sabarevijays-projects.vercel.app'
+    'https://classroom-798mphos9-sabarevijays-projects.vercel.app', 
+    'https://accounts.google.com' 
 ];
 
 app.use(express.json());
@@ -28,17 +30,28 @@ app.use(cors({
         if (!origin || allowedOrigins.includes(normalizedOrigin)) {
             callback(null, true);
         } else {
+            // console.log(`Blocked by CORS: ${origin}`);
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true 
+    credentials: true ,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    exposedHeaders: ["Cross-Origin-Opener-Policy"]
 }));
+app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none"); // Disables COOP
+    res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none"); // Disables COEP
+    next();
+});
+
 
 app.get("/", (req, res) => {
     res.send("Hello from classroom backend");
 });
 
 app.use('/auth', AuthRoutes);
+app.use('/api/auth', router);
 app.use('/class', ClassRoutes);
 app.use('/otp', OTPRoutes);
 app.use('/attendance', AttendanceRoutes);
