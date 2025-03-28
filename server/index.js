@@ -7,7 +7,7 @@ import OTPRoutes from "./routes/otp.js";
 import AttendanceRoutes from "./routes/attendance.js";
 import cors from 'cors';
 import StudentRoutes from "./routes/students.js";
-import router from "./routes/Authentication.js";
+// import router from "./routes/Authentication.js";
 
 dotenv.config();
 
@@ -35,15 +35,13 @@ app.use(cors({
         }
     },
     credentials: true ,
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    exposedHeaders: ["Cross-Origin-Opener-Policy"]
+    
 }));
-app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none"); // Disables COOP
-    res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none"); // Disables COEP
-    next();
-});
+// app.use((req, res, next) => {
+//     res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none"); // Disables COOP
+//     res.setHeader("Cross-Origin-Embedder-Policy", "unsafe-none"); // Disables COEP
+//     next();
+// });
 
 
 app.get("/", (req, res) => {
@@ -51,7 +49,7 @@ app.get("/", (req, res) => {
 });
 
 app.use('/auth', AuthRoutes);
-app.use('/api/auth', router);
+// app.use('/api/auth', router);
 app.use('/class', ClassRoutes);
 app.use('/otp', OTPRoutes);
 app.use('/attendance', AttendanceRoutes);
