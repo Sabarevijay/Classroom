@@ -16,9 +16,9 @@ import ClassworkUs from './Pages/ClassworkUs'
 import BootIntro from './Components/BootIntro';
 import { useSelector } from 'react-redux';
 import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
-import { GoogleOAuthProvider } from "@react-oauth/google";
 
-import GoogleLogin1 from './Pages/GoogleLogin'
+
+
 
 const AppContent = () => {
   const location = useLocation();
@@ -65,72 +65,72 @@ const AppContent = () => {
     <>
       {showBootIntro && <BootIntro onComplete={handleBootIntroComplete} />}
       <Routes>
-        {/* Revert back to using Login component */}
-        <Route path='/' element={<Login />} />
-        {/* <Route path='/' element={<GoogleLogin1 />} /> */}
-        <Route path='/register' element={<Register />} />
 
-        <Route 
-          path='/home' 
-          element={
-            <ProtectedRoute allowedRoles={['user', 'admin']}>
-              <UserLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Home />} />
-          <Route
-            path='classstudents/:id'
-            element={
-              <ProtectedRoute allowedRoles={['user']}>
-                <ClassStudents />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
-        </Route>
+<Route path='/' element={<Login />} />
+<Route path='/register' element={<Register />} ></Route>
 
-        {/* Protect Admin Pages */}
-        <Route 
-          path='/admin' 
-          element={
-            <ProtectedRoute allowedRoles={['admin']}>
-              <AdminLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path='archived' element={ 
-            <ProtectedRoute allowedRoles={['admin']}>
-              <ArchivedClass />
-            </ProtectedRoute>}
-          /> 
 
-          <Route
-            path='classadmin/:id'
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <ClassAdmin />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
-          <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
-        </Route>
-      </Routes> 
+<Route 
+  path='/home' 
+  element={
+    <ProtectedRoute allowedRoles={['user', 'admin']}>
+      <UserLayout />
+    </ProtectedRoute>
+  }
+>
+  <Route index element={<Home />} />
+  <Route
+    path='classstudents/:id'
+    element={
+      <ProtectedRoute allowedRoles={['user']}>
+        <ClassStudents />
+      </ProtectedRoute>
+    }
+  />
+   <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
+</Route>
+
+ {/* Protect Admin Pages */}
+ <Route 
+  path='/admin' 
+  element={
+    <ProtectedRoute allowedRoles={['admin']}>
+      <AdminLayout />
+    </ProtectedRoute>
+  }
+>
+ <Route path='archived' element={ 
+  <ProtectedRoute allowedRoles={['admin']}>
+        <ArchivedClass />
+      </ProtectedRoute>}
+       /> 
+
+  <Route
+    path='classadmin/:id'
+    element={
+      <ProtectedRoute allowedRoles={['admin']}>
+        <ClassAdmin />
+      </ProtectedRoute>
+    }
+  />
+  <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
+  <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
+</Route>
+   
+</Routes> 
     </>
   );
 };
 
 const App = () => {
+  
   return (
-    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
-      <BrowserRouter>
-        <BootIntroProvider>
-          <Toaster />
-          <AppContent />
-        </BootIntroProvider>
-      </BrowserRouter>
-    </GoogleOAuthProvider>
+    <BrowserRouter>
+      <BootIntroProvider>
+        <Toaster />
+        <AppContent />
+      </BootIntroProvider>
+    </BrowserRouter>
   )
 }
 
