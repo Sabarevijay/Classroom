@@ -2,22 +2,22 @@ import StudentsModel from "../models/students.js"
 
 const addstudents=async(req,res)=>{
     try {
-        const {Register,classId }=req.body
+        const {email,classId }=req.body
         // console.log("Request body:", req.body);
-         if (!Register || !classId) {
+         if (!email || !classId) {
             return res.status(400).json({
                 success: false,
                 message: "Register number and classId are required",
             });
         }
-        const existStudent=await StudentsModel.findOne({Register,ClassId: classId })
+        const existStudent=await StudentsModel.findOne({email,ClassId: classId })
         if(existStudent){
             return res.status(409).json({
                 success:"false",
                 message:"Stduent Already Exist"
             })
         }
-        const NewStudents = new StudentsModel({Register,ClassId: classId })
+        const NewStudents = new StudentsModel({email,ClassId: classId })
         await NewStudents.save()
         return res.status(201).json({
             success:true,
@@ -42,17 +42,25 @@ try {
           message: "classId is required",
         });
       }
-    const studentsData = await StudentsModel.find({ ClassId: classId }).select("Register -_id");
+    const studentsData = await StudentsModel.find({ ClassId: classId }).select("email -_id");
     if (studentsData.length === 0) {
         return res.status(404).json({
           success: false,
           message: "No students found for this class",
         });
       }
+
+      const formattedStudents = studentsData.map(student => {
+        const name = student.email.split(".")[0]; 
+        return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+            // student.email
+    });
+
     return res.status(200).json({
         success:true,
         message:"Students data retrieved",
-        students: studentsData.map(student => student.Register),
+        // students: formattedStudents,
+        students: studentsData.map(student=>student.email)
     })
 } catch (error) {
     console.log(error)
@@ -65,20 +73,24 @@ try {
 
 const delteteStudents=async(req,res)=>{
     try {
-        const {Register, classId}=req.body
-        if (!Register || !classId) {
+        const {email, classId}=req.body
+        // console.log("Received DELETE request with:", { email, classId });
+        if (!email || !classId) {
             return res.status(400).json({
                 success: false,
-                message: "Register number and classId are required",
+                message: "Email and classId are required",
             });
         }
-        const removestudents=await StudentsModel.findOneAndDelete({ Register, ClassId: classId })
-        if (!removestudents) {
+        const studentExists = await StudentsModel.findOne({ email, ClassId: classId });
+        // console.log("Student found:", studentExists);
+        if (!studentExists) {
             return res.status(404).json({
-                success:false,
-                message:"Particular student not found"
-            })
-       }
+                success: false,
+                message: "Student not found",
+            });
+        }
+
+        await StudentsModel.findOneAndDelete({ email, ClassId: classId });
        return res.status(200).json({
         success:true,
         message:"Deleted successfully"

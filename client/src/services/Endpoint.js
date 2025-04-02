@@ -7,14 +7,14 @@ export const BaseUrl=import.meta.env.VITE_SERVER_APP_URL
     
     
 })
-export const instance2=axios.create({
-    baseURL:BaseUrl,
-    headers: {
-        'Content-Type': 'application/json',
-      },
+// export const instance2=axios.create({
+//     baseURL:BaseUrl,
+//     headers: {
+//         'Content-Type': 'application/json',
+//       },
     
     
-})
+// })
 
 
 const API = axios.create({

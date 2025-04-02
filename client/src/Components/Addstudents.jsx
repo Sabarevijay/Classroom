@@ -162,7 +162,7 @@ const styles = `
     border-bottom: 1px solid #e5e7eb;
   }
 
-  .classmate-register {
+  .classmate-email {
     font-size: 1rem;
     font-weight: 500;
     color: #333;
@@ -273,7 +273,7 @@ const styles = `
       font-size: 1.8rem;
     }
 
-    .classmate-register {
+    .classmate-email {
       font-size: 0.9rem;
     }
   }
@@ -283,7 +283,7 @@ const Addstudents = () => {
   const { id } = useParams();
   const effectRan = useRef(false);
   const [students, setStudents] = useState([]);
-  const [registerNumber, setRegisterNumber] = useState('');
+  const [email, setEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [classData, setClassData] = useState(null);
   const [error, setError] = useState(null);
@@ -294,17 +294,21 @@ const Addstudents = () => {
     setTimeout(() => setNotification(null), 2000);
   };
 
+  const formatStudentName = (email) => {
+    const name = email.split('.')[0]; 
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase(); // Capitalize first letter
+  };
+
   const getStudents = async () => {
     try {
       setIsLoading(true);
       const response = await get(`/students/getstudents`, { classId: id });
-      const studentList = (response.data.students || []).map(register => ({
-        register,
+      const studentList = (response.data.students || []).map(studentEmail => ({
+        email: studentEmail, 
       }));
       setStudents(studentList);
     } catch (error) {
-      // console.error('Error fetching students', error);
-      // showNotification('Error', 'Failed to fetch students', 'error');
+      console.error('Error fetching students', error);
     } finally {
       setIsLoading(false);
     }
@@ -319,11 +323,15 @@ const Addstudents = () => {
     };
   }, []);
 
-  const handleDelete = async (register) => {
+  const handleDelete = async (studentEmail) => {
     try {
       setIsLoading(true);
+      // console.log('Deleting student with email:', studentEmail);
+      if (!studentEmail) {
+        throw new Error('Email is undefined or null');
+      }
       const response = await deleteRequest(`/students/deletestudents`, {
-        Register: register,
+        email: studentEmail,
         classId: id,
       });
       showNotification('Success', response.data.message, 'success');
@@ -354,10 +362,14 @@ const Addstudents = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!email) {
+      showNotification('Error', 'Please enter an email address.', 'error');
+      return;
+    }
     try {
       setIsLoading(true);
-      const response = await addstudentsPost('/students/addstudents', { Register: registerNumber, classId: id });
-      setRegisterNumber('');
+      const response = await addstudentsPost('/students/addstudents', { email, classId: id });
+      setEmail('');
       showNotification('Success', 'Student added successfully', 'success');
       getStudents();
     } catch (error) {
@@ -396,13 +408,13 @@ const Addstudents = () => {
 
         <form className="form-container" onSubmit={handleSubmit}>
           <div className="mb-6">
-            <label className="form-label">Register Number:</label>
+            <label className="form-label">Student Email:</label>
             <input
-              type="text"
-              placeholder="Enter Register Number"
+              type="email"
+              placeholder="Enter student email"
               className="form-input"
-              value={registerNumber}
-              onChange={(e) => setRegisterNumber(e.target.value)}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
@@ -416,20 +428,20 @@ const Addstudents = () => {
 
         <div className="w-full">
           <div className="classmates-header">
-            <h3 className="classmates-title">Register Students </h3>
+            <h3 className="classmates-title">Registered Students</h3>
             <span className="student-count">{students.length} students</span>
           </div>
 
           {students.length === 0 ? (
             <div className="no-data">
-              <p>No students found. Add your first student above.</p>
+              <p>No students found. Add a student above.</p>
             </div>
           ) : (
             <div className="classmates-list">
               {students.map((student, index) => (
                 <div key={index} className="classmate-item">
-                  <span className="classmate-register">{student.register}</span>
-                  <button onClick={() => handleDelete(student.register)} className="delete-button">
+                  <span className="classmate-email">{student.email}</span>
+                  <button onClick={() => handleDelete(student.email)} className="delete-button">
                     <Trash2 size={20} />
                   </button>
                 </div>

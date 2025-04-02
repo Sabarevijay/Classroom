@@ -313,6 +313,7 @@ const ClassStudents = () => {
   const [classData, setClassData] = useState(null);
   const [hour, setHour] = useState("");
   const [showSuccess, setShowSuccess] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
 
   const submitOTP = async () => {
     if (!submittedOtp) {
@@ -325,6 +326,12 @@ const ClassStudents = () => {
       setStatus("Class data not available");
       return;
     }
+    const payload = {
+      otp: submittedOtp,
+      user: userEmail,
+      classId: classData._id,
+    };
+    // console.log('Submitting OTP with payload:', payload);
 
     const alreadyMarked = attendance.some((record) => record.hour === hour);
     if (alreadyMarked) {
@@ -337,17 +344,24 @@ const ClassStudents = () => {
     try {
       const response = await post("/otp/submit", {
         otp: submittedOtp,
-        user: registerNumber,
+        user: userEmail,
         classId: classData._id,
       });
-      setStatus(response.data.status);
+      // console.log('Response from /otp/submit:', response);
+      if (response.data && response.data.status) {
+        setStatus(response.data.status);
+      } else {
+        console.error('Unexpected response format:', response.data);
+        toast.error("Invalid response from server");
+      }
+      // setStatus(response.data.status);
       setHour("");
       setSubmittedOtp("");
       if (response.data.status === "present") {
         setShowSuccess(true);
         setTimeout(() => setShowSuccess(false), 2000);
       }
-      fetchAttendance(registerNumber, classData._id);
+      fetchAttendance(userEmail, classData._id);
     } catch (error) {
       if (error.response.status === 400) {
         setSubmittedOtp("");
@@ -365,8 +379,9 @@ const ClassStudents = () => {
     }
   };
 
-  const fetchAttendance = async (registerNumber, classId) => {
+  const fetchAttendance = async (email, classId) => {
     try {
+      // console.log('Fetching attendance for:', email, classId);
       const response = await get("/attendance/getattendance");
       const today = new Date().toISOString().split("T")[0];
       const userAttendance = response.data.attendance.filter((record) => {
@@ -374,11 +389,12 @@ const ClassStudents = () => {
           .toISOString()
           .split("T")[0];
         return (
-          record.user === registerNumber &&
+          record.user === email &&
           record.classId === classId &&
           recordDate === today
         );
       });
+      // console.log('Filtered attendance:', userAttendance)
       setAttendance(userAttendance);
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
@@ -399,9 +415,11 @@ const ClassStudents = () => {
       try {
         const response = await getUser();
         const userData = response.data.user;
-        setRegisterNumber(userData.Register);
+        // setRegisterNumber(userData.Register);
+        setUserEmail(userData.email);
       } catch (error) {
-        console.error("Failed to fetch current user:", error);
+        // console.error("Failed to fetch current user:", error);
+        toast.error('Failed to load user data. Please log in again.');
       }
     };
 
@@ -410,10 +428,10 @@ const ClassStudents = () => {
   }, []);
 
   useEffect(() => {
-    if (registerNumber) {
-      fetchAttendance(registerNumber, classData._id);
+    if (userEmail) {
+      fetchAttendance(userEmail, classData._id);
     }
-  }, [registerNumber, classData]);
+  }, [userEmail, classData]);
 
   return (
     <div className="page-container">

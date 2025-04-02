@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 
 const StudentsSchema=new mongoose.Schema({
-    Register:{
+    email:{
         type:String,
-        required:true
+        required:true,
+        unique: true,
     },
     ClassId:{
         type:String,required: true

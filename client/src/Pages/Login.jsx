@@ -4,154 +4,223 @@ import { post } from "../services/Endpoint";
 import { useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import { SetUser } from "../redux/AuthSlice";
+import { GoogleLogin, GoogleOAuthProvider } from "@react-oauth/google";
+import { motion } from "framer-motion";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
+import Spline from "@splinetool/react-spline";
+
+const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || "690691222870-8fmk6jvbsp5mkujc28s1tivqvqito4be.apps.googleusercontent.com";
 
 const Login = () => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const [value, setValue] = useState({ email: "", password: "" });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
+  const [splineLoaded, setSplineLoaded] = useState(false);
 
-  const navigate=useNavigate()
-  const dispatch=useDispatch()
-    const [value, setValue] = useState({
-      email:"",
-      password:""
-  })
-  const handleChange=(e)=>{
+  const handleChange = (e) => {
     setValue({
-        ...value,
-        [e.target.name]:e.target.value
-    })
-}
-const handleSubmit=async(e)=>{
-  try {
-      e.preventDefault()
-      const response=await post(`/auth/login`,value,{
-          withCredentials: true
-        })
-        localStorage.setItem('token', response.data.token);
-      const data =response.data
-      if (response.status===200) {
-          navigate('/home')
-          toast.success(data.message)
-          dispatch(SetUser(data.user))
-      }
-      else{
-          toast.error("User not found")
-      }
-      
+      ...value,
+      [e.target.name]: e.target.value
+    });
+  };
 
-  } catch (error) {
-      console.log(error)
-  }
-}
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      setIsLoading(true);
+      setError(null);
+      const response = await post("/auth/login", value, {
+        withCredentials: true
+      });
+      const data = response.data;
+      
+      if (data.success) {
+        localStorage.setItem("token", data.token);
+        dispatch(SetUser(data.user));
+        toast.success(data.message);
+        navigate("/home");
+      } else {
+        toast.error(data.message);
+        setError(data.message);
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Login failed. Please try again.");
+      setError("Login failed. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (response) => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      const res = await post("/auth/google", {
+        token: response.credential
+      });
+      
+      if (res.data.success) {
+        localStorage.setItem("token", res.data.token);
+        dispatch(SetUser({
+          email: res.data.user?.email,
+          Register: res.data.user?.Register,
+          role: res.data.user?.role
+        }));
+        toast.success("Google Login successful");
+        navigate("/home");
+      } else {
+        toast.error("Google Login failed");
+        setError("Google Login failed");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Google Login failed");
+      setError("Google Login failed");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleFailure = () => {
+    setError("Google Login failed");
+    toast.error("Google Login failed");
+  };
+
+  const handleSplineLoad = (spline) => {
+    setSplineLoaded(true);
+    setTimeout(() => {
+      const watermarks = document.querySelectorAll('a[href*="spline.design"]');
+      watermarks.forEach(watermark => {
+        if (watermark && watermark.parentNode) {
+          watermark.parentNode.removeChild(watermark);
+        }
+      });
+    }, 100);
+  };
 
   return (
-    <>    
-    <div
-    className="min-h-screen w-full flex items-center bg-cover bg-center bg-no-repeat"
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+      <div className="min-h-screen flex items-center justify-center bg-[#d5d4e6] px-6 py-12 relative overflow-hidden">
+        {/* Animated Background Elements */}
+        <motion.div 
+          className="absolute top-5 left-5 w-16 h-16 rounded-full bg-gradient-to-r from-purple-400 to-blue-500 opacity-75"
+          animate={{ y: [0, -10, 10, 0] }}
+          transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+        />
+        
+        <motion.div 
+          className="absolute bottom-[-150px] right-[-100px] w-[350px] h-[350px] rounded-full bg-gradient-to-r from-pink-500 to-purple-600 opacity-50"
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 10, -10, 0] }}
+          transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
+        />
 
-      style={{
-        // backgroundImage: "url('/Login bg.jpg')",
-        // backgroundSize: "140%", // Zoom in (increase size)
-        // backgroundPosition: "bottom left", // Align to bottom-left
-        backgroundImage: "url('/Login bg.jpg')",
-      }} // Background image
-    >
-       <div className="flex flex-col items-center rounded-full">
-            <div className=" w-[80px] sm:w-[100px] md:w-[80px] lg:w-[300px] max-w-[500px] "> {/* Extra div for left-right padding */}
-            </div></div>
-       {/* White Box (Narrow & Responsive) */}
-       <div className="bg-white shadow-2xl rounded-2xl p-6 sm:p-8 md:p-10 w-[350px] sm:w-[400px] md:w-[450px] max-w-[450px]">
-       <div className="flex flex-col items-center rounded-full">
-            <div className="w-[2px] h-[10px] "> {/* Extra div for left-right padding */}
-            </div></div>
-        {/* Logo & Heading */}
-        <div className="flex flex-col lg:flex-row items-center justify-center gap-4">
-          <img src="/logo2.png" alt="Logo" className="w-16 sm:w-24 md:w-24 lg:w-28" />
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Login</h2>
+        {/* Main Login Box */}
+        <div className="flex w-full max-w-4xl bg-[#d5d4e6] bg-opacity-90 backdrop-blur-xl shadow-lg rounded-xl overflow-hidden border border-gray-300">
+          {/* Left Side - Form */}
+          <motion.div
+            initial={{ opacity: 0, rotateY: 90 }}
+            animate={{ opacity: 1, rotateY: 0 }}
+            transition={{ duration: 0.8 }}
+            className="w-full md:w-1/2 p-8"
+          >
+            <h2 className="text-3xl font-semibold text-gray-800 text-center mb-6">
+              Login to Your Account
+            </h2>
+
+            {error && (
+              <div className="text-red-500 text-center text-sm mb-4">{error}</div>
+            )}
+
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email Input */}
+              <div>
+                <input
+                  type="email"
+                  name="email"
+                  value={value.email}
+                  onChange={handleChange}
+                  placeholder="Email"
+                  className="w-full px-4 py-3 rounded-lg bg-white text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300"
+                  required
+                  disabled={isLoading}
+                />
+              </div>
+
+              {/* Password Input with Toggle */}
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  name="password"
+                  value={value.password}
+                  onChange={handleChange}
+                  placeholder="Password"
+                  className="w-full px-4 py-3 rounded-lg bg-white text-gray-800 border border-gray-300 focus:ring-2 focus:ring-purple-500 focus:outline-none transition-all duration-300"
+                  required
+                  disabled={isLoading}
+                />
+                <button
+                  type="button"
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEyeSlash /> : <FaEye />}
+                </button>
+              </div>
+
+              {/* Forgot Password Link */}
+              <div className="flex items-center justify-between">
+                <div></div>
+                <Link to="/register" className="text-sm text-blue-600 hover:text-blue-500">
+                  Don’t have an account? Register
+                </Link>
+              </div>
+
+              {/* Submit Button */}
+              <motion.button
+                whileHover={{ scale: 1.05, rotate: 1 }}
+                whileTap={{ scale: 0.95, rotate: -1 }}
+                type="submit"
+                disabled={isLoading}
+                className="w-full py-2 bg-blue-500 text-white font-semibold rounded-lg transition duration-200"
+              >
+                {isLoading ? "Signing In..." : "Sign In"}
+              </motion.button>
+            </form>
+
+            {/* OR Separator */}
+            <div className="my-4 text-center text-gray-600">
+             
+
+ <span className="text-sm">Or continue with</span>
+            </div>
+
+            {/* Google Login */}
+            <div className="flex justify-center">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={handleGoogleFailure}
+                disabled={isLoading}
+                flow="auth-code" // Use authorization code flow
+                redirect_uri="http://localhost:8000/auth/google/callback" // Your callback URL
+              />
+            </div>
+          </motion.div>
+
+          {/* Right Side - Spline 3D Animation */}
+          <div className="hidden md:block md:w-1/2 relative overflow-hidden" style={{ backgroundColor: "#d5d4e6" }}>
+            <div className="absolute bottom-0 left-0 right-0 h-15 z-10" style={{ backgroundColor: "#d5d4e6" }}></div>
+            <div className="absolute inset-0">
+              <Spline scene="https://prod.spline.design/gKiJvDcwelUiyNF4/scene.splinecode" onLoad={handleSplineLoad} />
+            </div>
+          </div>
         </div>
-        
-         {/* Spacing Divider */}
-         <div className="h-6 sm:h-8 md:h-6"></div>
-
-{/* Form */}
-
-        <form  onSubmit={handleSubmit}>
-        
-          {/* Bitsathy Mail */}
-          <div>
-            <label htmlFor="email" className="block text-[20px] font-medium text-gray-900 [text-indent:1rem] sm:[text-indent:1.5rem] md:[text-indent:1.5rem]">E-Mail</label>
-            <div className="h-4 sm:h-6 md:h-4"></div>
-            <div className="flex items-center rounded-full">
-            <div className="w-[15px] "> {/* Extra div for left-right padding */}
-            </div>
-            <div className="w-[92%] mx-auto"> 
-            <input
-              type="email"
-              name='email'
-              value={value.email}
-              onChange={handleChange}
-               id="email"
-              className="w-full h-10 sm:h-12 [text-indent:1rem] sm:[text-indent:1.25rem] pr-3 sm:pr-4 rounded-full bg-gray-200 focus:ring-2 focus:ring-indigo-400"
-              required
-            />
-          </div></div></div>
-
-          {/* Extra Divider */}
-          <div className="h-6 sm:h-8 md:h-6"></div>
-
-          {/* Password */}
-          <div>
-            <label htmlFor="password" className="block text-[20px] font-medium text-gray-900 [text-indent:1rem] sm:[text-indent:1.5rem] md:[text-indent:1.5rem]">Password</label>
-            <div className="h-4 sm:h-6 md:h-4"></div>
-            <div className="flex items-center rounded-full">
-            <div className="w-[15px] "> {/* Extra div for left-right padding */}
-            </div>
-            <div className="w-[92%] mx-auto"> 
-            <input
-              type="password"
-              value={value.password}
-              onChange={handleChange}                           
-              name='password'
-              id="password"
-              className="w-full h-10 sm:h-12 [text-indent:1rem] sm:[text-indent:1.25rem] pr-3 sm:pr-4 rounded-full bg-gray-200 focus:ring-2 focus:ring-indigo-400"
-              required
-            />
-          </div></div></div>
-
-          {/* Extra Divider */}
-          <div className="h-8 sm:h-10 md:h-8"></div>
-          
-          
-         
-           {/* Sign In Button */}
-          
-          <div className="flex items-center rounded-full">
-            <div className="w-[15px] "> {/* Extra div for left-right padding */}
-            </div>
-            <div className="w-[92%] mx-auto"> 
-            <button className="w-full h-10 sm:h-12 text-white bg-blue-500 rounded-full hover:bg-blue-600 transition " >
-              Sign In
-            </button>
-          </div></div>
-
-          {/* Extra Divider */}
-          <div className="h-6 sm:h-8 md:h-6"></div>
-          {/* Register Link */}
-          <p className="text-sm text-gray-700 text-center mt-4">
-            Don’t have an account?{"  "}
-            <Link to="/register" className="text-blue-700 underline font-semibold ml-[50px]">
-              Register
-            </Link>
-          </p>
-          
-          <div className="flex items-center rounded-full">
-            <div className="w-[8px] h-[10px] "> {/* Extra div for left-right padding */}
-            </div>
-            </div>
-        </form>
       </div>
-    </div>
-    </>
+    </GoogleOAuthProvider>
   );
-  
 };
 
 export default Login;

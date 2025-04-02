@@ -6,7 +6,7 @@ const ClassRoutes=express.Router()
 ClassRoutes.post('/createclass',CreateClass)
 ClassRoutes.get('/getclass',getClasses)
 ClassRoutes.get('/getclass/:id', getClassById);
-ClassRoutes.get('/studentclasses/:register',getStudentsClasses)
+ClassRoutes.get('/studentclasses/:email',getStudentsClasses)
 ClassRoutes.post('/archiveclass/:id', archiveClass);
 ClassRoutes.post('/updateclass/:id', editClass);
 ClassRoutes.post('/deleteclass/:id', deleteClass);

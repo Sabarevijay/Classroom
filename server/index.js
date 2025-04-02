@@ -11,6 +11,7 @@ import StudentRoutes from "./routes/students.js";
 
 dotenv.config();
 
+
 const app = express();
 const PORT = process.env.PORT || 8000;
 
@@ -37,6 +38,10 @@ app.use(cors({
     credentials: true ,
     
 }));
+app.use((req, res, next) => {
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
+    next();
+  });
 
 
 

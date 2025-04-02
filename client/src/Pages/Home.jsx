@@ -401,13 +401,16 @@ const Home = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      const userRegister = user?.Register;
+      const userEmail = user?.email; 
+      if (!userEmail && user?.role !== 'admin') {
+        throw new Error('User email not found');
+      }
       if (user.role === 'admin') {
         const response = await classGet("/class/getclass");
         const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
         setClasses(sortedClass);
       } else if (user.role === 'user') {
-        const studentResponse = await classGet(`/class/studentclasses/${userRegister}`);
+        const studentResponse = await classGet(`/class/studentclasses/${userEmail}`);
         if (studentResponse.data.success) {
           const sortedClass = studentResponse.data.classes.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
           setClasses(sortedClass);

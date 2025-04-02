@@ -78,8 +78,8 @@ const getClassById = async (req, res) => {
 const getStudentsClasses =async(req,res)=>{
     try {
         
-        const {register}=req.params
-        const studentRecords=await StudentsModel.find({Register:register})
+        const {email}=req.params
+        const studentRecords=await StudentsModel.find({email})
       
         if (!studentRecords.length) {
             return res.status(404).json({
