@@ -36,7 +36,7 @@ const addstudents=async(req,res)=>{
 const getStudents =async(req,res)=>{
 try {
     const classId = req.query.classId || req.params.classId;
-    console.log("Requested classId:", classId);
+    // console.log("Requested classId:", classId);
     if (!classId) {
         return res.status(400).json({
           success: false,
@@ -45,7 +45,7 @@ try {
       }
 
     const studentsData = await StudentsModel.find({ ClassId: classId }).select("email -_id");
-    console.log("Fetched Students:", studentsData);
+    // console.log("Fetched Students:", studentsData);
     if (!studentsData ||studentsData.length === 0) {
         return res.status(404).json({
           success: false,
@@ -60,7 +60,7 @@ try {
     // });
     const formattedStudents = studentsData.map(student => {
         if (!student.email) {
-          console.log(" Missing email field in student record:", student); // Debug
+        //   console.log(" Missing email field in student record:", student); // Debug
           return "Unknown";  // Fallback value
         }
         const name = student.email.split(".")[0]; 
