@@ -7,6 +7,7 @@ import OTPRoutes from "./routes/otp.js";
 import AttendanceRoutes from "./routes/attendance.js";
 import cors from 'cors';
 import StudentRoutes from "./routes/students.js";
+import path from 'path'; 
 
 
 dotenv.config();
@@ -43,14 +44,13 @@ app.use((req, res, next) => {
     next();
   });
 
-
+  app.use('/images', express.static(path.join(path.resolve(), 'public/images')));
 
 app.get("/", (req, res) => {
     res.send("Hello from classroom backend");
 });
 
 app.use('/auth', AuthRoutes);
-
 app.use('/class', ClassRoutes);
 app.use('/otp', OTPRoutes);
 app.use('/attendance', AttendanceRoutes);

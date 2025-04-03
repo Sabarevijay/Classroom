@@ -2,6 +2,7 @@ import AttendanceModel from "../models/attendance.js";
 
 const getAttendance=async(req,res)=>{
     try {
+        
         const attendance = await AttendanceModel.find();
         if (!attendance) {
             return res.status(400).json({

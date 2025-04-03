@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { classGet } from '../services/Endpoint';
+import { classGet, downloadFile } from '../services/Endpoint'; // Add downloadFile
 import toast from 'react-hot-toast';
 import SecondNavUs from '../Components/SecondNavUs';
 
@@ -102,6 +102,36 @@ const styles = `
       font-size: 1.8rem;
     }
   }
+
+  .classwork-item {
+    border: 1px solid #e5e7eb;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 0.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .download-button {
+    background-color: #6b48ff;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.3rem;
+    border: none;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
+
+  .view-button {
+    background-color: #2196F3;
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 0.3rem;
+    border: none;
+    cursor: pointer;
+    margin-left: 0.5rem;
+  }
 `;
 
 const ClassworkUs = () => {
@@ -109,23 +139,65 @@ const ClassworkUs = () => {
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [classworks, setClassworks] = useState([]);
 
   useEffect(() => {
-    const fetchClassData = async () => {
+    const fetchData = async () => {
       try {
-        const response = await classGet(`/class/getclass/${id}`);
-        setClassData(response.data.classData);
+        const classResponse = await classGet(`/class/getclass/${id}`);
+        setClassData(classResponse.data.classData);
+        
+        const classworkResponse = await classGet(`/class/classwork/${id}`);
+        setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
-        console.error('Failed to fetch class data:', error);
-        setError('Failed to load class data. Please try again later.');
-        toast.error('Failed to load class data.');
+        console.error('Failed to fetch data:', error);
+        setError('Failed to load data. Please try again later.');
+        toast.error('Failed to load data.');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchClassData();
+    fetchData();
   }, [id]);
+
+  const handleDownload = async (classworkId, filename) => {
+    try {
+      const response = await downloadFile(`/class/classwork/download/${classworkId}`, {
+        responseType: 'blob', // Ensures correct file handling
+      });
+
+      if (response.data.type === "application/json") {
+        // Convert response to text to log any error message
+        const errorText = await response.data.text();
+        console.error("Server Error:", errorText);
+        toast.error(`Download failed: ${errorText}`);
+        return;
+      }
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Download started');
+    } catch (error) {
+      console.error('Download error:', error.response?.data || error.message);
+      toast.error('Failed to download file');
+    }
+  };
+
+  const handleView = (classworkId, filename) => {
+    try {
+      const fileUrl = `${import.meta.env.VITE_SERVER_APP_URL}/images/${filename}`;
+      window.open(fileUrl, '_blank'); // Open file in new tab
+      toast.success('Opening file in new tab');
+    } catch (error) {
+      console.error('View error:', error);
+      toast.error('Failed to view file');
+    }
+  };
 
   if (isLoading) {
     return (
@@ -149,7 +221,31 @@ const ClassworkUs = () => {
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
-          <p>Lorem ipsum dolor sit amet consectetur adipisicing elit. Quia voluptatem vitae cum nesciunt soluta sapiente hic placeat delectus! Delectus unde numquam nihil est nisi molestiae rem vero voluptates quo at!</p>
+          
+          {/* Classwork List */}
+          {classworks.length > 0 ? (
+            classworks.map((classwork) => (
+              <div key={classwork._id} className="classwork-item">
+                <span>{classwork.title}</span>
+                <div>
+                  <button
+                    className="view-button"
+                    onClick={() => handleView(classwork._id, classwork.filename)}
+                  >
+                    View
+                  </button>
+                  <button
+                    className="download-button"
+                    onClick={() => handleDownload(classwork._id, classwork.filename)}
+                  >
+                    Download
+                  </button>
+                </div>
+              </div>
+            ))
+          ) : (
+            <p>No classwork available</p>
+          )}
         </div>
       </div>
     </div>

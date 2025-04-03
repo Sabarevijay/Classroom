@@ -1,110 +1,120 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, User, X } from 'lucide-react';
+import { Plus, X, AlignJustify, Home, Archive } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 
-// Inline CSS for the Navbar
+// Updated CSS styles
 const styles = `
   /* Navbar */
   .navbar {
     position: fixed;
     top: 0;
-    left: 80px; /* Match the collapsed sidebar width */
+    left: 0;
     right: 0;
-    background-color: #fff; /* White theme */
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    z-index: 50; /* Lower than sidebar to prevent overlap */
+    background-color: #fff;
+    backdrop-blur-lg;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    z-index: 20;
     display: flex;
     align-items: center;
-    justify-content: center; /* Center the logo and title */
-    padding: 0 2rem;
-    height: 70px;
+    padding: 1rem 1rem;
+    height: 64px;
+    transition: all 0.3s ease-in-out;
+  }
+
+  @media (min-width: 768px) {
+    .navbar {
+      left: 80px;
+      padding: 1rem 2rem;
+    }
   }
 
   .navbar-logo {
-    height: 50px;
-    width: 50px;
+    height: 40px;
+    width: auto;
+    filter: brightness-125 contrast-100;
   }
 
   .navbar-title {
-    font-size: 1.75rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #6b48ff; /* Purple to match the theme */
-    margin-left: 1rem;
+    background: linear-gradient(to right, #3b82f6, #2563eb);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    margin-left: 0.75rem;
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .navbar-title {
+      display: inline;
+    }
   }
 
   .navbar-right {
-    position: absolute;
-    right: 2rem;
+    margin-left: auto;
     display: flex;
     align-items: center;
-    gap: 1rem; /* Space between buttons and profile */
+    gap: 1rem;
   }
 
   .add-classroom-button {
-    background-color: #fff;
-    border: 2px solid #6b48ff;
-    color: #6b48ff;
-    border-radius: 50%; /* Circular button */
-    width: 40px;
-    height: 40px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out, background-color 0.2s, color 0.2s;
+    padding: 0.625rem;
+    border-radius: 9999px;
+    color: #3b82f6;
+    transition: all 0.2s ease-in-out;
   }
 
   .add-classroom-button:hover {
-    transform: rotate(90deg); /* Simple rotate animation on hover */
-    background-color: #6b48ff;
-    color: #fff;
+    background-color: rgba(59, 130, 246, 0.1);
+    color: #2563eb;
     cursor: pointer;
   }
 
   .profile-container {
+    position: relative;
     display: flex;
     align-items: center;
   }
 
   .profile-wrapper {
-    position: relative;
     cursor: pointer;
   }
 
   .profile-image {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    border: 2px solid #6b48ff;
+    border-radius: 9999px;
+    border: 2px solid rgba(59, 130, 246, 0.3);
     object-fit: cover;
-    transition: transform 0.2s;
+    transition: all 0.2s ease-in-out;
   }
 
   .profile-image:hover {
-    transform: scale(1.1);
+    border-color: rgba(59, 130, 246, 0.6);
   }
 
   .profile-placeholder {
     width: 40px;
     height: 40px;
-    border-radius: 50%;
-    background-color: #6b48ff;
-    color: #fff;
+    border-radius: 9999px;
+    background-color: #e5e7eb;
+    color: #374151;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.25rem;
     font-weight: 600;
-    border: 2px solid #6b48ff;
-    transition: transform 0.2s;
+    border: 2px solid rgba(59, 130, 246, 0.3);
+    transition: all 0.2s ease-in-out;
   }
 
   .profile-placeholder:hover {
-    transform: scale(1.1);
+    border-color: rgba(59, 130, 246, 0.6);
   }
 
   .profile-input {
@@ -113,25 +123,33 @@ const styles = `
 
   .profile-role {
     margin-left: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: #333;
+    color: #374151;
+    display: none;
+  }
+
+  @media (min-width: 768px) {
+    .profile-role {
+      display: inline;
+    }
   }
 
   /* Dropdown Menu */
   .dropdown-menu {
     position: absolute;
-    top: 60px;
+    top: 100%;
     right: 0;
     background-color: #fff;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-    width: 150px;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    width: 14rem;
     padding: 0.5rem 0;
-    z-index: 100; /* Higher than navbar to ensure visibility */
+    z-index: 30;
     opacity: 0;
     transform: translateY(-10px);
-    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
   }
 
   .dropdown-menu.open {
@@ -141,118 +159,232 @@ const styles = `
 
   .dropdown-item {
     width: 100%;
-    padding: 0.75rem 1rem;
-    font-size: 1rem;
+    padding: 0.625rem 1rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: #333;
-    border: none;
+    color: #374151;
     background: none;
+    border: none;
     text-align: left;
-    transition: background-color 0.2s, transform 0.2s;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
   }
 
   .dropdown-item:hover {
-    background-color: #f1f7ff;
-    transform: scale(1.02);
+    background-color: #f3f4f6;
     cursor: pointer;
+  }
+
+  .dropdown-user-info {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .dropdown-user-email {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    margin-bottom: 0.25rem;
+  }
+
+  .dropdown-user-role {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #3b82f6;
   }
 
   /* Popup (Add Classroom) */
   .popup-container {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 100;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-blur-sm;
+    z-index: 40;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .popup {
     background-color: #fff;
-    border-radius: 0.5rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    padding: 2rem;
+    border-radius: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 1.5rem;
     width: 100%;
-    max-width: 400px;
+    max-width: 28rem;
     position: relative;
+    transform: scale(0.95);
+    transition: transform 0.2s ease-in-out;
+  }
+
+  .popup-container .popup {
+    transform: scale(1);
   }
 
   .close-button {
     position: absolute;
-    top: 1rem;
-    right: 1rem;
+    top: 0.75rem;
+    right: 0.75rem;
     padding: 0.25rem;
-    border-radius: 50%;
-    color: #6b48ff;
-    transition: background-color 0.2s, transform 0.2s;
+    border-radius: 9999px;
+    color: #374151;
+    transition: all 0.2s ease-in-out;
   }
 
   .close-button:hover {
-    background-color: #f1f7ff;
-    transform: scale(1.1);
+    background-color: #e5e7eb;
     cursor: pointer;
   }
 
   .popup-title {
-    font-size: 1.5rem;
+    font-size: 1.25rem;
     font-weight: 700;
-    color: #000;
-    margin-bottom: 1.5rem;
-    text-align: center;
+    color: #111827;
+    margin-bottom: 1rem;
+    text-align: left;
   }
 
   .popup-input {
     width: 100%;
-    padding: 0.75rem;
+    padding: 0.625rem 1rem;
     background-color: #fff;
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
-    font-size: 1rem;
-    color: #333;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: border-color 0.2s, box-shadow 0.2s;
+    font-size: 0.875rem;
+    color: #374151;
+    transition: all 0.2s ease-in-out;
   }
 
   .popup-input:focus {
     outline: none;
-    border-color: #6b48ff;
-    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
   }
 
   .popup-button {
     width: 100%;
-    padding: 0.75rem;
-    background-color: #6b48ff;
+    padding: 0.625rem;
+    background-color: #3b82f6;
     color: #fff;
     border: none;
     border-radius: 0.5rem;
-    font-size: 1rem;
+    font-size: 0.875rem;
     font-weight: 600;
-    transition: background-color 0.2s, transform 0.2s;
+    transition: all 0.2s ease-in-out;
   }
 
   .popup-button:hover {
-    background-color: #5a3de6;
-    transform: scale(1.02);
+    background-color: #2563eb;
     cursor: pointer;
   }
 
   /* Loading Spinner */
   .spinner {
-    width: 4rem;
-    height: 4rem;
-    border: 4px solid #6b48ff;
-    border-top: 4px solid transparent;
-    border-radius: 50%;
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid #3b82f6;
+    border-top: 3px solid transparent;
+    border-radius: 9999px;
     animation: spin 1s linear infinite;
+    margin: auto;
   }
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Mobile Sidebar (Integrated into Navbar) */
+  .mobile-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    background-color: #fff;
+    backdrop-blur-lg;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease-in-out;
+    z-index: 30;
+    width: 0;
+    transform: translateX(-100%);
+    overflow: hidden;
+  }
+
+  .mobile-sidebar.open {
+    width: 256px;
+    transform: translateX(0);
+  }
+
+  .mobile-nav-links {
+    display: flex;
+    flex-direction: column;
+    padding: 1.5rem 0.75rem;
+    gap: 0.5rem;
+  }
+
+  .mobile-nav-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 0.75rem;
+    color: #6b7280;
+    border-radius: 0.5rem;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .mobile-nav-item:hover {
+    background-color: #f3f4f6;
+    color: #374151;
+    cursor: pointer;
+  }
+
+  .mobile-nav-item.active {
+    background-color: #e5e7eb;
+    color: #3b82f6;
+    border-left: 4px solid #3b82f6;
+  }
+
+  .mobile-nav-icon {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+  }
+
+  .mobile-nav-text {
+    margin-left: 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  .mobile-menu-button {
+    padding: 0.5rem;
+    margin-right: 0.5rem;
+    display: flex;
+    align-items: center;
+  }
+
+  .mobile-menu-icon {
+    color: #374151;
+    transition: all 0.2s ease-in-out;
+  }
+
+  .mobile-menu-button:hover .mobile-menu-icon {
+    color: #3b82f6;
+    cursor: pointer;
+  }
+
+  /* Mobile Backdrop */
+  .mobile-backdrop {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.3);
+    z-index: 20;
+    display: none;
+  }
+
+  .mobile-backdrop.open {
+    display: block;
   }
 `;
 
@@ -261,16 +393,34 @@ const Navbar = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isPopupOpen, setIsPopupOpen] = useState(false); // State for Add Classroom popup
-  const [className, setClassName] = useState(''); // State for class name input
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [className, setClassName] = useState('');
   const userMenuRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [profileImage, setProfileImage] = useState(null); // State for profile image
+  const [profileImage, setProfileImage] = useState(null);
+  const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
 
   const user = useSelector((state) => state.auth.user);
   const userRole = user?.role;
-  const userName = user?.name || "User"; // Fallback to "User" if name is not available
-  const firstLetter = userName.charAt(0).toUpperCase(); // Get the first letter of the user's name
+  const userName = user?.name || "User";
+  const userEmail = user?.email || "user@example.com";
+  const firstLetter = userName.charAt(0).toUpperCase();
+
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setIsMobileSidebarOpen(false);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    handleResize();
+
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const openPopup = () => {
     setIsPopupOpen(true);
@@ -289,6 +439,10 @@ const Navbar = () => {
 
   const closeUserMenu = () => {
     setIsUserMenuOpen(false);
+  };
+
+  const toggleMobileSidebar = () => {
+    setIsMobileSidebarOpen(!isMobileSidebarOpen);
   };
 
   const handleImageUpload = (event) => {
@@ -332,7 +486,6 @@ const Navbar = () => {
     }
   };
 
-  // Close menu when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
@@ -359,6 +512,17 @@ const Navbar = () => {
       <style>{styles}</style>
       <nav className="navbar">
         <div className="flex items-center">
+          {isMobile && (
+            <div className="mobile-menu-button">
+              <button onClick={toggleMobileSidebar}>
+                {isMobileSidebarOpen ? (
+                  <X size={24} className="mobile-menu-icon" />
+                ) : (
+                  <AlignJustify size={24} className="mobile-menu-icon" />
+                )}
+              </button>
+            </div>
+          )}
           <img
             src="/logo2.png"
             alt="BIT ClassRoom Logo"
@@ -400,16 +564,19 @@ const Navbar = () => {
             <span className="profile-role">{userRole || "User"}</span>
             {isUserMenuOpen && (
               <div className={`dropdown-menu ${isUserMenuOpen ? 'open' : ''}`}>
+                <div className="dropdown-user-info">
+                  <p className="dropdown-user-email">{userEmail}</p>
+                  <p className="dropdown-user-role">{userRole || "User"}</p>
+                </div>
                 <button
                   className="dropdown-item"
                   onClick={handleLogout}
                 >
-                  Logout
+                  Log Out
                 </button>
                 <button
                   className="dropdown-item"
                   onClick={() => {
-                    // Add update functionality here
                     closeUserMenu();
                   }}
                 >
@@ -420,6 +587,43 @@ const Navbar = () => {
           </div>
         </div>
       </nav>
+
+      {isMobile && (
+        <>
+          <div className={`mobile-sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
+            <nav className="mobile-nav-links">
+              <div
+                className={`mobile-nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
+                onClick={() => {
+                  navigate("/home");
+                  setIsMobileSidebarOpen(false);
+                }}
+              >
+                <Home size={20} className="mobile-nav-icon" />
+                <span className="mobile-nav-text">Home</span>
+              </div>
+              {userRole === 'admin' && (
+                <div
+                  className={`mobile-nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
+                  onClick={() => {
+                    navigate('/admin/archived');
+                    setIsMobileSidebarOpen(false);
+                  }}
+                >
+                  <Archive size={20} className="mobile-nav-icon" />
+                  <span className="mobile-nav-text">Archived Class</span>
+                </div>
+              )}
+            </nav>
+          </div>
+          {isMobileSidebarOpen && (
+            <div
+              className={`mobile-backdrop ${isMobileSidebarOpen ? 'open' : ''}`}
+              onClick={toggleMobileSidebar}
+            />
+          )}
+        </>
+      )}
 
       {isPopupOpen && (
         <div className="popup-container">
@@ -432,7 +636,7 @@ const Navbar = () => {
             </button>
             <h2 className="popup-title">Add Classroom</h2>
             <div className="mb-4">
-              <label className="block text-lg font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
                 Enter a Class name
               </label>
               <input

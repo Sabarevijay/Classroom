@@ -19,6 +19,7 @@ const attendanceSchema=new mongoose.Schema({
        hour:{
         type:String
     }
+    
 },{timestamps:true})
 
 const AttendanceModel=mongoose.model("Attendance",attendanceSchema)

@@ -360,7 +360,7 @@ const ClassAdmin = () => {
   const [hour, setHour] = useState('');
   const [showSuccessCard, setShowSuccessCard] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc');
+  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc' for hour sorting
   const [hourFilter, setHourFilter] = useState('');
   const navigate = useNavigate();
 
@@ -430,6 +430,7 @@ const ClassAdmin = () => {
     }
   }, [timeLeft, otp]);
 
+  // Sorting logic based on "Hour"
   const filteredAndSortedAttendance = attendance
     .filter((record) => {
       const matchesSearch = record.user.toLowerCase().includes(searchTerm.toLowerCase());
@@ -438,9 +439,9 @@ const ClassAdmin = () => {
     })
     .sort((a, b) => {
       if (sortOrder === 'asc') {
-        return a.user.localeCompare(b.user);
+        return a.hour.localeCompare(b.hour); // Sort by hour ascending
       } else {
-        return b.user.localeCompare(a.user);
+        return b.hour.localeCompare(a.hour); // Sort by hour descending
       }
     });
 
@@ -463,7 +464,7 @@ const ClassAdmin = () => {
   return (
     <div className="page-container">
       <style>{styles}</style>
-        <div className="card-container">
+      <div className="card-container">
         <div className="second-nav">
           <SecondNav classId={id} />
         </div>
@@ -491,10 +492,6 @@ const ClassAdmin = () => {
             <button type="button" className="form-button" onClick={generateOTP}>
               Generate OTP
             </button>
-           
-            {/* <button className="add-students-button" onClick={addStudentsRedirect}>
-              <UserPlus size={32} />
-            </button> */}
           </div>
         </form>
         <div className="otp-card-space">
@@ -506,7 +503,6 @@ const ClassAdmin = () => {
           )}
         </div>
 
-   
         {attendance.length > 0 ? (
           <div className="w-full">
             <h3 className="section-title">Attendance Details</h3>
@@ -538,11 +534,11 @@ const ClassAdmin = () => {
             <table className="attendance-table">
               <thead>
                 <tr>
-                  <th className="sortable" onClick={toggleSortOrder}>
-                    Register Number {sortOrder === 'asc' ? '↑' : '↓'}
-                  </th>
+                  <th>Register Number</th>
                   <th>Status</th>
-                  <th>Hour</th>
+                  <th className="sortable" onClick={toggleSortOrder}>
+                    Hour {sortOrder === 'asc' ? '↑' : '↓'}
+                  </th>
                 </tr>
               </thead>
               <tbody>

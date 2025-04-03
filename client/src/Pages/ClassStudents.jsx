@@ -168,7 +168,7 @@ const styles = `
 
   /* Status Message */
   .status-message {
-    margin-top: 1rem;
+    margin-top: -1.7rem;
     font-size: 1.1rem;
     font-weight: 500;
     text-align: center;

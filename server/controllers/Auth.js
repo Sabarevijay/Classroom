@@ -174,8 +174,8 @@ const googleLogin = async (req, res) => {
       process.env.JWT_SECRET,
     //   { expiresIn: '1h' }
     );
-    console.log('Generated token at:', currentTime);
-    console.log('Token:', jwtToken);
+    // console.log('Generated token at:', currentTime);
+    // console.log('Token:', jwtToken);
 
     const redirectUrl = role === 'admin' ? '/admin' : '/home';
     res.status(200).json({
