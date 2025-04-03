@@ -36,25 +36,37 @@ const addstudents=async(req,res)=>{
 const getStudents =async(req,res)=>{
 try {
     const classId = req.query.classId || req.params.classId;
+    console.log("Requested classId:", classId);
     if (!classId) {
         return res.status(400).json({
           success: false,
           message: "classId is required",
         });
       }
+
     const studentsData = await StudentsModel.find({ ClassId: classId }).select("email -_id");
-    if (studentsData.length === 0) {
+    console.log("Fetched Students:", studentsData);
+    if (!studentsData ||studentsData.length === 0) {
         return res.status(404).json({
           success: false,
           message: "No students found for this class",
         });
       }
 
-      const formattedStudents = studentsData.map(student => {
+    //   const formattedStudents = studentsData.map(student => {
+    //     const name = student.email.split(".")[0]; 
+    //     return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    //         // student.email
+    // });
+    const formattedStudents = studentsData.map(student => {
+        if (!student.email) {
+          console.log(" Missing email field in student record:", student); // Debug
+          return "Unknown";  // Fallback value
+        }
         const name = student.email.split(".")[0]; 
         return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-            // student.email
-    });
+      });
+
 
     return res.status(200).json({
         success:true,
