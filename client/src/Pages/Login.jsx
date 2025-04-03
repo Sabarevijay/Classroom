@@ -113,7 +113,7 @@ const Login = () => {
         />
         
         <motion.div 
-          className="absolute bottom-[-150px] right-[-100px] w-[350px] h-[350px] rounded-full bg-gradient-to-r from-pink-500 to-purple-600 opacity-50"
+          className="absolute bottom-[-150px] right-[-100px] w-[350px] h-[350px] rounded-full bg-gradient-to-r from-blue-500 to-purple-600 opacity-50"
           animate={{ scale: [1, 1.1, 1], rotate: [0, 10, -10, 0] }}
           transition={{ repeat: Infinity, duration: 6, ease: "easeInOut" }}
         />

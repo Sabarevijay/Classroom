@@ -354,14 +354,17 @@ const ClassAdmin = () => {
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [otp, setOtp] = useState('');
+  const [otp, setOtp] = useState("");
   const [timeLeft, setTimeLeft] = useState(20);
   const [attendance, setAttendance] = useState([]);
-  const [hour, setHour] = useState('');
+  const [hour, setHour] = useState("");
   const [showSuccessCard, setShowSuccessCard] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' or 'desc' for hour sorting
-  const [hourFilter, setHourFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [hourFilter, setHourFilter] = useState("");
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [presentCount, setPresentCount] = useState(0);
+  const [absentCount, setAbsentCount] = useState(0);
   const navigate = useNavigate();
 
   const addStudentsRedirect = () => {
@@ -370,21 +373,20 @@ const ClassAdmin = () => {
 
   const fetchAttendanceData = async () => {
     try {
-      const response = await get('/attendance/getattendance');
-      const today = new Date().toISOString().split('T')[0];
-      const userAttendance = response.data.attendance.filter((record) => {
-        const recordDate = new Date(record.createdAt).toISOString().split('T')[0];
-        return record.classId === id && recordDate === today;
-      });
-      setAttendance(userAttendance);
+      const response = await get(`/attendance/getattendance?classId=${id}`);
+      const { attendance, totalUsers, presentCount, absentCount } = response.data;
+      setAttendance(attendance);
+      setTotalUsers(totalUsers);
+      setPresentCount(presentCount);
+      setAbsentCount(absentCount);
     } catch (error) {
-      console.error('Failed to fetch attendance data:', error);
+      console.error("Failed to fetch attendance data:", error);
     }
   };
 
   const generateOTP = async () => {
-    if (!hour || hour === '-- Select Hour --') {
-      toast.error('Please select an hour before generating OTP.');
+    if (!hour || hour === "-- Select Hour --") {
+      toast.error("Please select an hour before generating OTP.");
       return;
     }
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
@@ -392,12 +394,12 @@ const ClassAdmin = () => {
     setTimeLeft(15);
     setShowSuccessCard(true);
     try {
-      await post('/otp/generate', { otp: newOtp, classId: id, hour });
-      toast.success('OTP generated successfully!');
-      setHour('');
+      await post("/otp/generate", { otp: newOtp, classId: id, hour });
+      toast.success("OTP generated successfully!");
+      setHour("");
     } catch (error) {
-      console.error('Failed to generate OTP:', error);
-      toast.error('Failed to generate OTP. Please try again.');
+      console.error("Failed to generate OTP:", error);
+      toast.error("Failed to generate OTP. Please try again.");
       setShowSuccessCard(false);
     }
   };
@@ -408,8 +410,8 @@ const ClassAdmin = () => {
         const response = await classGet(`/class/getclass/${id}`);
         setClassData(response.data.classData);
       } catch (error) {
-        console.error('Failed to fetch class data:', error);
-        setError('Failed to load class data. Please try again later.');
+        console.error("Failed to fetch class data:", error);
+        setError("Failed to load class data. Please try again later.");
       } finally {
         setIsLoading(false);
       }
@@ -424,13 +426,12 @@ const ClassAdmin = () => {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
-      setOtp('');
+      setOtp("");
       setShowSuccessCard(false);
       fetchAttendanceData();
     }
   }, [timeLeft, otp]);
 
-  // Sorting logic based on "Hour"
   const filteredAndSortedAttendance = attendance
     .filter((record) => {
       const matchesSearch = record.user.toLowerCase().includes(searchTerm.toLowerCase());
@@ -438,15 +439,15 @@ const ClassAdmin = () => {
       return matchesSearch && matchesHour;
     })
     .sort((a, b) => {
-      if (sortOrder === 'asc') {
-        return a.hour.localeCompare(b.hour); // Sort by hour ascending
+      if (sortOrder === "asc") {
+        return a.hour.localeCompare(b.hour);
       } else {
-        return b.hour.localeCompare(a.hour); // Sort by hour descending
+        return b.hour.localeCompare(a.hour);
       }
     });
 
   const toggleSortOrder = () => {
-    setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    setSortOrder(sortOrder === "asc" ? "desc" : "asc");
   };
 
   if (isLoading) {
@@ -468,7 +469,8 @@ const ClassAdmin = () => {
         <div className="second-nav">
           <SecondNav classId={id} />
         </div>
-        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
+        <h2 className="class-name">{classData ? classData.ClassName : "No class data available"}</h2>
+
         <form className="form-container">
           <div className="mb-6">
             <label className="form-label">Select Time:</label>
@@ -496,7 +498,7 @@ const ClassAdmin = () => {
         </form>
         <div className="otp-card-space">
           {showSuccessCard && otp && (
-            <div className={`success-card ${timeLeft === 0 ? 'boom' : ''}`}>
+            <div className={`success-card ${timeLeft === 0 ? "boom" : ""}`}>
               <div className="otp-value">{otp}</div>
               <div className="timer-text">Expires in {timeLeft}s</div>
             </div>
@@ -506,7 +508,12 @@ const ClassAdmin = () => {
         {attendance.length > 0 ? (
           <div className="w-full">
             <h3 className="section-title">Attendance Details</h3>
-
+             {/* Display User Count Stats */}
+             <div className="flex justify-center items-center mb-4 gap-4">
+              <span className="text-lg font-semibold">Total Students: {totalUsers}</span>
+              <span className="text-lg font-semibold text-green-600">Present: {presentCount}</span>
+              <span className="text-lg font-semibold text-red-600">Absent: {absentCount}</span>
+            </div>
             <div className="table-controls">
               <input
                 type="text"
@@ -534,10 +541,10 @@ const ClassAdmin = () => {
             <table className="attendance-table">
               <thead>
                 <tr>
-                  <th>Register Number</th>
+                  <th>Email</th>
                   <th>Status</th>
                   <th className="sortable" onClick={toggleSortOrder}>
-                    Hour {sortOrder === 'asc' ? '↑' : '↓'}
+                    Hour {sortOrder === "asc" ? "↑" : "↓"}
                   </th>
                 </tr>
               </thead>
