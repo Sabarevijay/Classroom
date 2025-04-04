@@ -13,12 +13,13 @@ import Addstudents from './Components/Addstudents';
 import ArchivedClass from './Pages/ArchivedClass';
 import Classwork from './Pages/Classwork';
 import ClassworkUs from './Pages/ClassworkUs';
+import QuizAdmin from './Pages/QuizAdmin';
+import QuizUser from './Pages/QuizUser';
 import BootIntro from './Components/BootIntro';
 import { useSelector } from 'react-redux';
 import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 
-// Replace with your actual Google Client ID from your .env file
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
 const AppContent = () => {
@@ -42,14 +43,14 @@ const AppContent = () => {
       currentPath !== '/' &&
       currentPath !== '/register'
     ) {
-      console.log('Showing BootIntro'); // Debugging
+      console.log('Showing BootIntro');
       setShowBootIntro(true);
       document.body.style.overflow = 'hidden';
     }
   }, [location, user, hasBootIntroShown, setShowBootIntro]);
 
   const handleBootIntroComplete = () => {
-    console.log('BootIntro Complete'); // Debugging
+    console.log('BootIntro Complete');
     setShowBootIntro(false);
     setHasBootIntroShown(true);
     localStorage.setItem('hasBootIntroShown', 'true');
@@ -86,10 +87,17 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
+          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} />
+          <Route 
+            path="classstudents/:id/quiz" 
+            element={
+              <ProtectedRoute allowedRoles={['user']}>
+                <QuizUser />
+              </ProtectedRoute>
+            } 
+          />
         </Route>
 
-        {/* Protect Admin Pages */}
         <Route 
           path='/admin' 
           element={
@@ -106,7 +114,6 @@ const AppContent = () => {
               </ProtectedRoute>
             } 
           /> 
-
           <Route
             path='classadmin/:id'
             element={
@@ -115,8 +122,16 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
-          <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
+          <Route path="classadmin/:id/addStudents" element={<Addstudents />} />
+          <Route path="classadmin/:id/classwork" element={<Classwork />} />
+          <Route 
+            path="classadmin/:id/quiz" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <QuizAdmin />
+              </ProtectedRoute>
+            } 
+          />
         </Route>
       </Routes> 
     </>
@@ -136,4 +151,4 @@ const App = () => {
   );
 };
 
-export default App
+export default App;

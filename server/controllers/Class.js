@@ -255,8 +255,8 @@ const deleteClass = async (req, res) => {
 
 const uploadClasswork = async (req, res) => {
   try {
-    console.log("Upload request body:", req.body);
-    console.log("Upload file:", req.file);
+    // console.log("Upload request body:", req.body);
+    // console.log("Upload file:", req.file);
 
     const { title, classId } = req.body;
     if (!req.file || !title || !classId) {
@@ -279,7 +279,7 @@ const uploadClasswork = async (req, res) => {
       uploadDate: new Date(),
     };
 
-    console.log("Creating classwork with:", classwork);
+    // console.log("Creating classwork with:", classwork);
     const newClasswork = await ClassworkModel.create(classwork);
 
     return res.status(201).json({
@@ -391,7 +391,7 @@ const downloadClasswork = async (req, res) => {
     //   console.log("Attempting to download:", filePath);
   
       if (!fs.existsSync(filePath)) {
-        console.error("File not found:", filePath);
+        // console.error("File not found:", filePath);
         return res.status(404).json({ success: false, message: "File not found" });
       }
   

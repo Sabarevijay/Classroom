@@ -73,6 +73,12 @@ const SecondNav = ({ classId }) => {
         >
           People
         </Link>
+        <Link
+          to={`/admin/classadmin/${classId}/quiz`}
+          className={`nav-tab ${currentPath.includes('quiz') ? 'active' : ''}`}
+        >
+          Quiz
+        </Link>
       </div>
     </>
   );

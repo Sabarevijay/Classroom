@@ -8,10 +8,9 @@ import AttendanceRoutes from "./routes/attendance.js";
 import cors from 'cors';
 import StudentRoutes from "./routes/students.js";
 import path from 'path'; 
-
+import QuizRoutes from "./routes/Quiz.js";
 
 dotenv.config();
-
 
 const app = express();
 const PORT = process.env.PORT || 8000;
@@ -36,15 +35,17 @@ app.use(cors({
             callback(new Error('Not allowed by CORS'));
         }
     },
-    credentials: true ,
-    
+    credentials: true,
 }));
+
 app.use((req, res, next) => {
     res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
     next();
-  });
+});
 
-  app.use('/images', express.static(path.join(path.resolve(), 'public/images')));
+// Serve static files for images and quizzes
+app.use('/images', express.static(path.join(path.resolve(), 'public/images')));
+app.use('/quizzes', express.static(path.join(path.resolve(), 'public/quizzes')));
 
 app.get("/", (req, res) => {
     res.send("Hello from classroom backend");
@@ -52,6 +53,8 @@ app.get("/", (req, res) => {
 
 app.use('/auth', AuthRoutes);
 app.use('/class', ClassRoutes);
+app.use('/quizes', QuizRoutes);
+// Includes quiz routes
 app.use('/otp', OTPRoutes);
 app.use('/attendance', AttendanceRoutes);
 app.use('/students', StudentRoutes);

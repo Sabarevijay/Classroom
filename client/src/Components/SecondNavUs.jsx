@@ -67,6 +67,12 @@ const SecondNavUs= ({ classId }) => {
         >
           Classwork
         </Link>
+        <Link
+          to={`/home/classstudents/${classId}/quiz`}
+          className={`nav-tab ${currentPath.includes('quiz') ? 'active' : ''}`}
+        >
+          Quiz
+        </Link>
         {/* <Link
           to={`/admin/classadmin/${classId}/addStudents`}
           className={`nav-tab ${currentPath.includes('addStudents') ? 'active' : ''}`}

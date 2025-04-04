@@ -153,7 +153,9 @@ const Sidebar = () => {
             >
               <Archive size={20} className="nav-icon" />
               <span className="nav-text">Archived Class</span>
+              
             </div>
+            
           )}
         </nav>
       </div>
