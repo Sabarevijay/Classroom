@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { classGet, get, post } from '../services/Endpoint';
+import { classGet, downloadFile, get, post } from '../services/Endpoint';
 import { UserPlus } from 'lucide-react';
 import toast from 'react-hot-toast';
 import SecondNav from '../Components/SecondNav';
@@ -126,6 +126,8 @@ const styles = `
     justify-content: center;
     align-items: center;
     margin-top: 1.5rem;
+    gap: 1rem;
+    // margin-left: 20px;
   }
 
   .otp-card-space {
@@ -404,6 +406,25 @@ const ClassAdmin = () => {
     }
   };
 
+  const handleDownloadReport = async () => {
+    try {
+      const response = await downloadFile(`/attendance/downloadreport?classId=${id}`);
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      const today = new Date().toISOString().split("T")[0];
+      link.href = url;
+      link.setAttribute('download', `Attendance_Report_${today}.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      toast.success('Attendance report downloaded successfully');
+    } catch (error) {
+      console.error('Download error:', error);
+      toast.error('Failed to download attendance report. Please try again.');
+    }
+  };
+
+
   useEffect(() => {
     const fetchClassData = async () => {
       try {
@@ -493,6 +514,10 @@ const ClassAdmin = () => {
           <div className="button-row">
             <button type="button" className="form-button" onClick={generateOTP}>
               Generate OTP
+            </button>
+            
+            <button type="button" className="form-button" onClick={handleDownloadReport}>
+              Download Report
             </button>
           </div>
         </form>
