@@ -273,7 +273,8 @@ const uploadClasswork = async (req, res) => {
       const classwork = {
         title,
         classId,
-        filename: file.filename,
+        filename: file.filename, // Renamed filename (e.g., files-1234567890.pdf)
+        originalFilename: file.originalname, // Original filename (e.g., my-document.pdf)
         filePath: file.path,
         uploadDate: new Date(),
       };
@@ -392,35 +393,33 @@ const editClasswork = async (req, res) => {
 };
 
 const downloadClasswork = async (req, res) => {
-    try {
-      const { id } = req.params;
-      const classwork = await ClassworkModel.findById(id);
-  
-      if (!classwork) {
-        return res.status(404).json({
-          success: false,
-          message: "Classwork not found",
-        });
-      }
-  
-      const filePath = path.join(path.resolve(), "public/images", classwork.filename);
-    //   console.log("Attempting to download:", filePath);
-  
-      if (!fs.existsSync(filePath)) {
-        // console.error("File not found:", filePath);
-        return res.status(404).json({ success: false, message: "File not found" });
-      }
-  
-      // Send the file
-      return res.download(filePath, classwork.filename);
-    } catch (error) {
-      console.error("Error sending file:", error);
-      return res.status(500).json({
+  try {
+    const { id } = req.params;
+    const classwork = await ClassworkModel.findById(id);
+
+    if (!classwork) {
+      return res.status(404).json({
         success: false,
-        message: "Error downloading file",
+        message: "Classwork not found",
       });
     }
-  };
+
+    const filePath = path.join(path.resolve(), "public/images", classwork.filename);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({ success: false, message: "File not found" });
+    }
+
+    // Use originalFilename if available, otherwise fall back to filename
+    const downloadName = classwork.originalFilename || classwork.filename;
+    return res.download(filePath, downloadName);
+  } catch (error) {
+    console.error("Error sending file:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Error downloading file",
+    });
+  }
+};
   
 
 export {

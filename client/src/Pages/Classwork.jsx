@@ -173,6 +173,12 @@ const styles = `
     color: #333;
   }
 
+  .classwork-group-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
   .classwork-group-files {
     padding: 0.5rem 1rem;
     background-color: #fff;
@@ -217,7 +223,8 @@ const styles = `
   }
 
   /* Tooltip Styles for Icons */
-  .action-buttons button::before {
+  .action-buttons button::before,
+  .classwork-group-actions button::before {
     content: attr(data-tooltip);
     position: absolute;
     bottom: 100%;
@@ -237,7 +244,8 @@ const styles = `
     margin-bottom: 5px;
   }
 
-  .action-buttons button::after {
+  .action-buttons button::after,
+  .classwork-group-actions button::after {
     content: '';
     position: absolute;
     bottom: 90%;
@@ -252,7 +260,9 @@ const styles = `
   }
 
   .action-buttons button:hover::before,
-  .action-buttons button:hover::after {
+  .action-buttons button:hover::after,
+  .classwork-group-actions button:hover::before,
+  .classwork-group-actions button:hover::after {
     opacity: 1;
     visibility: visible;
   }
@@ -318,11 +328,12 @@ const Classwork = () => {
   const [files, setFiles] = useState([]);
   const [title, setTitle] = useState('');
   const [dragOver, setDragOver] = useState(false);
-  const [expandedGroups, setExpandedGroups] = useState({}); // Track expanded/collapsed state of each group
+  const [expandedGroups, setExpandedGroups] = useState({});
   const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
+      console.log('Class ID from useParams:', id);
       try {
         const classResponse = await classGet(`/class/getclass/${id}`);
         setClassData(classResponse.data.classData);
@@ -405,6 +416,23 @@ const Classwork = () => {
     } catch (error) {
       console.error('Delete error:', error.response?.data || error.message);
       toast.error('Failed to delete classwork');
+    }
+  };
+
+  const handleDeleteGroup = async (group) => {
+    try {
+      // Delete all classwork items in the group
+      await Promise.all(
+        group.map(async (classwork) => {
+          await classPost(`/class/classwork/delete/${classwork._id}`);
+        })
+      );
+      // Update the classworks state by removing all items in the group
+      setClassworks(classworks.filter(cw => !group.some(item => item._id === cw._id)));
+      toast.success('Folder deleted successfully');
+    } catch (error) {
+      console.error('Delete group error:', error.response?.data || error.message);
+      toast.error('Failed to delete folder');
     }
   };
 
@@ -514,12 +542,24 @@ const Classwork = () => {
           {Object.keys(groupedClassworks).length > 0 ? (
             Object.entries(groupedClassworks).map(([title, group]) => (
               <div key={title} className="classwork-group">
-                <div className="classwork-group-header" onClick={() => toggleGroup(title)}>
-                  <div className="classwork-group-title">
+                <div className="classwork-group-header">
+                  <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
                     <Folder size={20} color="#6b48ff" />
                     <span>{title} ({group.length} {group.length === 1 ? 'file' : 'files'})</span>
                   </div>
-                  {expandedGroups[title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  <div className="classwork-group-actions">
+                    <button
+                      className="delete-button"
+                      onClick={(e) => {
+                        e.stopPropagation(); // Prevent toggling the group when clicking delete
+                        handleDeleteGroup(group);
+                      }}
+                      data-tooltip="Delete Folder"
+                    >
+                      <Trash2 size={20} />
+                    </button>
+                    {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
+                  </div>
                 </div>
                 {expandedGroups[title] && (
                   <div className="classwork-group-files">

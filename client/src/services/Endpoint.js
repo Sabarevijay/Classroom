@@ -24,7 +24,7 @@ const API = axios.create({
 
 export const get =(url,params)=>instance.get(url,{params})
 export const post=(url,data,config)=>instance.post(url,data,config)
-export const classPost = (url, data) => instance.post(url, data);
+export const classPost = (url, data,config) => instance.post(url, data,config );
 export const classGet =(url,params)=>instance.get(url,{params})
 export const addstudentsPost=(url,data)=>instance.post(url,data)
 export const deleteRequest = (url, data) => instance.delete(url, { data });
