@@ -5,7 +5,7 @@ import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { useSidebar } from '../context/SidebarContext'; // Import the custom hook
+import { useSidebar } from '../context/SidebarContext';
 
 // Updated CSS styles
 const styles = `
@@ -23,15 +23,15 @@ const styles = `
     align-items: center;
     padding: 1rem 1rem;
     height: 64px;
-    transition: left 0.3s ease-in-out; /* Smooth transition for left property */
+    transition: left 0.3s ease-in-out;
   }
 
   @media (min-width: 768px) {
     .navbar {
-      left: 80px; /* Default left offset when sidebar is collapsed */
+      left: 80px;
     }
     .navbar.sidebar-hovered {
-      left: 256px; /* Match the expanded sidebar width */
+      left: 256px;
     }
   }
 
@@ -70,12 +70,54 @@ const styles = `
     border-radius: 9999px;
     color: #3b82f6;
     transition: all 0.2s ease-in-out;
+    position: relative;
   }
 
   .add-classroom-button:hover {
     background-color: rgba(59, 130, 246, 0.1);
     color: #2563eb;
     cursor: pointer;
+  }
+
+  /* Tooltip for Add Classroom Button */
+  .add-classroom-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .add-classroom-button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .add-classroom-button:hover::before,
+  .add-classroom-button:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   .profile-container {
@@ -86,6 +128,7 @@ const styles = `
 
   .profile-wrapper {
     cursor: pointer;
+    position: relative;
   }
 
   .profile-image {
@@ -118,6 +161,47 @@ const styles = `
 
   .profile-placeholder:hover {
     border-color: rgba(59, 130, 246, 0.6);
+  }
+
+  /* Tooltip for Profile */
+  .profile-wrapper::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .profile-wrapper::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .profile-wrapper:hover::before,
+  .profile-wrapper:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   .profile-input {
@@ -172,11 +256,53 @@ const styles = `
     transition: all 0.2s ease-in-out;
     display: flex;
     align-items: center;
+    position: relative;
   }
 
   .dropdown-item:hover {
     background-color: #f3f4f6;
     cursor: pointer;
+  }
+
+  /* Tooltip for Dropdown Items */
+  .dropdown-item::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-left: 10px;
+  }
+
+  .dropdown-item::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .dropdown-item:hover::before,
+  .dropdown-item:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   .dropdown-user-info {
@@ -233,11 +359,53 @@ const styles = `
     border-radius: 9999px;
     color: #374151;
     transition: all 0.2s ease-in-out;
+    position: relative;
   }
 
   .close-button:hover {
     background-color: #e5e7eb;
     cursor: pointer;
+  }
+
+  /* Tooltip for Close Button */
+  .close-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .close-button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .close-button:hover::before,
+  .close-button:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   .popup-title {
@@ -275,11 +443,53 @@ const styles = `
     font-size: 0.875rem;
     font-weight: 600;
     transition: all 0.2s ease-in-out;
+    position: relative;
   }
 
   .popup-button:hover {
     background-color: #2563eb;
     cursor: pointer;
+  }
+
+  /* Tooltip for Popup Button */
+  .popup-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .popup-button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .popup-button:hover::before,
+  .popup-button:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* Loading Spinner */
@@ -323,12 +533,54 @@ const styles = `
   .menu-button {
     padding: 1.25rem;
     display: flex;
-    justify-content: center; /* Centered by default */
+    justify-content: center;
     transition: all 0.3s ease-in-out;
+    position: relative;
   }
 
   .mobile-sidebar.open .menu-button {
-    justify-content: flex-end; /* Move to right when mobile sidebar is open */
+    justify-content: flex-end;
+  }
+
+  /* Tooltip for Menu Button */
+  .menu-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .menu-button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .menu-button:hover::before,
+  .menu-button:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   .menu-icon {
@@ -374,7 +626,7 @@ const styles = `
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6b7280; /* Dull color (muted gray) */
+    color: #6b7280;
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
@@ -397,8 +649,8 @@ const styles = `
     flex-direction: column;
     padding: 1.5rem 0.75rem;
     gap: 0.5rem;
-    height: calc(100vh - 120px); /* Adjust height to account for menu button, classroom name, and horizontal line */
-    justify-content: space-between; /* Push the last item (Settings) to the bottom */
+    height: calc(100vh - 120px);
+    justify-content: space-between;
   }
 
   .mobile-nav-item {
@@ -406,14 +658,15 @@ const styles = `
     align-items: center;
     width: 100%;
     padding: 0.75rem;
-    color: #000000; /* Black color for navigation links */
+    color: #000000;
     border-radius: 0.5rem;
     transition: all 0.3s ease-in-out;
+    position: relative;
   }
 
   .mobile-nav-item:hover {
     background-color: #f3f4f6;
-    color: #000000; /* Black color on hover */
+    color: #000000;
     cursor: pointer;
   }
 
@@ -425,7 +678,7 @@ const styles = `
 
   /* Add bottom margin to the Settings tab in mobile view */
   .mobile-nav-item.settings {
-    margin-bottom: 20px; /* 20px margin from the bottom */
+    margin-bottom: 20px;
   }
 
   .mobile-nav-icon {
@@ -440,11 +693,53 @@ const styles = `
     font-weight: 500;
   }
 
+  /* Tooltip for Mobile Nav Items */
+  .mobile-nav-item::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-left: 10px;
+  }
+
+  .mobile-nav-item::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .mobile-nav-item:hover::before,
+  .mobile-nav-item:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
   .mobile-menu-button {
     padding: 0.5rem;
     margin-right: 0.5rem;
     display: flex;
     align-items: center;
+    position: relative;
   }
 
   .mobile-menu-icon {
@@ -455,6 +750,47 @@ const styles = `
   .mobile-menu-button:hover .mobile-menu-icon {
     color: #3b82f6;
     cursor: pointer;
+  }
+
+  /* Tooltip for Mobile Menu Button */
+  .mobile-menu-button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .mobile-menu-button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .mobile-menu-button:hover::before,
+  .mobile-menu-button:hover::after {
+    opacity: 1;
+    visibility: visible;
   }
 
   /* Mobile Backdrop */
@@ -478,21 +814,20 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
-  const [isMobileSidebarHovered, setIsMobileSidebarHovered] = useState(false); // Track hover state for mobile
+  const [isMobileSidebarHovered, setIsMobileSidebarHovered] = useState(false);
   const [className, setClassName] = useState('');
   const userMenuRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
-  const { isSidebarHovered } = useSidebar(); // Use the context to get hover state
+  const { isSidebarHovered } = useSidebar();
 
   const user = useSelector((state) => state.auth.user);
   const userRole = user?.role;
   const userName = user?.name || "User";
   const userEmail = user?.email || "user@example.com";
   const firstLetter = userName.charAt(0).toUpperCase();
-  // Assuming classroom name is available in the Redux store
-  const classroomName = useSelector((state) => state.classroom?.name) || "Classroom"; // Fallback if not available
+  const classroomName = useSelector((state) => state.classroom?.name) || "Classroom";
 
   useEffect(() => {
     const handleResize = () => {
@@ -530,7 +865,7 @@ const Navbar = () => {
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
-    setIsMobileSidebarHovered(!isMobileSidebarOpen); // Update hover state for mobile
+    setIsMobileSidebarHovered(!isMobileSidebarOpen);
   };
 
   const handleImageUpload = (event) => {
@@ -601,12 +936,12 @@ const Navbar = () => {
       <nav className={`navbar ${isSidebarHovered ? 'sidebar-hovered' : ''}`}>
         <div className="flex items-center">
           {isMobile && (
-            <div className="mobile-menu-button">
+            <div className="mobile-menu-button" data-tooltip={isMobileSidebarOpen ? "Close sidebar" : "Open sidebar"}>
               <button onClick={toggleMobileSidebar}>
                 {isMobileSidebarOpen || isMobileSidebarHovered ? (
-                  <X size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'mobile-menu-icon-open' : 'mobile-menu-icon-close'}`} />
+                  <X size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'menu-icon-open' : 'menu-icon-close'}`} />
                 ) : (
-                  <AlignJustify size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'mobile-menu-icon-open' : 'mobile-menu-icon-close'}`} />
+                  <AlignJustify size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'menu-icon-open' : 'menu-icon-close'}`} />
                 )}
               </button>
             </div>
@@ -623,12 +958,13 @@ const Navbar = () => {
             <button
               className="add-classroom-button"
               onClick={openPopup}
+              // data-tooltip="Add a new classroom"
             >
               <Plus size={20} />
             </button>
           )}
           <div className="profile-container">
-            <div className="profile-wrapper">
+            <div className="profile-wrapper" >
               {profileImage ? (
                 <img
                   src={profileImage}
@@ -659,6 +995,7 @@ const Navbar = () => {
                 <button
                   className="dropdown-item"
                   onClick={handleLogout}
+                  // data-tooltip="Sign out of your account"
                 >
                   Log Out
                 </button>
@@ -667,6 +1004,7 @@ const Navbar = () => {
                   onClick={() => {
                     closeUserMenu();
                   }}
+                  data-tooltip="Update your profile"
                 >
                   Update
                 </button>
@@ -679,7 +1017,7 @@ const Navbar = () => {
       {isMobile && (
         <>
           <div className={`mobile-sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
-            <div className="menu-button">
+            <div className="menu-button" data-tooltip={isMobileSidebarOpen ? "Close sidebar" : "Open sidebar"}>
               <button onClick={toggleMobileSidebar}>
                 {isMobileSidebarOpen || isMobileSidebarHovered ? (
                   <X size={24} className={`menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'menu-icon-open' : 'menu-icon-close'}`} />
@@ -696,13 +1034,14 @@ const Navbar = () => {
             <div className="mobile-horizontal-line"></div>
 
             <nav className="mobile-nav-links">
-              <div className="top-links"> {/* Group top links together */}
+              <div className="top-links">
                 <div
                   className={`mobile-nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
                   onClick={() => {
                     navigate("/home");
                     setIsMobileSidebarOpen(false);
                   }}
+                  data-tooltip="View all classrooms"
                 >
                   <Home size={20} className="mobile-nav-icon" />
                   <span className="mobile-nav-text">Classroom</span>
@@ -715,6 +1054,7 @@ const Navbar = () => {
                         navigate('/admin/students');
                         setIsMobileSidebarOpen(false);
                       }}
+                      data-tooltip="Manage student records"
                     >
                       <Users size={20} className="mobile-nav-icon" />
                       <span className="mobile-nav-text">Student</span>
@@ -725,6 +1065,7 @@ const Navbar = () => {
                         navigate('/admin/faculty');
                         setIsMobileSidebarOpen(false);
                       }}
+                      data-tooltip="Manage faculty members"
                     >
                       <GraduationCap size={20} className="mobile-nav-icon" />
                       <span className="mobile-nav-text">Faculty</span>
@@ -735,6 +1076,7 @@ const Navbar = () => {
                         navigate('/admin/mentor');
                         setIsMobileSidebarOpen(false);
                       }}
+                      data-tooltip="Manage mentors"
                     >
                       <UserCheck size={20} className="mobile-nav-icon" />
                       <span className="mobile-nav-text">Mentor</span>
@@ -742,30 +1084,32 @@ const Navbar = () => {
                   </>
                 )}
               </div>
-              {userRole === 'admin' && (
-                <div className="bottom-links"> {/* Group bottom links (Settings) */}
+              <div className="bottom-links">
+                {userRole === 'admin' && (
                   <div
                     className={`mobile-nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
                     onClick={() => {
                       navigate('/admin/archived');
                       setIsMobileSidebarOpen(false);
                     }}
+                    data-tooltip="View archived classes"
                   >
                     <Archive size={20} className="mobile-nav-icon" />
                     <span className="mobile-nav-text">Archived Class</span>
                   </div>
-                  <div
-                    className={`mobile-nav-item settings ${window.location.pathname === '/admin/settings' ? 'active' : ''}`}
-                    onClick={() => {
-                      navigate('/admin/settings');
-                      setIsMobileSidebarOpen(false);
-                    }}
-                  >
-                    <Settings size={20} className="mobile-nav-icon" />
-                    <span className="mobile-nav-text">Settings</span>
-                  </div>
+                )}
+                <div
+                  className={`mobile-nav-item settings ${window.location.pathname === '/settings' ? 'active' : ''}`}
+                  onClick={() => {
+                    navigate('/settings');
+                    setIsMobileSidebarOpen(false);
+                  }}
+                  data-tooltip="Adjust application settings"
+                >
+                  <Settings size={20} className="mobile-nav-icon" />
+                  <span className="mobile-nav-text">Settings</span>
                 </div>
-              )}
+              </div>
             </nav>
           </div>
           {isMobileSidebarOpen && (
@@ -783,6 +1127,7 @@ const Navbar = () => {
             <button
               onClick={closePopup}
               className="close-button"
+              data-tooltip="Close popup"
             >
               <X size={24} />
             </button>
@@ -802,6 +1147,7 @@ const Navbar = () => {
             <button
               className="popup-button"
               onClick={handleCreateClass}
+              data-tooltip="Create a new classroom"
             >
               Create
             </button>

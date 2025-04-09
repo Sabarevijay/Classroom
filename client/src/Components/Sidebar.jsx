@@ -2,7 +2,7 @@ import React, { useState, useRef } from 'react';
 import { Home, Archive, AlignJustify, X, Users, UserCheck, Settings, GraduationCap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { useSidebar } from '../context/SidebarContext'; // Import the custom hook
+import { useSidebar } from '../context/SidebarContext';
 
 // Updated CSS styles
 const styles = `
@@ -41,7 +41,7 @@ const styles = `
 
   .sidebar.open .menu-button,
   .sidebar:hover .menu-button {
-    justify-content: flex-end; /* Move to right when sidebar is open or hovered */
+    justify-content: flex-end;
   }
 
   .menu-icon {
@@ -87,7 +87,7 @@ const styles = `
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #6b7280; /* Dull color (muted gray) */
+    color: #6b7280;
     font-size: 1rem;
     font-weight: 600;
     text-align: center;
@@ -112,8 +112,8 @@ const styles = `
     flex-direction: column;
     padding: 1.5rem 0.75rem;
     gap: 0.5rem;
-    height: calc(100vh - 120px); /* Adjust height to account for menu button, classroom name, and horizontal line */
-    justify-content: space-between; /* Push the last item (Settings) to the bottom */
+    height: calc(100vh - 120px);
+    justify-content: space-between;
   }
 
   .nav-item {
@@ -121,26 +121,27 @@ const styles = `
     align-items: center;
     width: 100%;
     padding: 0.75rem;
-    color: #000000; /* Black color for navigation links */
+    color: #000000;
     border-radius: 0.5rem;
     transition: all 0.3s ease-in-out;
+    position: relative;
   }
 
   .nav-item:hover {
     background-color: #f3f4f6;
-    color: #000000; /* Black color on hover */
+    color: #000000;
     cursor: pointer;
   }
 
   .nav-item.active {
     background-color: #e5e7eb;
-    color: #3b82f6; /* Blue color for active link */
+    color: #3b82f6;
     border-left: 4px solid #3b82f6;
   }
 
   /* Add bottom margin to the Settings tab */
   .nav-item.settings {
-    margin-bottom: 20px; /* 20px margin from the bottom */
+    margin-bottom: 20px;
   }
 
   .nav-icon {
@@ -162,6 +163,47 @@ const styles = `
     opacity: 1;
   }
 
+  /* Tooltip Styles */
+  .nav-item::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-left: 10px;
+  }
+
+  .nav-item::after {
+    content: '';
+    position: absolute;
+    left: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .nav-item:hover::before,
+  .nav-item:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
   /* Mobile Backdrop */
   .backdrop {
     position: fixed;
@@ -180,14 +222,13 @@ const styles = `
 
 const Sidebar = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [isHovered, setIsHovered] = useState(false); // Track hover state
+  const [isHovered, setIsHovered] = useState(false);
   const navigate = useNavigate();
   const userMenuRef = useRef();
   const user = useSelector((state) => state.auth.user);
   const userRole = user?.role;
-  const { setIsSidebarHovered } = useSidebar(); // Use the context to set hover state
-  // Assuming classroom name is available in the Redux store
-  const classroomName = useSelector((state) => state.classroom?.name) || "Classroom"; // Fallback if not available
+  const { setIsSidebarHovered } = useSidebar();
+  const classroomName = useSelector((state) => state.classroom?.name) || "Classroom";
 
   const toggleSidebar = () => {
     console.log('Toggling sidebar. Current isOpen:', isOpen);
@@ -198,13 +239,13 @@ const Sidebar = () => {
   const handleMouseEnter = () => {
     console.log('Mouse entered sidebar');
     setIsHovered(true);
-    setIsSidebarHovered(true); // Update context on hover
+    setIsSidebarHovered(true);
   };
 
   const handleMouseLeave = () => {
     console.log('Mouse left sidebar');
     setIsHovered(false);
-    setIsSidebarHovered(false); // Update context on mouse leave
+    setIsSidebarHovered(false);
   };
 
   return (
@@ -233,10 +274,11 @@ const Sidebar = () => {
         <div className="horizontal-line"></div>
 
         <nav className="nav-links">
-          <div className="top-links"> {/* Group top links together */}
+          <div className="top-links">
             <div
               className={`nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
               onClick={() => navigate("/home")}
+              data-tooltip="View all classrooms"
             >
               <Home size={20} className="nav-icon" />
               <span className="nav-text">Classroom</span>
@@ -246,6 +288,7 @@ const Sidebar = () => {
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/students' ? 'active' : ''}`}
                   onClick={() => navigate('/admin/students')}
+                  data-tooltip="Manage student records"
                 >
                   <Users size={20} className="nav-icon" />
                   <span className="nav-text">Student</span>
@@ -253,6 +296,7 @@ const Sidebar = () => {
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/faculty' ? 'active' : ''}`}
                   onClick={() => navigate('/admin/faculty')}
+                  data-tooltip="Manage faculty members"
                 >
                   <GraduationCap size={20} className="nav-icon" />
                   <span className="nav-text">Faculty</span>
@@ -260,6 +304,7 @@ const Sidebar = () => {
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/mentor' ? 'active' : ''}`}
                   onClick={() => navigate('/admin/mentor')}
+                  data-tooltip="Manage mentors"
                 >
                   <UserCheck size={20} className="nav-icon" />
                   <span className="nav-text">Mentor</span>
@@ -267,24 +312,26 @@ const Sidebar = () => {
               </>
             )}
           </div>
-          {userRole === 'admin' && (
-            <div className="bottom-links"> {/* Group bottom links (Settings) */}
+          <div className="bottom-links">
+            {userRole === 'admin' && (
               <div
                 className={`nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
                 onClick={() => navigate('/admin/archived')}
+                data-tooltip="View archived classes"
               >
                 <Archive size={20} className="nav-icon" />
                 <span className="nav-text">Archived Class</span>
               </div>
-              <div
-                className={`nav-item settings ${window.location.pathname === '/admin/settings' ? 'active' : ''}`}
-                onClick={() => navigate('/admin/settings')}
-              >
-                <Settings size={20} className="nav-icon" />
-                <span className="nav-text">Settings</span>
-              </div>
+            )}
+            <div
+              className={`nav-item settings ${window.location.pathname === '/settings' ? 'active' : ''}`}
+              onClick={() => navigate('/settings')}
+              data-tooltip="Adjust application settings"
+            >
+              <Settings size={20} className="nav-icon" />
+              <span className="nav-text">Settings</span>
             </div>
-          )}
+          </div>
         </nav>
       </div>
 

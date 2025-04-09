@@ -1,10 +1,8 @@
-import React, { useEffect, useState } from 'react';
-import Navbar from '../Components/Navbar';
-import Sidebar from '../Components/Sidebar';
+import React, { useEffect, useState, useRef } from 'react';
 import { classGet, classPost } from '../services/Endpoint';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
-import { Edit, Trash2, Archive, X } from 'lucide-react';
+import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const styles = `
@@ -13,22 +11,22 @@ const styles = `
     min-height: 100vh;
     background-color: #f5f5f5;
     display: flex;
-    flex-direction: column; /* Stack vertically on mobile */
+    flex-direction: column;
   }
 
   /* Content Area */
   .content-area {
     flex: 1;
-    padding-top: 70px; /* Match navbar height */
-    padding-left: 80px; /* Match sidebar collapsed width on desktop */
-    transition: padding-left 0.3s ease; /* Smooth transition for sidebar */
+    padding-top: 70px;
+    padding-left: 80px;
+    transition: padding-left 0.3s ease;
   }
 
   /* Grid for Cards */
   .class-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem; /* Reduced gap for smaller screens */
+    gap: 1.5rem;
     padding: 1rem;
     justify-items: center;
   }
@@ -56,7 +54,7 @@ const styles = `
   }
 
   .class-initial {
-    font-size: 2.5rem; /* Slightly smaller for mobile */
+    font-size: 2.5rem;
     font-weight: 700;
     line-height: 1;
     margin-bottom: 0.5rem;
@@ -65,41 +63,78 @@ const styles = `
   .class-name {
     font-size: 1.25rem;
     font-weight: 600;
-    word-wrap: break-word; /* Ensure long names wrap */
+    word-wrap: break-word;
   }
 
-  /* Icons on Card */
-  .card-icon {
+  /* More Icon (Three Dots) */
+  .more-icon {
     position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
     background-color: #fff;
     border-radius: 50%;
     padding: 0.4rem;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s, background-color 0.2s;
-  }
-
-  .card-icon:hover {
-    transform: scale(1.1);
-    background-color: #f1f7ff;
     cursor: pointer;
   }
 
-  .rename-icon {
-    top: 0.5rem;
+  .more-icon:hover {
+    transform: scale(1.1);
+    background-color: #f1f7ff;
+  }
+
+  /* Dropdown Menu for More Options */
+  .more-menu {
+    position: absolute;
+    top: 2.5rem;
     right: 0.5rem;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    width: 150px;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .more-menu.open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .more-menu-item {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    background: none;
+    border: none;
+    text-align: left;
+    transition: all 0.2s ease-in-out;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .more-menu-item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .more-menu-item.edit {
     color: #6b48ff;
   }
 
-  .remove-icon {
-    bottom: 0.5rem;
-    right: 0.5rem;
+  .more-menu-item.archive {
+    color: #6b48ff;
+  }
+
+  .more-menu-item.delete {
     color: #ff4d4f;
-  }
-
-  .archive-icon {
-    bottom: 0.5rem;
-    left: 0.5rem;
-    color: #6b48ff;
   }
 
   /* Confirmation Modal */
@@ -120,7 +155,7 @@ const styles = `
     background-color: #fff;
     border-radius: 1rem;
     padding: 1.5rem;
-    width: 90%; /* Responsive width */
+    width: 90%;
     max-width: 400px;
     text-align: center;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -131,7 +166,7 @@ const styles = `
   }
 
   .modal-text {
-    font-size: 1.1rem; /* Slightly smaller for mobile */
+    font-size: 1.1rem;
     font-weight: 500;
     color: #333;
     margin-bottom: 1rem;
@@ -141,7 +176,7 @@ const styles = `
     display: flex;
     gap: 0.75rem;
     justify-content: center;
-    flex-wrap: wrap; /* Allow buttons to wrap on small screens */
+    flex-wrap: wrap;
   }
 
   .modal-button {
@@ -198,7 +233,7 @@ const styles = `
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
     padding: 1.5rem;
-    width: 90%; /* Responsive width */
+    width: 90%;
     max-width: 400px;
     position: relative;
   }
@@ -220,7 +255,7 @@ const styles = `
   }
 
   .edit-modal-title {
-    font-size: 1.25rem; /* Smaller for mobile */
+    font-size: 1.25rem;
     font-weight: 700;
     color: #000;
     margin-bottom: 1rem;
@@ -267,7 +302,7 @@ const styles = `
   .no-classes {
     text-align: center;
     color: #6b7280;
-    font-size: 1.25rem; /* Smaller for mobile */
+    font-size: 1.25rem;
     margin: 1.5rem 0;
   }
 
@@ -293,19 +328,19 @@ const styles = `
     }
 
     .content-area {
-      padding-left: 0; /* Remove sidebar padding on mobile */
-      padding-top: 60px; /* Adjust for smaller navbar */
+      padding-left: 0;
+      padding-top: 60px;
     }
 
     .class-grid {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* Smaller cards on mobile */
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
       gap: 1rem;
-      padding: 2rem 0.5rem 0.5rem; /* Increased top padding for spacing */
+      padding: 2rem 0.5rem 0.5rem;
     }
 
     .class-card {
-      max-width: 100%; /* Full width on mobile */
-      height: 150px; /* Shorter height */
+      max-width: 100%;
+      height: 150px;
     }
 
     .class-initial {
@@ -316,7 +351,7 @@ const styles = `
       font-size: 1rem;
     }
 
-    .card-icon {
+    .more-icon {
       padding: 0.3rem;
     }
 
@@ -364,12 +399,12 @@ const styles = `
 
   @media (max-width: 480px) {
     .class-grid {
-      grid-template-columns: 1fr; /* Single column on very small screens */
-      padding: 2.5rem 0.5rem 0.5rem; /* Further increased top padding */
+      grid-template-columns: 1fr;
+      padding: 2.5rem 0.5rem 0.5rem;
     }
 
     .class-card {
-      height: 120px; /* Even shorter */
+      height: 120px;
     }
 
     .class-initial {
@@ -392,6 +427,8 @@ const Home = () => {
   const [isEditConfirmModalOpen, setIsEditConfirmModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [editClassName, setEditClassName] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
   const user = useSelector((state) => state.auth.user);
   const colors = [
     '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
@@ -401,7 +438,7 @@ const Home = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      const userEmail = user?.email; 
+      const userEmail = user?.email;
       if (!userEmail && user?.role !== 'admin') {
         throw new Error('User email not found');
       }
@@ -420,13 +457,15 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error fetching classes:", error);
+      toast.error("Failed to fetch classes");
+      setClasses([]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleRemoveClass = async () => {
-    if (!selectedClass) return;
+    if (!selectedClass || !selectedClass._id) return;
     try {
       setIsLoading(true);
       const response = await classPost(`/class/deleteclass/${selectedClass._id}`, {});
@@ -447,7 +486,7 @@ const Home = () => {
   };
 
   const handleArchiveClass = async () => {
-    if (!selectedClass) return;
+    if (!selectedClass || !selectedClass._id) return;
     try {
       setIsLoading(true);
       const response = await classPost(`/class/archiveclass/${selectedClass._id}`, {});
@@ -468,7 +507,7 @@ const Home = () => {
   };
 
   const handleEditClass = async () => {
-    if (!selectedClass || !editClassName.trim()) {
+    if (!selectedClass || !selectedClass._id || !editClassName.trim()) {
       toast.error("Class name cannot be empty");
       setIsEditConfirmModalOpen(false);
       setIsEditModalOpen(true);
@@ -511,6 +550,10 @@ const Home = () => {
     }
   };
 
+  const toggleMoreMenu = (classId) => {
+    setOpenMenuId(openMenuId === classId ? null : classId);
+  };
+
   useEffect(() => {
     if (user) {
       getClass();
@@ -518,6 +561,19 @@ const Home = () => {
       navigate('/');
     }
   }, [user, navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [openMenuId]);
 
   if (isLoading) {
     return (
@@ -531,61 +587,87 @@ const Home = () => {
     <>
       <style>{styles}</style>
       <div className="home-container">
-        <Sidebar />
         <div className="content-area">
-          <Navbar />
           <div className="class-grid">
-            {classes.map((cls, index) => {
-              const color = colors[index % colors.length];
-              const initial = cls.ClassName.charAt(0).toUpperCase();
-              return (
-                <div
-                  key={cls._id}
-                  className="class-card"
-                  style={{ backgroundColor: color }}
-                  onClick={() => handleClassClick(cls._id)}
-                >
-                  <div className="class-initial">{initial}</div>
-                  <div className="class-name">{cls.ClassName}</div>
-                  {user.role === 'admin' && (
-                    <>
-                      <button
-                        className="card-icon rename-icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedClass(cls);
-                          setEditClassName(cls.ClassName);
-                          setIsEditModalOpen(true);
-                        }}
-                      >
-                        <Edit size={20} />
-                      </button>
-                      <button
-                        className="card-icon remove-icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedClass(cls);
-                          setIsRemoveModalOpen(true);
-                        }}
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                      <button
-                        className="card-icon archive-icon"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedClass(cls);
-                          setIsArchiveModalOpen(true);
-                        }}
-                      >
-                        <Archive size={20} />
-                      </button>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-            {classes.length === 0 && !isLoading && (
+            {Array.isArray(classes) && classes.length > 0 ? (
+              classes.map((cls, index) => {
+                if (!cls || !cls._id || !cls.ClassName) return null;
+                const color = colors[index % colors.length];
+                const initial = cls.ClassName.charAt(0).toUpperCase();
+                return (
+                  <div
+                    key={cls._id}
+                    className="class-card"
+                    style={{ backgroundColor: color }}
+                    onClick={(e) => {
+                      if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
+                        handleClassClick(cls._id);
+                      }
+                    }}
+                  >
+                    <div className="class-initial">{initial}</div>
+                    <div className="class-name">{cls.ClassName}</div>
+                    {user.role === 'admin' && (
+                      <>
+                        <button
+                          className="more-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMoreMenu(cls._id);
+                          }}
+                        >
+                          <MoreVertical size={20} color="#6b48ff" />
+                        </button>
+                        {openMenuId === cls._id && (
+                          <div
+                            className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
+                            ref={(el) => (menuRefs.current[cls._id] = el)}
+                          >
+                            <button
+                              className="more-menu-item edit"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setEditClassName(cls.ClassName);
+                                setIsEditModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Edit size={16} />
+                              Rename
+                            </button>
+                            <button
+                              className="more-menu-item archive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setIsArchiveModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Archive size={16} />
+                              Archive
+                            </button>
+                            <button
+                              className="more-menu-item delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setIsRemoveModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
               <p className="no-classes">No classes assigned to you.</p>
             )}
           </div>
