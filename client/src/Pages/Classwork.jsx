@@ -336,9 +336,11 @@ const Classwork = () => {
       console.log('Class ID from useParams:', id);
       try {
         const classResponse = await classGet(`/class/getclass/${id}`);
+        console.log('Class Data:', classResponse.data);
         setClassData(classResponse.data.classData);
         
         const classworkResponse = await classGet(`/class/classwork/${id}`);
+        console.log('Classwork Data:', classworkResponse.data);
         setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
