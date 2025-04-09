@@ -127,7 +127,6 @@ const styles = `
     align-items: center;
     margin-top: 1.5rem;
     gap: 1rem;
-    // margin-left: 20px;
   }
 
   .otp-card-space {
@@ -315,6 +314,93 @@ const styles = `
     animation: spin 1s linear infinite;
   }
 
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background-color: #fff;
+    padding: 2rem;
+    border-radius: 1rem;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.3);
+    width: 90%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .modal-content h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+
+  .modal-content label {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #333;
+  }
+
+  .modal-content input[type="date"] {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+
+  .modal-content input[type="date"]:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .modal-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+  }
+
+  .modal-button {
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .modal-button.confirm {
+    background-color: #6b48ff;
+    color: #fff;
+  }
+
+  .modal-button.confirm:hover {
+    background-color: #5a3de6;
+  }
+
+  .modal-button.cancel {
+    background-color: #e5e7eb;
+    color: #333;
+  }
+
+  .modal-button.cancel:hover {
+    background-color: #d1d5db;
+  }
+
   @keyframes spin {
     0% {
       transform: rotate(0deg);
@@ -367,22 +453,40 @@ const ClassAdmin = () => {
   const [totalUsers, setTotalUsers] = useState(0);
   const [presentCount, setPresentCount] = useState(0);
   const [absentCount, setAbsentCount] = useState(0);
+  const [showDateModal, setShowDateModal] = useState(false);
+  const [fromDate, setFromDate] = useState("");
+  const [toDate, setToDate] = useState("");
+  const [displayFromDate, setDisplayFromDate] = useState("");
+  const [displayToDate, setDisplayToDate] = useState("");
   const navigate = useNavigate();
 
   const addStudentsRedirect = () => {
     navigate(`/admin/classadmin/${id}/addStudents`);
   };
 
-  const fetchAttendanceData = async () => {
+  const fetchAttendanceData = async (from = null, to = null) => {
     try {
-      const response = await get(`/attendance/getattendance?classId=${id}`);
+      let query = `/attendance/getattendance?classId=${id}`;
+      if (from && to) {
+        query += `&fromDate=${from}&toDate=${to}`;
+      }
+      console.log("Fetching attendance with query:", query);
+      const response = await get(query);
+      console.log("Attendance response:", response.data);
       const { attendance, totalUsers, presentCount, absentCount } = response.data;
-      setAttendance(attendance);
-      setTotalUsers(totalUsers);
-      setPresentCount(presentCount);
-      setAbsentCount(absentCount);
+      setAttendance(attendance || []);
+      setTotalUsers(totalUsers || 0);
+      setPresentCount(presentCount || 0);
+      setAbsentCount(absentCount || 0);
+      setDisplayFromDate(from || new Date().toISOString().split("T")[0]);
+      setDisplayToDate(to || new Date().toISOString().split("T")[0]);
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
+      toast.error("Failed to fetch attendance data. Please try again.");
+      setAttendance([]);
+      setTotalUsers(0);
+      setPresentCount(0);
+      setAbsentCount(0);
     }
   };
 
@@ -406,24 +510,69 @@ const ClassAdmin = () => {
     }
   };
 
+  const openDateModal = () => {
+    setShowDateModal(true);
+    const today = new Date().toISOString().split("T")[0];
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split("T")[0];
+    setFromDate(sevenDaysAgo);
+    setToDate(today);
+  };
+
+  const closeDateModal = () => {
+    setShowDateModal(false);
+    setFromDate("");
+    setToDate("");
+  };
+
   const handleDownloadReport = async () => {
+    if (!fromDate || !toDate) {
+      toast.error("Please select both From and To dates.");
+      return;
+    }
+
+    if (new Date(fromDate) > new Date(toDate)) {
+      toast.error("From Date cannot be later than To Date.");
+      return;
+    }
+
     try {
-      const response = await downloadFile(`/attendance/downloadreport?classId=${id}`);
+      const response = await downloadFile(`/attendance/downloadreport?classId=${id}&fromDate=${fromDate}&toDate=${toDate}`);
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
-      const today = new Date().toISOString().split("T")[0];
       link.href = url;
-      link.setAttribute('download', `Attendance_Report_${today}.pdf`);
+      link.setAttribute('download', `Attendance_Report_${fromDate}_to_${toDate}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.remove();
       toast.success('Attendance report downloaded successfully');
+      closeDateModal();
     } catch (error) {
-      console.error('Download error:', error);
-      toast.error('Failed to download attendance report. Please try again.');
+      if (error.response && error.response.status === 404) {
+        toast.error(error.response.data.message || "No attendance data found for the selected date range.");
+      } else {
+        console.error('Download error:', error.response?.data || error.message);
+        toast.error('Failed to download attendance report. Please try again.');
+      }
     }
   };
 
+  const handleViewReport = async () => {
+    if (!fromDate || !toDate) {
+      toast.error("Please select both From and To dates.");
+      return;
+    }
+
+    if (new Date(fromDate) > new Date(toDate)) {
+      toast.error("From Date cannot be later than To Date.");
+      return;
+    }
+
+    setSearchTerm("");
+    setHourFilter("");
+    await fetchAttendanceData(fromDate, toDate);
+    closeDateModal();
+    toast.success(`Showing attendance data from ${fromDate} to ${toDate}`);
+  };
 
   useEffect(() => {
     const fetchClassData = async () => {
@@ -449,23 +598,62 @@ const ClassAdmin = () => {
     } else if (timeLeft === 0) {
       setOtp("");
       setShowSuccessCard(false);
-      fetchAttendanceData();
+      fetchAttendanceData(displayFromDate, displayToDate);
     }
-  }, [timeLeft, otp]);
+  }, [timeLeft, otp, displayFromDate, displayToDate]);
 
-  const filteredAndSortedAttendance = attendance
-    .filter((record) => {
-      const matchesSearch = record.user.toLowerCase().includes(searchTerm.toLowerCase());
-      const matchesHour = hourFilter ? record.hour === hourFilter : true;
-      return matchesSearch && matchesHour;
-    })
-    .sort((a, b) => {
-      if (sortOrder === "asc") {
-        return a.hour.localeCompare(b.hour);
-      } else {
-        return b.hour.localeCompare(a.hour);
+  // Group attendance by date and user to calculate percentages
+  const groupedAttendance = {};
+  attendance.forEach((record) => {
+    const recordDate = new Date(record.createdAt).toISOString().split("T")[0];
+    if (!groupedAttendance[recordDate]) {
+      groupedAttendance[recordDate] = {};
+    }
+    if (!groupedAttendance[recordDate][record.user]) {
+      groupedAttendance[recordDate][record.user] = [];
+    }
+    groupedAttendance[recordDate][record.user].push(record);
+  });
+
+  // Sort dates in descending order
+  const sortedDates = Object.keys(groupedAttendance).sort((a, b) => new Date(b) - new Date(a));
+
+  // Flatten the grouped data for rendering while applying filters
+  const filteredAndSortedAttendance = [];
+  sortedDates.forEach((date) => {
+    Object.keys(groupedAttendance[date]).forEach((user) => {
+      const userRecords = groupedAttendance[date][user]
+        .filter((record) => {
+          const matchesSearch = record.user.toLowerCase().includes(searchTerm.toLowerCase());
+          const matchesHour = hourFilter ? record.hour === hourFilter : true;
+          return matchesSearch && matchesHour;
+        })
+        .sort((a, b) => {
+          if (sortOrder === "asc") {
+            return a.hour.localeCompare(b.hour);
+          } else {
+            return b.hour.localeCompare(a.hour);
+          }
+        });
+
+      if (userRecords.length > 0) {
+        const hoursPresent = userRecords.filter(record => record.status === "present").length;
+        const totalHours = 7; // Assuming 7 hours per day
+        const percentage = ((hoursPresent / totalHours) * 100).toFixed(2);
+        userRecords.forEach((record, index) => {
+          filteredAndSortedAttendance.push({
+            ...record,
+            date,
+            percentage,
+            isFirstRecord: index === 0,
+            rowSpan: userRecords.length,
+          });
+        });
       }
     });
+  });
+
+  console.log("Filtered and sorted attendance:", filteredAndSortedAttendance);
 
   const toggleSortOrder = () => {
     setSortOrder(sortOrder === "asc" ? "desc" : "asc");
@@ -515,9 +703,8 @@ const ClassAdmin = () => {
             <button type="button" className="form-button" onClick={generateOTP}>
               Generate OTP
             </button>
-            
-            <button type="button" className="form-button" onClick={handleDownloadReport}>
-              Download Report
+            <button type="button" className="form-button" onClick={openDateModal}>
+              Report
             </button>
           </div>
         </form>
@@ -530,11 +717,44 @@ const ClassAdmin = () => {
           )}
         </div>
 
+        {showDateModal && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Select Date Range</h3>
+              <label>From Date:</label>
+              <input
+                type="date"
+                value={fromDate}
+                onChange={(e) => setFromDate(e.target.value)}
+                max={toDate || new Date().toISOString().split("T")[0]}
+              />
+              <label>To Date:</label>
+              <input
+                type="date"
+                value={toDate}
+                onChange={(e) => setToDate(e.target.value)}
+                min={fromDate}
+                max={new Date().toISOString().split("T")[0]}
+              />
+              <div className="modal-buttons">
+                <button className="modal-button confirm" onClick={handleViewReport}>
+                  View
+                </button>
+                <button className="modal-button confirm" onClick={handleDownloadReport}>
+                  Download
+                </button>
+                <button className="modal-button cancel" onClick={closeDateModal}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
         {attendance.length > 0 ? (
           <div className="w-full">
             <h3 className="section-title">Attendance Details</h3>
-             {/* Display User Count Stats */}
-             <div className="flex justify-center items-center mb-4 gap-4">
+            <div className="flex justify-center items-center mb-4 gap-4">
               <span className="text-lg font-semibold">Total Students: {totalUsers}</span>
               <span className="text-lg font-semibold text-green-600">Present: {presentCount}</span>
               <span className="text-lg font-semibold text-red-600">Absent: {absentCount}</span>
@@ -571,14 +791,20 @@ const ClassAdmin = () => {
                   <th className="sortable" onClick={toggleSortOrder}>
                     Hour {sortOrder === "asc" ? "↑" : "↓"}
                   </th>
+                  <th>Date</th>
+                  <th>Percentage</th> {/* Added Percentage column */}
                 </tr>
               </thead>
               <tbody>
-                {filteredAndSortedAttendance.map((record) => (
+                {filteredAndSortedAttendance.map((record, index) => (
                   <tr key={record._id}>
                     <td>{record.user}</td>
                     <td>{record.status}</td>
-                    <td>{record.hour}</td>
+                    <td>{record.hour || "N/A"}</td>
+                    <td>{record.date}</td>
+                    {record.isFirstRecord && (
+                      <td rowSpan={record.rowSpan}>{record.percentage}%</td>
+                    )}
                   </tr>
                 ))}
               </tbody>

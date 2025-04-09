@@ -1,10 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Plus, X, AlignJustify, Home, Archive } from 'lucide-react';
+import { Plus, X, AlignJustify, Home, Archive, Users, UserCheck, Settings, GraduationCap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { classPost, post } from '../services/Endpoint';
 import { RemoveUser } from '../redux/AuthSlice';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
+import { useSidebar } from '../context/SidebarContext'; // Import the custom hook
 
 // Updated CSS styles
 const styles = `
@@ -22,13 +23,15 @@ const styles = `
     align-items: center;
     padding: 1rem 1rem;
     height: 64px;
-    transition: all 0.3s ease-in-out;
+    transition: left 0.3s ease-in-out; /* Smooth transition for left property */
   }
 
   @media (min-width: 768px) {
     .navbar {
-      left: 80px;
-      padding: 1rem 2rem;
+      left: 80px; /* Default left offset when sidebar is collapsed */
+    }
+    .navbar.sidebar-hovered {
+      left: 256px; /* Match the expanded sidebar width */
     }
   }
 
@@ -316,11 +319,86 @@ const styles = `
     transform: translateX(0);
   }
 
+  /* Menu Button in Mobile Sidebar */
+  .menu-button {
+    padding: 1.25rem;
+    display: flex;
+    justify-content: center; /* Centered by default */
+    transition: all 0.3s ease-in-out;
+  }
+
+  .mobile-sidebar.open .menu-button {
+    justify-content: flex-end; /* Move to right when mobile sidebar is open */
+  }
+
+  .menu-icon {
+    color: #374151;
+    transition: all 0.3s ease-in-out;
+  }
+
+  .menu-button:hover .menu-icon {
+    color: #3b82f6;
+    cursor: pointer;
+  }
+
+  /* Animation for mobile menu icon */
+  .menu-icon-open {
+    animation: rotateToCross 0.3s ease-in-out forwards;
+  }
+
+  .menu-icon-close {
+    animation: rotateToHamburger 0.3s ease-in-out forwards;
+  }
+
+  @keyframes rotateToCross {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(90deg);
+    }
+  }
+
+  @keyframes rotateToHamburger {
+    0% {
+      transform: rotate(90deg);
+    }
+    100% {
+      transform: rotate(0deg);
+    }
+  }
+
+  /* Classroom Name in Mobile Sidebar */
+  .mobile-classroom-name {
+    padding: 1rem 1.25rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #6b7280; /* Dull color (muted gray) */
+    font-size: 1rem;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .mobile-sidebar.open .mobile-classroom-name {
+    justify-content: flex-start;
+  }
+
+  /* Horizontal Line in Mobile Sidebar */
+  .mobile-horizontal-line {
+    width: 80%;
+    height: 1px;
+    background-color: #e5e7eb;
+    margin: 0 auto;
+  }
+
   .mobile-nav-links {
     display: flex;
     flex-direction: column;
     padding: 1.5rem 0.75rem;
     gap: 0.5rem;
+    height: calc(100vh - 120px); /* Adjust height to account for menu button, classroom name, and horizontal line */
+    justify-content: space-between; /* Push the last item (Settings) to the bottom */
   }
 
   .mobile-nav-item {
@@ -328,14 +406,14 @@ const styles = `
     align-items: center;
     width: 100%;
     padding: 0.75rem;
-    color: #6b7280;
+    color: #000000; /* Black color for navigation links */
     border-radius: 0.5rem;
     transition: all 0.3s ease-in-out;
   }
 
   .mobile-nav-item:hover {
     background-color: #f3f4f6;
-    color: #374151;
+    color: #000000; /* Black color on hover */
     cursor: pointer;
   }
 
@@ -343,6 +421,11 @@ const styles = `
     background-color: #e5e7eb;
     color: #3b82f6;
     border-left: 4px solid #3b82f6;
+  }
+
+  /* Add bottom margin to the Settings tab in mobile view */
+  .mobile-nav-item.settings {
+    margin-bottom: 20px; /* 20px margin from the bottom */
   }
 
   .mobile-nav-icon {
@@ -395,17 +478,21 @@ const Navbar = () => {
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isMobileSidebarHovered, setIsMobileSidebarHovered] = useState(false); // Track hover state for mobile
   const [className, setClassName] = useState('');
   const userMenuRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
   const [isMobile, setIsMobile] = useState(window.innerWidth < 768);
+  const { isSidebarHovered } = useSidebar(); // Use the context to get hover state
 
   const user = useSelector((state) => state.auth.user);
   const userRole = user?.role;
   const userName = user?.name || "User";
   const userEmail = user?.email || "user@example.com";
   const firstLetter = userName.charAt(0).toUpperCase();
+  // Assuming classroom name is available in the Redux store
+  const classroomName = useSelector((state) => state.classroom?.name) || "Classroom"; // Fallback if not available
 
   useEffect(() => {
     const handleResize = () => {
@@ -443,6 +530,7 @@ const Navbar = () => {
 
   const toggleMobileSidebar = () => {
     setIsMobileSidebarOpen(!isMobileSidebarOpen);
+    setIsMobileSidebarHovered(!isMobileSidebarOpen); // Update hover state for mobile
   };
 
   const handleImageUpload = (event) => {
@@ -510,15 +598,15 @@ const Navbar = () => {
   return (
     <>
       <style>{styles}</style>
-      <nav className="navbar">
+      <nav className={`navbar ${isSidebarHovered ? 'sidebar-hovered' : ''}`}>
         <div className="flex items-center">
           {isMobile && (
             <div className="mobile-menu-button">
               <button onClick={toggleMobileSidebar}>
-                {isMobileSidebarOpen ? (
-                  <X size={24} className="mobile-menu-icon" />
+                {isMobileSidebarOpen || isMobileSidebarHovered ? (
+                  <X size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'mobile-menu-icon-open' : 'mobile-menu-icon-close'}`} />
                 ) : (
-                  <AlignJustify size={24} className="mobile-menu-icon" />
+                  <AlignJustify size={24} className={`mobile-menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'mobile-menu-icon-open' : 'mobile-menu-icon-close'}`} />
                 )}
               </button>
             </div>
@@ -591,27 +679,91 @@ const Navbar = () => {
       {isMobile && (
         <>
           <div className={`mobile-sidebar ${isMobileSidebarOpen ? 'open' : ''}`}>
+            <div className="menu-button">
+              <button onClick={toggleMobileSidebar}>
+                {isMobileSidebarOpen || isMobileSidebarHovered ? (
+                  <X size={24} className={`menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'menu-icon-open' : 'menu-icon-close'}`} />
+                ) : (
+                  <AlignJustify size={24} className={`menu-icon ${isMobileSidebarOpen || isMobileSidebarHovered ? 'menu-icon-open' : 'menu-icon-close'}`} />
+                )}
+              </button>
+            </div>
+
+            {/* Classroom Name and Horizontal Line */}
+            <div className="mobile-classroom-name">
+              {classroomName}
+            </div>
+            <div className="mobile-horizontal-line"></div>
+
             <nav className="mobile-nav-links">
-              <div
-                className={`mobile-nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
-                onClick={() => {
-                  navigate("/home");
-                  setIsMobileSidebarOpen(false);
-                }}
-              >
-                <Home size={20} className="mobile-nav-icon" />
-                <span className="mobile-nav-text">Home</span>
-              </div>
-              {userRole === 'admin' && (
+              <div className="top-links"> {/* Group top links together */}
                 <div
-                  className={`mobile-nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
+                  className={`mobile-nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
                   onClick={() => {
-                    navigate('/admin/archived');
+                    navigate("/home");
                     setIsMobileSidebarOpen(false);
                   }}
                 >
-                  <Archive size={20} className="mobile-nav-icon" />
-                  <span className="mobile-nav-text">Archived Class</span>
+                  <Home size={20} className="mobile-nav-icon" />
+                  <span className="mobile-nav-text">Classroom</span>
+                </div>
+                {userRole === 'admin' && (
+                  <>
+                    <div
+                      className={`mobile-nav-item ${window.location.pathname === '/admin/students' ? 'active' : ''}`}
+                      onClick={() => {
+                        navigate('/admin/students');
+                        setIsMobileSidebarOpen(false);
+                      }}
+                    >
+                      <Users size={20} className="mobile-nav-icon" />
+                      <span className="mobile-nav-text">Student</span>
+                    </div>
+                    <div
+                      className={`mobile-nav-item ${window.location.pathname === '/admin/faculty' ? 'active' : ''}`}
+                      onClick={() => {
+                        navigate('/admin/faculty');
+                        setIsMobileSidebarOpen(false);
+                      }}
+                    >
+                      <GraduationCap size={20} className="mobile-nav-icon" />
+                      <span className="mobile-nav-text">Faculty</span>
+                    </div>
+                    <div
+                      className={`mobile-nav-item ${window.location.pathname === '/admin/mentor' ? 'active' : ''}`}
+                      onClick={() => {
+                        navigate('/admin/mentor');
+                        setIsMobileSidebarOpen(false);
+                      }}
+                    >
+                      <UserCheck size={20} className="mobile-nav-icon" />
+                      <span className="mobile-nav-text">Mentor</span>
+                    </div>
+                  </>
+                )}
+              </div>
+              {userRole === 'admin' && (
+                <div className="bottom-links"> {/* Group bottom links (Settings) */}
+                  <div
+                    className={`mobile-nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
+                    onClick={() => {
+                      navigate('/admin/archived');
+                      setIsMobileSidebarOpen(false);
+                    }}
+                  >
+                    <Archive size={20} className="mobile-nav-icon" />
+                    <span className="mobile-nav-text">Archived Class</span>
+                  </div>
+                  <div
+                    className={`mobile-nav-item settings ${window.location.pathname === '/admin/settings' ? 'active' : ''}`}
+                    onClick={() => {
+                      navigate('/admin/settings');
+                      setIsMobileSidebarOpen(false);
+                    }}
+                  >
+                    <Settings size={20} className="mobile-nav-icon" />
+                    <span className="mobile-nav-text">Settings</span>
+                  </div>
                 </div>
               )}
             </nav>

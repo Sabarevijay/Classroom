@@ -13,13 +13,15 @@ import Addstudents from './Components/Addstudents';
 import ArchivedClass from './Pages/ArchivedClass';
 import Classwork from './Pages/Classwork';
 import ClassworkUs from './Pages/ClassworkUs';
-import QuizAdmin from './Pages/QuizAdmin';
-import QuizUser from './Pages/QuizUser';
 import BootIntro from './Components/BootIntro';
+import QuizAdmin from './Pages/QuizAdmin'; // Import the new Quiz component
+import QuizUser from './Pages/QuizUser';
 import { useSelector } from 'react-redux';
 import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
+import { SidebarProvider } from './context/SidebarContext';
 
+// Replace with your actual Google Client ID from your .env file
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
 const AppContent = () => {
@@ -43,14 +45,14 @@ const AppContent = () => {
       currentPath !== '/' &&
       currentPath !== '/register'
     ) {
-      console.log('Showing BootIntro');
+      console.log('Showing BootIntro'); // Debugging
       setShowBootIntro(true);
       document.body.style.overflow = 'hidden';
     }
   }, [location, user, hasBootIntroShown, setShowBootIntro]);
 
   const handleBootIntroComplete = () => {
-    console.log('BootIntro Complete');
+    console.log('BootIntro Complete'); // Debugging
     setShowBootIntro(false);
     setHasBootIntroShown(true);
     localStorage.setItem('hasBootIntroShown', 'true');
@@ -87,7 +89,7 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} />
+          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
           <Route 
             path="classstudents/:id/quiz" 
             element={
@@ -97,7 +99,9 @@ const AppContent = () => {
             } 
           />
         </Route>
+        
 
+        {/* Protect Admin Pages */}
         <Route 
           path='/admin' 
           element={
@@ -114,6 +118,7 @@ const AppContent = () => {
               </ProtectedRoute>
             } 
           /> 
+
           <Route
             path='classadmin/:id'
             element={
@@ -122,16 +127,16 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classadmin/:id/addStudents" element={<Addstudents />} />
-          <Route path="classadmin/:id/classwork" element={<Classwork />} />
+          <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
+          <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
           <Route 
             path="classadmin/:id/quiz" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <QuizAdmin />
               </ProtectedRoute>
-            } 
-          />
+            }
+          /> 
         </Route>
       </Routes> 
     </>
@@ -142,10 +147,12 @@ const App = () => {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
       <BrowserRouter>
-        <BootIntroProvider>
-          <Toaster />
-          <AppContent />
-        </BootIntroProvider>
+        <SidebarProvider>
+          <BootIntroProvider>
+            <Toaster />
+            <AppContent />
+          </BootIntroProvider>
+        </SidebarProvider>
       </BrowserRouter>
     </GoogleOAuthProvider>
   );

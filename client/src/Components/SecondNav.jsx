@@ -55,6 +55,12 @@ const SecondNav = ({ classId }) => {
     <>
       <style>{styles}</style>
       <div className="nav-bar">
+      <Link
+          to={`/admin/classadmin/${classId}/stream`}
+          className={`nav-tab ${currentPath.includes('Stream') ? 'active' : ''}`}
+        >
+         Stream
+        </Link>
         <Link
           to={`/admin/classadmin/${classId}`}
           className={`nav-tab ${currentPath === basePath ? 'active' : ''}`}

@@ -99,5 +99,6 @@ const submitOTP = async (req, res) => {
       });
     }
   };
+  
 
 export {generateOTP,submitOTP}
