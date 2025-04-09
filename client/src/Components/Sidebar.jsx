@@ -141,7 +141,7 @@ const styles = `
 
   /* Add bottom margin to the Settings tab */
   .nav-item.settings {
-    margin-bottom: 20px;
+    margin-bottom: -30px;
   }
 
   .nav-icon {
@@ -268,10 +268,10 @@ const Sidebar = () => {
         </div>
 
         {/* Classroom Name and Horizontal Line */}
-        <div className="classroom-name">
+        {/* <div className="classroom-name">
           {classroomName}
         </div>
-        <div className="horizontal-line"></div>
+        <div className="horizontal-line"></div> */}
 
         <nav className="nav-links">
           <div className="top-links">

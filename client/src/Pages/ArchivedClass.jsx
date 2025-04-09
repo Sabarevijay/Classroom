@@ -83,17 +83,12 @@ const styles = `
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
-    background-color: #fff;
-    border-radius: 50%;
-    padding: 0.4rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, background-color 0.2s;
+    transition: transform 0.2s;
     cursor: pointer;
   }
 
   .more-icon:hover {
     transform: scale(1.1);
-    background-color: #f1f7ff;
   }
 
   /* Dropdown Menu for More Options */
@@ -260,11 +255,11 @@ const ArchivedClass = () => {
   const [archivedClasses, setArchivedClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [showUnarchiveModal, setShowUnarchiveModal] = useState(false);
-  const [showDeleteModal, setShowDeleteModal] = useState(false); // Added for delete confirmation
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [classToUnarchive, setClassToUnarchive] = useState(null);
-  const [classToDelete, setClassToDelete] = useState(null); // Added for delete action
-  const [openMenuId, setOpenMenuId] = useState(null); // Track which card's menu is open
-  const menuRefs = useRef({}); // Store refs for each card's menu
+  const [classToDelete, setClassToDelete] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
 
   const colors = [
     '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
@@ -427,7 +422,7 @@ const ArchivedClass = () => {
                       toggleMoreMenu(cls._id);
                     }}
                   >
-                    <MoreVertical size={20} color="#6b48ff" />
+                    <MoreVertical size={20} color="#fff" />
                   </button>
                   {openMenuId === cls._id && (
                     <div

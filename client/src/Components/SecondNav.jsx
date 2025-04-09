@@ -45,21 +45,20 @@ const styles = `
   }
 `;
 
-
 const SecondNav = ({ classId }) => {
   const location = useLocation();
-  const currentPath = location.pathname;
+  const currentPath = location.pathname.toLowerCase(); // Convert to lowercase for case-insensitive comparison
   const basePath = `/admin/classadmin/${classId}`; // Base path for the "Attendance" tab
 
   return (
     <>
       <style>{styles}</style>
       <div className="nav-bar">
-      <Link
+        <Link
           to={`/admin/classadmin/${classId}/stream`}
-          className={`nav-tab ${currentPath.includes('Stream') ? 'active' : ''}`}
+          className={`nav-tab ${currentPath === `${basePath}/stream` ? 'active' : ''}`}
         >
-         Stream
+          Stream
         </Link>
         <Link
           to={`/admin/classadmin/${classId}`}
@@ -69,19 +68,19 @@ const SecondNav = ({ classId }) => {
         </Link>
         <Link
           to={`/admin/classadmin/${classId}/classwork`}
-          className={`nav-tab ${currentPath.includes('classwork') ? 'active' : ''}`}
+          className={`nav-tab ${currentPath === `${basePath}/classwork` ? 'active' : ''}`}
         >
           Classwork
         </Link>
         <Link
           to={`/admin/classadmin/${classId}/addStudents`}
-          className={`nav-tab ${currentPath.includes('addStudents') ? 'active' : ''}`}
+          className={`nav-tab ${currentPath === `${basePath}/addstudents` ? 'active' : ''}`}
         >
           People
         </Link>
         <Link
           to={`/admin/classadmin/${classId}/quiz`}
-          className={`nav-tab ${currentPath.includes('quiz') ? 'active' : ''}`}
+          className={`nav-tab ${currentPath === `${basePath}/quiz` ? 'active' : ''}`}
         >
           Quiz
         </Link>

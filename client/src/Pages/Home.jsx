@@ -71,17 +71,12 @@ const styles = `
     position: absolute;
     top: 0.5rem;
     right: 0.5rem;
-    background-color: #fff;
-    border-radius: 50%;
-    padding: 0.4rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s, background-color 0.2s;
+    transition: transform 0.2s;
     cursor: pointer;
   }
 
   .more-icon:hover {
     transform: scale(1.1);
-    background-color: #f1f7ff;
   }
 
   /* Dropdown Menu for More Options */
@@ -616,7 +611,7 @@ const Home = () => {
                             toggleMoreMenu(cls._id);
                           }}
                         >
-                          <MoreVertical size={20} color="#6b48ff" />
+                          <MoreVertical size={20} color="#fff" />
                         </button>
                         {openMenuId === cls._id && (
                           <div

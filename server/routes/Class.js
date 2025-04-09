@@ -13,7 +13,7 @@ ClassRoutes.post('/updateclass/:id', editClass);
 ClassRoutes.post('/deleteclass/:id', deleteClass);
 ClassRoutes.post('/unarchiveclass/:id', unarchiveClass);
 ClassRoutes.get('/getarchived', getArchivedClasses);
-ClassRoutes.post('/classwork/upload', upload.single('file'), uploadClasswork);
+ClassRoutes.post('/classwork/upload', upload.array('files'), uploadClasswork);
 ClassRoutes.get('/classwork/:id', getClassworks);
 ClassRoutes.post('/classwork/delete/:id', deleteClasswork);
 ClassRoutes.post('/classwork/edit/:id', editClasswork);

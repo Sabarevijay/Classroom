@@ -255,37 +255,36 @@ const deleteClass = async (req, res) => {
 
 const uploadClasswork = async (req, res) => {
   try {
-    // console.log("Upload request body:", req.body);
-    // console.log("Upload file:", req.file);
-
     const { title, classId } = req.body;
-    if (!req.file || !title || !classId) {
+    if (!req.files || req.files.length === 0 || !title || !classId) {
       console.log("Missing required fields:", {
-        file: !!req.file,
+        files: !!req.files,
         title: !!title,
         classId: !!classId,
       });
       return res.status(400).json({
         success: false,
-        message: "Title, file, and classId are required",
+        message: "Title, at least one file, and classId are required",
       });
     }
 
-    const classwork = {
-      title,
-      classId,
-      filename: req.file.filename,
-      filePath: req.file.path,
-      uploadDate: new Date(),
-    };
-
-    // console.log("Creating classwork with:", classwork);
-    const newClasswork = await ClassworkModel.create(classwork);
+    const classworks = [];
+    for (const file of req.files) {
+      const classwork = {
+        title,
+        classId,
+        filename: file.filename,
+        filePath: file.path,
+        uploadDate: new Date(),
+      };
+      const newClasswork = await ClassworkModel.create(classwork);
+      classworks.push(newClasswork);
+    }
 
     return res.status(201).json({
       success: true,
       message: "Classwork uploaded successfully",
-      classwork: newClasswork,
+      classworks,
     });
   } catch (error) {
     console.error("Upload error:", error);
@@ -299,13 +298,30 @@ const uploadClasswork = async (req, res) => {
 const getClassworks = async (req, res) => {
   try {
     const { id } = req.params; // classId
-    const classworks = await ClassworkModel.find({ classId: id });
+    if (!id) {
+      return res.status(400).json({
+        success: false,
+        message: "Class ID is required",
+      });
+    }
+
+    const classworks = await ClassworkModel.find({ classId: id }).sort({ uploadDate: -1 });
+    if (!classworks || classworks.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No classworks found for this class",
+        classworks: [],
+      });
+    }
+
+    console.log(`Retrieved ${classworks.length} classworks for classId ${id}`);
     return res.status(200).json({
       success: true,
+      message: "Classworks retrieved successfully",
       classworks,
     });
   } catch (error) {
-    console.error(error);
+    console.error("Error retrieving classworks:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

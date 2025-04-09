@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import SecondNav from '../Components/SecondNav';
-import { classGet, classPost, downloadFile } from '../services/Endpoint'; // Add downloadFile
+import { classGet, classPost, downloadFile } from '../services/Endpoint';
 import toast from 'react-hot-toast';
+import { Trash2, Download, Folder, ChevronDown, ChevronUp } from 'lucide-react';
 
 const styles = `
   /* Page Background */
@@ -37,7 +38,6 @@ const styles = `
     border-top-right-radius: 1rem;
     padding: 0rem 0;
     margin: 0 -2rem;
-    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -65,6 +65,14 @@ const styles = `
     border: none;
     box-shadow: none;
     text-align: center;
+  }
+
+  /* No Classworks Message */
+  .no-classworks {
+    text-align: center;
+    color: #6b7280;
+    font-size: 1.25rem;
+    margin: 1.5rem 0;
   }
 
   /* Loading Spinner */
@@ -101,9 +109,13 @@ const styles = `
     .class-name {
       font-size: 1.8rem;
     }
+
+    .no-classworks {
+      font-size: 1rem;
+    }
   }
 
-  /* New styles for classwork management */
+  /* Styles for classwork management */
   .upload-form {
     margin-top: 1rem;
     display: flex;
@@ -124,34 +136,176 @@ const styles = `
     border-radius: 0.5rem;
     border: none;
     cursor: pointer;
+    transition: background-color 0.2s;
   }
 
-  .classwork-item {
+  .upload-button:hover {
+    background-color: #5a3de6;
+  }
+
+  /* Folder-like structure for classworks */
+  .classwork-group {
     border: 1px solid #e5e7eb;
-    padding: 1rem;
     border-radius: 0.5rem;
     margin: 0.5rem 0;
+    background-color: #f9f9f9;
+  }
+
+  .classwork-group-header {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    padding: 1rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .classwork-group-header:hover {
+    background-color: #e0e7ff;
+  }
+
+  .classwork-group-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+  }
+
+  .classwork-group-files {
+    padding: 0.5rem 1rem;
+    background-color: #fff;
+    border-top: 1px solid #e5e7eb;
+  }
+
+  .classwork-file {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+
+  .action-buttons {
+    display: flex;
+    gap: 2rem;
+    position: relative;
   }
 
   .action-buttons button {
-    margin-left: 0.5rem;
-    padding: 0.3rem 0.8rem;
-    border-radius: 0.3rem;
     border: none;
     cursor: pointer;
-  }
-
-  .edit-button {
-    background-color: #4CAF50;
-    color: white;
+    transition: transform 0.2s, color 0.2s;
   }
 
   .delete-button {
-    background-color: #f44336;
-    color: white;
+    color: #f44336;
+  }
+
+  .delete-button:hover {
+    color: #d32f2f;
+    transform: scale(1.1);
+  }
+
+  .download-button {
+    color: #4CAF50;
+  }
+
+  .download-button:hover {
+    color: #388E3C;
+    transform: scale(1.1);
+  }
+
+  /* Tooltip Styles for Icons */
+  .action-buttons button::before {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 0.75rem;
+    font-weight: 400;
+    white-space: nowrap;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+    z-index: 10;
+    margin-bottom: 5px;
+  }
+
+  .action-buttons button::after {
+    content: '';
+    position: absolute;
+    bottom: 90%;
+    left: 50%;
+    transform: translateX(-50%);
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333 transparent transparent transparent;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.2s ease-in-out;
+  }
+
+  .action-buttons button:hover::before,
+  .action-buttons button:hover::after {
+    opacity: 1;
+    visibility: visible;
+  }
+
+  /* Drag and Drop Area */
+  .drag-drop-area {
+    border: 2px dashed #6b48ff;
+    border-radius: 0.5rem;
+    padding: 2rem;
+    text-align: center;
+    background-color: #f9f9f9;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .drag-drop-area.drag-over {
+    background-color: #e0e7ff;
+  }
+
+  .drag-drop-text {
+    color: #6b48ff;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  .file-list {
+    margin-top: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .file-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background-color: #f9f9f9;
+  }
+
+  .file-item button {
+    color: #f44336;
+    border: none;
+    background: none;
+    cursor: pointer;
+    transition: color 0.2s, transform 0.2s;
+  }
+
+  .file-item button:hover {
+    color: #d32f2f;
+    transform: scale(1.1);
   }
 `;
 
@@ -161,8 +315,11 @@ const Classwork = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [classworks, setClassworks] = useState([]);
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
   const [title, setTitle] = useState('');
+  const [dragOver, setDragOver] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState({}); // Track expanded/collapsed state of each group
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -184,28 +341,54 @@ const Classwork = () => {
     fetchData();
   }, [id]);
 
+  const handleFileChange = (e) => {
+    const selectedFiles = Array.from(e.target.files);
+    setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+    setDragOver(true);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    const droppedFiles = Array.from(e.dataTransfer.files);
+    setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
+  };
+
+  const handleRemoveFile = (index) => {
+    setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
+  };
+
   const handleFileUpload = async (e) => {
     e.preventDefault();
-    if (!file || !title) {
-      toast.error('Please provide both title and file');
+    if (files.length === 0 || !title) {
+      toast.error('Please provide a title and at least one file');
       return;
     }
 
     const formData = new FormData();
-    formData.append('file', file);
+    files.forEach((file) => formData.append('files', file));
     formData.append('title', title);
     formData.append('classId', id);
 
     try {
-      console.log('Uploading file with data:', { title, classId: id, file: file.name });
+      console.log('Uploading files with data:', { title, classId: id, files: files.map(f => f.name) });
       const response = await classPost('/class/classwork/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
       console.log('Upload response:', response.data);
-      setClassworks([...classworks, response.data.classwork]);
-      setFile(null);
+      setClassworks((prev) => [...prev, ...response.data.classworks]);
+      setFiles([]);
       setTitle('');
       toast.success('Classwork uploaded successfully');
     } catch (error) {
@@ -216,25 +399,12 @@ const Classwork = () => {
 
   const handleDelete = async (classworkId) => {
     try {
-      await classPost(`/class/classwork/delete/${classworkId}`); // Fixed endpoint
+      await classPost(`/class/classwork/delete/${classworkId}`);
       setClassworks(classworks.filter(cw => cw._id !== classworkId));
       toast.success('Classwork deleted successfully');
     } catch (error) {
       console.error('Delete error:', error.response?.data || error.message);
       toast.error('Failed to delete classwork');
-    }
-  };
-
-  const handleEdit = async (classworkId, newTitle) => {
-    try {
-      const response = await classPost(`/class/classwork/edit/${classworkId}, { title: newTitle }`); // Fixed endpoint
-      setClassworks(classworks.map(cw => 
-        cw._id === classworkId ? response.data.classwork : cw
-      ));
-      toast.success('Classwork updated successfully');
-    } catch (error) {
-      console.error('Edit error:', error.response?.data || error.message);
-      toast.error('Failed to update classwork');
     }
   };
 
@@ -253,6 +423,23 @@ const Classwork = () => {
       console.error('Download error:', error.response?.data || error.message);
       toast.error('Failed to download file');
     }
+  };
+
+  // Group classworks by title
+  const groupedClassworks = classworks.reduce((acc, classwork) => {
+    const key = classwork.title;
+    if (!acc[key]) {
+      acc[key] = [];
+    }
+    acc[key].push(classwork);
+    return acc;
+  }, {});
+
+  const toggleGroup = (title) => {
+    setExpandedGroups((prev) => ({
+      ...prev,
+      [title]: !prev[title],
+    }));
   };
 
   if (isLoading) {
@@ -287,45 +474,83 @@ const Classwork = () => {
               placeholder="Classwork title"
               className="file-input"
             />
-            <input
-              type="file"
-              name="file"
-              onChange={(e) => setFile(e.target.files[0])}
-              className="file-input"
-              accept=".pdf,.jpg,.jpeg,.png"
-            />
+            <div
+              className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={() => fileInputRef.current.click()}
+            >
+              <p className="drag-drop-text">
+                Drag and drop files here or click to select files
+              </p>
+              <input
+                type="file"
+                name="files"
+                multiple
+                onChange={handleFileChange}
+                className="file-input"
+                accept=".pdf,.jpg,.jpeg,.png"
+                style={{ display: 'none' }}
+                ref={fileInputRef}
+              />
+            </div>
+            {files.length > 0 && (
+              <div className="file-list">
+                {files.map((file, index) => (
+                  <div key={index} className="file-item">
+                    <span>{file.name}</span>
+                    <button onClick={() => handleRemoveFile(index)}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
             <button type="submit" className="upload-button">Upload Classwork</button>
           </form>
 
-          {/* Classwork List */}
-          {classworks.map((classwork) => (
-            <div key={classwork._id} className="classwork-item">
-              <span>{classwork.title}</span>
-              <div className="action-buttons">
-                <button
-                  className="edit-button"
-                  onClick={() => {
-                    const newTitle = prompt('Enter new title:', classwork.title);
-                    if (newTitle) handleEdit(classwork._id, newTitle);
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="delete-button"
-                  onClick={() => handleDelete(classwork._id)}
-                >
-                  Delete
-                </button>
-                <button
-                  className="download-button" // Reuse existing style
-                  onClick={() => handleDownload(classwork._id, classwork.filename)}
-                >
-                  Download
-                </button>
+          {/* Classwork List (Grouped by Title) */}
+          {Object.keys(groupedClassworks).length > 0 ? (
+            Object.entries(groupedClassworks).map(([title, group]) => (
+              <div key={title} className="classwork-group">
+                <div className="classwork-group-header" onClick={() => toggleGroup(title)}>
+                  <div className="classwork-group-title">
+                    <Folder size={20} color="#6b48ff" />
+                    <span>{title} ({group.length} {group.length === 1 ? 'file' : 'files'})</span>
+                  </div>
+                  {expandedGroups[title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                </div>
+                {expandedGroups[title] && (
+                  <div className="classwork-group-files">
+                    {group.map((classwork) => (
+                      <div key={classwork._id} className="classwork-file">
+                        <span>{classwork.filename}</span>
+                        <div className="action-buttons">
+                          <button
+                            className="delete-button"
+                            onClick={() => handleDelete(classwork._id)}
+                            data-tooltip="Delete Classwork"
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                          <button
+                            className="download-button"
+                            onClick={() => handleDownload(classwork._id, classwork.filename)}
+                            data-tooltip="Download Classwork"
+                          >
+                            <Download size={20} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-            </div>
-          ))}
+            ))
+          ) : (
+            <p className="no-classworks">No classworks available.</p>
+          )}
         </div>
       </div>
     </div>

@@ -20,6 +20,7 @@ import { useSelector } from 'react-redux';
 import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { SidebarProvider } from './context/SidebarContext';
+import StreamAdmin from './Pages/StreamAdmin';
 
 // Replace with your actual Google Client ID from your .env file
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
@@ -129,6 +130,7 @@ const AppContent = () => {
           />
           <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
           <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
+          <Route path="classadmin/:id/stream" element={<StreamAdmin />} /> 
           <Route 
             path="classadmin/:id/quiz" 
             element={
