@@ -136,8 +136,8 @@ const getAttendance = async (req, res) => {
       // Sort dates in descending order
       const sortedDates = Object.keys(groupedByDate).sort((a, b) => new Date(b) - new Date(a));
   
-      // Create PDF
-      const doc = new PDFDocument({ margin: 50 });
+      // Create PDF in landscape orientation
+      const doc = new PDFDocument({ margin: 30, size: 'A4', layout: 'landscape' });
       const fileName = `Attendance_Report_${fromDate}_to_${toDate}.pdf`;
       const filePath = path.join(path.resolve(), "public", "reports", fileName);
       fs.mkdirSync(path.dirname(filePath), { recursive: true });
@@ -164,8 +164,8 @@ const getAttendance = async (req, res) => {
       doc.text(`Absent: ${absentCount}`, { align: "left" });
       doc.moveDown(2);
   
-      // Table setup for each date
-      const colWidths = [180, 80, 80, 80]; // Adjusted widths for Email, Status, Hour, Percentage
+      // Table setup
+      const colWidths = [200, 60, 60, 60, 60, 60, 60, 60, 80]; // Email, Hour I to VII, Percentage (increased to 80)
       const rowHeight = 30;
       const tableWidth = colWidths.reduce((sum, width) => sum + width, 0);
       const startX = 50;
@@ -178,12 +178,18 @@ const getAttendance = async (req, res) => {
         doc.rect(startX, y, tableWidth, rowHeight).fill("#1a2526");
         doc.fillColor("white");
         doc.text("Email", startX + 5, y + 8, { width: colWidths[0] - 10, align: "left" });
-        doc.text("Status", startX + colWidths[0] + 5, y + 8, { width: colWidths[1] - 10, align: "left" });
-        doc.text("Hour", startX + colWidths[0] + colWidths[1] + 5, y + 8, { width: colWidths[2] - 10, align: "left" });
-        doc.text("Percentage", startX + colWidths[0] + colWidths[1] + colWidths[2] + 5, y + 8, { width: colWidths[3] - 10, align: "left" });
+        doc.text("Hour I", startX + colWidths[0] + 5, y + 8, { width: colWidths[1] - 10, align: "center" });
+        doc.text("Hour II", startX + colWidths[0] + colWidths[1] + 5, y + 8, { width: colWidths[2] - 10, align: "center" });
+        doc.text("Hour III", startX + colWidths[0] + colWidths[1] + colWidths[2] + 5, y + 8, { width: colWidths[3] - 10, align: "center" });
+        doc.text("Hour IV", startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + 5, y + 8, { width: colWidths[4] - 10, align: "center" });
+        doc.text("Hour V", startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + 5, y + 8, { width: colWidths[5] - 10, align: "center" });
+        doc.text("Hour VI", startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + 5, y + 8, { width: colWidths[6] - 10, align: "center" });
+        doc.text("Hour VII", startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6] + 5, y + 8, { width: colWidths[7] - 10, align: "center" });
+        doc.text("Percentage", startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6] + colWidths[7] + 5, y + 8, { width: colWidths[8] - 10, align: "center" });
         return y + rowHeight;
       };
   
+      // Iterate over dates
       sortedDates.forEach((date, dateIndex) => {
         const users = groupedByDate[date];
   
@@ -194,7 +200,7 @@ const getAttendance = async (req, res) => {
           doc.addPage();
         }
   
-        // Add date subheading (aligned to the left)
+        // Add date as title above the table
         doc.fontSize(16).font("Helvetica-Bold").fillColor("black").text(`Date: ${date}`, { align: "left" });
         doc.moveDown(0.5);
   
@@ -202,73 +208,68 @@ const getAttendance = async (req, res) => {
         let tableTop = doc.y;
         let y = drawTableHeaders(tableTop);
   
-        // Draw table rows for each user
+        // Draw table rows for each user on this date
         doc.font("Helvetica").fillColor("black");
         Object.keys(users).forEach((user, userIndex) => {
           const userRecords = users[user];
           const hoursPresent = userRecords.filter(record => record.status === "present").length;
           const totalHours = 7; // Assuming 7 hours per day
-          const percentage = ((hoursPresent / totalHours) * 100).toFixed(2); // Calculate percentage
+          const percentage = ((hoursPresent / totalHours) * 100).toFixed(2);
   
-          // Calculate the total height for this user's rows
-          const userRowCount = userRecords.length;
-          const userTableHeight = userRowCount * rowHeight;
-  
-          // Check if there's enough space for the user's entire section
-          if (y + userTableHeight > pageHeight) {
+          // Check if there's enough space for the row
+          const rowHeightTotal = rowHeight;
+          if (y + rowHeightTotal > pageHeight) {
             // Draw table borders for the current page
             doc.strokeColor("#d1d5db");
             doc.moveTo(startX, tableTop).lineTo(startX, y).stroke();
-            doc.moveTo(startX + colWidths[0], tableTop).lineTo(startX + colWidths[0], y).stroke();
-            doc.moveTo(startX + colWidths[0] + colWidths[1], tableTop).lineTo(startX + colWidths[0] + colWidths[1], y).stroke();
-            doc.moveTo(startX + colWidths[0] + colWidths[1] + colWidths[2], tableTop).lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], y).stroke();
-            doc.moveTo(startX + tableWidth, tableTop).lineTo(startX + tableWidth, y).stroke();
+            for (let i = 0; i < colWidths.length; i++) {
+              const xPos = startX + colWidths.slice(0, i + 1).reduce((sum, w) => sum + w, 0);
+              doc.moveTo(xPos, tableTop).lineTo(xPos, y).stroke();
+            }
             doc.moveTo(startX, tableTop).lineTo(startX + tableWidth, tableTop).stroke();
             doc.moveTo(startX, y).lineTo(startX + tableWidth, y).stroke();
   
             doc.addPage();
             tableTop = doc.y;
+            doc.fontSize(16).font("Helvetica-Bold").fillColor("black").text(`Date: ${date}`, { align: "left" });
+            doc.moveDown(0.5);
             y = drawTableHeaders(tableTop);
           }
   
-          // Draw the entire table section with beige background
-          doc.rect(startX, y, tableWidth, userTableHeight).fill(beigeColor);
+          // Draw the row with beige background
+          doc.rect(startX, y, tableWidth, rowHeight).fill(beigeColor);
           doc.fillColor("black");
   
-          // Draw the merged percentage cell for this user
-          const percentageCellX = startX + colWidths[0] + colWidths[1] + colWidths[2];
-          const percentageCellHeight = userRowCount * rowHeight;
-          doc.rect(percentageCellX, y, colWidths[3], percentageCellHeight).fill(beigeColor);
-          doc.fillColor("black");
-          // Center the percentage text vertically and horizontally
-          const percentageTextY = y + (percentageCellHeight - 12) / 2; // 12 is approximate font height
-          doc.text(`${percentage}%`, percentageCellX + 5, percentageTextY, { width: colWidths[3] - 10, align: "center" });
+          // Draw the cells
+          doc.text(user, startX + 5, y + 8, { width: colWidths[0] - 10, align: "left" });
   
-          // Draw the other cells (Email, Status, Hour) for each record
-          userRecords.forEach((record, index) => {
-            const rowY = y + index * rowHeight;
-  
-            // Draw the cells for Email, Status, and Hour
-            doc.fillColor("black");
-            doc.text(record.user, startX + 5, rowY + 8, { width: colWidths[0] - 10, align: "left", continued: false });
-            doc.text(record.status, startX + colWidths[0] + 5, rowY + 8, { width: colWidths[1] - 10, align: "left", continued: false });
-            doc.text(record.hour || "N/A", startX + colWidths[0] + colWidths[1] + 5, rowY + 8, { width: colWidths[2] - 10, align: "left", continued: false });
-  
-            // Draw horizontal line for each row, but skip the percentage column
-            doc.strokeColor("#d1d5db");
-            doc.moveTo(startX, rowY + rowHeight).lineTo(startX + tableWidth - colWidths[3], rowY + rowHeight).stroke();
+          // Map hours to their respective columns
+          const hours = ["I Hour", "II Hour", "III Hour", "IV Hour", "V Hour", "VI Hour", "VII Hour"];
+          hours.forEach((hour, hourIndex) => {
+            const hourRecord = userRecords.find(record => record.hour === hour);
+            const cellX = startX + colWidths[0] + colWidths.slice(1, 1 + hourIndex).reduce((sum, w) => sum + w, 0);
+            const status = hourRecord && hourRecord.status === "present" ? "present" : "absent";
+            doc.text(status, cellX + 5, y + 8, { width: colWidths[1 + hourIndex] - 10, align: "center" });
           });
   
-          y += userTableHeight;
+          // Draw the percentage cell
+          const percentageCellX = startX + colWidths[0] + colWidths[1] + colWidths[2] + colWidths[3] + colWidths[4] + colWidths[5] + colWidths[6] + colWidths[7];
+          doc.text(`${percentage}%`, percentageCellX + 5, y + 8, { width: colWidths[8] - 10, align: "center" });
+  
+          // Draw horizontal line for the row
+          doc.strokeColor("#d1d5db");
+          doc.moveTo(startX, y + rowHeight).lineTo(startX + tableWidth, y + rowHeight).stroke();
+  
+          y += rowHeight;
         });
   
         // Draw table borders
         doc.strokeColor("#d1d5db");
         doc.moveTo(startX, tableTop).lineTo(startX, y).stroke();
-        doc.moveTo(startX + colWidths[0], tableTop).lineTo(startX + colWidths[0], y).stroke();
-        doc.moveTo(startX + colWidths[0] + colWidths[1], tableTop).lineTo(startX + colWidths[0] + colWidths[1], y).stroke();
-        doc.moveTo(startX + colWidths[0] + colWidths[1] + colWidths[2], tableTop).lineTo(startX + colWidths[0] + colWidths[1] + colWidths[2], y).stroke();
-        doc.moveTo(startX + tableWidth, tableTop).lineTo(startX + tableWidth, y).stroke();
+        for (let i = 0; i < colWidths.length; i++) {
+          const xPos = startX + colWidths.slice(0, i + 1).reduce((sum, w) => sum + w, 0);
+          doc.moveTo(xPos, tableTop).lineTo(xPos, y).stroke();
+        }
         doc.moveTo(startX, tableTop).lineTo(startX + tableWidth, tableTop).stroke();
         doc.moveTo(startX, y).lineTo(startX + tableWidth, y).stroke();
   

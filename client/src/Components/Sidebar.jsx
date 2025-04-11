@@ -325,7 +325,7 @@ const Sidebar = () => {
             )}
             <div
               className={`nav-item settings ${window.location.pathname === '/settings' ? 'active' : ''}`}
-              onClick={() => navigate('/settings')}
+              onClick={() => navigate('/admin/setting')}
               data-tooltip="Adjust application settings"
             >
               <Settings size={20} className="nav-icon" />

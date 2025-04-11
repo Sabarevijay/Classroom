@@ -713,11 +713,11 @@ const ClassAdmin = () => {
                 <div className="otp-value">{otp}</div>
                 <div className="timer-text">Expires in {timeLeft}s</div>
               </div>
-              <div className="modal-buttons">
+              {/* <div className="modal-buttons">
                 <button className="modal-button cancel" onClick={closeOtpModal}>
                   Close
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         )}

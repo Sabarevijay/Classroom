@@ -27,6 +27,7 @@
     "passport-google-oauth20": "^2.0.0",
     "path": "^0.12.7",
     "pdfkit": "^0.16.0",
-    "react-router-dom": "^7.4.0"
+    "react-router-dom": "^7.4.0",
+    "socket.io": "^4.8.1"
   }
 }

@@ -8,18 +8,24 @@ const quizSchema = new mongoose.Schema({
     text: { type: String, required: true },
     options: [{ text: { type: String, required: true }, isCorrect: { type: Boolean, required: true } }],
     marks: { type: Number, required: true },
-    timeLimit: { type: Number }
+    timeLimit: { type: Number, default: 0 }
   }],
   totalMarks: { type: Number },
   started: { type: Boolean, default: false },
-  startTime: { type: Date },
-  endTime: { type: Date },
+  completed: { type: Boolean, default: false },
+  currentQuestionIndex: { type: Number, default: 0 },
+  showResults: { type: Boolean, default: false },
+  submitEnabled: { type: Boolean, default: true },
+  joinedUsers: [{ type: String }],
   submissions: [{
     user: { type: String },
-    answers: [{ type: String }],
-    mark: { type: Number },
-    feedback: { type: String }
-  }]
+    answers: [{ type: String }]
+  }],
+  responseStats: {
+    attendedCount: { type: Number, default: 0 },
+    notAttendedCount: { type: Number, default: 0 },
+    notAttendedStudents: [{ type: String }]
+  }
 }, { timestamps: true });
 
 const QuizModel = mongoose.model('Quiz', quizSchema);

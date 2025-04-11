@@ -21,6 +21,10 @@ import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { SidebarProvider } from './context/SidebarContext';
 import StreamAdmin from './Pages/StreamAdmin';
+import Students from './Pages/Students';
+import Faculty from './Pages/Faculty';
+import Mentor from './Pages/Mentor';
+import Setting from './Pages/Setting';
 
 // Replace with your actual Google Client ID from your .env file
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
@@ -82,6 +86,7 @@ const AppContent = () => {
           }
         >
           <Route index element={<Home />} />
+          
           <Route
             path='classstudents/:id'
             element={
@@ -116,6 +121,38 @@ const AppContent = () => {
             element={ 
               <ProtectedRoute allowedRoles={['admin']}>
                 <ArchivedClass />
+              </ProtectedRoute>
+            } 
+          /> 
+          <Route 
+            path='students' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Students />
+              </ProtectedRoute>
+            } 
+          /> 
+          <Route 
+            path='faculty' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Faculty />
+              </ProtectedRoute>
+            } 
+          /> 
+          <Route 
+            path='mentor' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Mentor />
+              </ProtectedRoute>
+            } 
+          /> 
+          <Route 
+            path='setting' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin']}>
+                <Setting />
               </ProtectedRoute>
             } 
           /> 
