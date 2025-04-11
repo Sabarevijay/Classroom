@@ -333,19 +333,23 @@ const Classwork = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      console.log('Class ID from useParams:', id);
       try {
         const classResponse = await classGet(`/class/getclass/${id}`);
-        console.log('Class Data:', classResponse.data);
         setClassData(classResponse.data.classData);
         
         const classworkResponse = await classGet(`/class/classwork/${id}`);
-        console.log('Classwork Data:', classworkResponse.data);
+        console.log('Classwork Response:', classworkResponse.data);
         setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
-        setError('Failed to load data. Please try again later.');
-        toast.error('Failed to load data.');
+        if (error.response?.status === 404) {
+          setError('No classwork found for this class. Please upload classwork to get started.');
+          console.log("Setting error for 404:", 'No classwork found for this class. Please upload classwork to get started.');
+          toast.error('No classwork found for this class.');
+        } else {
+          setError('Failed to load data. Please try again later.');
+          toast.error('Failed to load data.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -403,6 +407,7 @@ const Classwork = () => {
       setClassworks((prev) => [...prev, ...response.data.classworks]);
       setFiles([]);
       setTitle('');
+      setError(null); // Clear the error state after successful upload
       toast.success('Classwork uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error.response?.data || error.message);
@@ -423,13 +428,11 @@ const Classwork = () => {
 
   const handleDeleteGroup = async (group) => {
     try {
-      // Delete all classwork items in the group
       await Promise.all(
         group.map(async (classwork) => {
           await classPost(`/class/classwork/delete/${classwork._id}`);
         })
       );
-      // Update the classworks state by removing all items in the group
       setClassworks(classworks.filter(cw => !group.some(item => item._id === cw._id)));
       toast.success('Folder deleted successfully');
     } catch (error) {
@@ -480,10 +483,6 @@ const Classwork = () => {
     );
   }
 
-  if (error) {
-    return <div className="text-red-500 text-center mt-10">{error}</div>;
-  }
-
   return (
     <div className="page-container">
       <style>{styles}</style>
@@ -495,6 +494,11 @@ const Classwork = () => {
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
           
+          {/* Display error message if it exists, but continue rendering the form */}
+          {error && (
+            <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
+          )}
+
           {/* Upload Form */}
           <form className="upload-form" onSubmit={handleFileUpload}>
             <input
@@ -547,13 +551,13 @@ const Classwork = () => {
                 <div className="classwork-group-header">
                   <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
                     <Folder size={20} color="#6b48ff" />
-                    <span>{title} ({group.length} {group.length === 1 ? 'file' : 'files'})</span>
+                    <span>{title}</span>
                   </div>
                   <div className="classwork-group-actions">
                     <button
                       className="delete-button"
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent toggling the group when clicking delete
+                        e.stopPropagation();
                         handleDeleteGroup(group);
                       }}
                       data-tooltip="Delete Folder"
@@ -567,7 +571,7 @@ const Classwork = () => {
                   <div className="classwork-group-files">
                     {group.map((classwork) => (
                       <div key={classwork._id} className="classwork-file">
-                        <span>{classwork.filename}</span>
+                        <span>{classwork.originalFilename || classwork.filename}</span>
                         <div className="action-buttons">
                           <button
                             className="delete-button"
@@ -578,7 +582,7 @@ const Classwork = () => {
                           </button>
                           <button
                             className="download-button"
-                            onClick={() => handleDownload(classwork._id, classwork.filename)}
+                            onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}
                             data-tooltip="Download Classwork"
                           >
                             <Download size={20} />

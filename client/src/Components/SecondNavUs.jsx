@@ -47,6 +47,7 @@ const styles = `
 
 
 const SecondNavUs= ({ classId }) => {
+  console.log("Class ID in SecondNavUs:", classId);
   const location = useLocation();
   const currentPath = location.pathname;
   const basePath = `/home/classstudents/${classId}`; // Base path for the "Attendance" tab
@@ -73,12 +74,6 @@ const SecondNavUs= ({ classId }) => {
         >
           Quiz
         </Link>
-        {/* <Link
-          to={`/admin/classadmin/${classId}/addStudents`}
-          className={`nav-tab ${currentPath.includes('addStudents') ? 'active' : ''}`}
-        >
-          People
-        </Link> */}
       </div>
     </>
   );

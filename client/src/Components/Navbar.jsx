@@ -877,20 +877,30 @@ const Navbar = () => {
   };
 
   const handleCreateClass = async () => {
-    if (className.trim()) {
-      try {
-        setIsLoading(true);
-        const response = await classPost('/class/createclass', { ClassName: className });
+    if (!className.trim()) {
+      toast.error("Please enter a class name");
+      return;
+    }
+  
+    try {
+      setIsLoading(true);
+      const response = await classPost('/class/createclass', { ClassName: className });
+      
+      // Check if the response indicates success
+      if (response.status === 201 && response.data.message === "Class created successfully") {
         closePopup();
         setClassName('');
         toast.success("Class created successfully");
-      } catch (error) {
-        console.error('Error creating class:', error);
-        toast.error(error);
-      } finally {
-        setIsLoading(false);
-        window.location.reload();
+        window.location.reload(); // Only reload on success
+      } else {
+        throw new Error("Unexpected response from server");
       }
+    } catch (error) {
+      console.error('Error creating class:', error);
+      const errorMessage = error.response?.data?.message || error.message || "Failed to create class. Please try again.";
+      toast.error(errorMessage);
+    } finally {
+      setIsLoading(false);
     }
   };
 

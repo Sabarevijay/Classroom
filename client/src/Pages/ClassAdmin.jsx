@@ -38,7 +38,6 @@ const styles = `
     border-top-right-radius: 1rem;
     padding: 0rem 0;
     margin: 0 -2rem;
-    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -129,14 +128,6 @@ const styles = `
     gap: 1rem;
   }
 
-  .otp-card-space {
-    min-height: 150px;
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-
   .table-controls {
     width: 100%;
     margin-bottom: 1rem;
@@ -198,7 +189,7 @@ const styles = `
   }
 
   .attendance-table thead {
-    background-color: #1a2526;
+    background-color: #59499c;
     color: #fff;
   }
 
@@ -217,7 +208,7 @@ const styles = `
   }
 
   .attendance-table th.sortable:hover {
-    background-color: #2a3b3c;
+    background-color:#8877d1;
   }
 
   .attendance-table th.sortable::after {
@@ -227,7 +218,7 @@ const styles = `
   }
 
   .attendance-table tbody tr:nth-child(odd) {
-    background-color: #f1f7ff;
+    background-color:#f6f1ff;
   }
 
   .attendance-table tbody tr:nth-child(even) {
@@ -243,7 +234,6 @@ const styles = `
 
   .success-card {
     position: relative;
-    top: auto;
     background-color: #fff;
     color: #000;
     padding: 1.5rem;
@@ -262,7 +252,7 @@ const styles = `
   .otp-value {
     font-size: 2.5rem;
     font-weight: 800;
-    color:  #6b48ff;
+    color: #6b48ff;
     margin-bottom: 0.5rem;
   }
 
@@ -443,10 +433,10 @@ const ClassAdmin = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [otp, setOtp] = useState("");
-  const [timeLeft, setTimeLeft] = useState(20);
+  const [timeLeft, setTimeLeft] = useState(15);
   const [attendance, setAttendance] = useState([]);
   const [hour, setHour] = useState("");
-  const [showSuccessCard, setShowSuccessCard] = useState(false);
+  const [showOtpModal, setShowOtpModal] = useState(false); // State for OTP modal
   const [searchTerm, setSearchTerm] = useState("");
   const [sortOrder, setSortOrder] = useState("asc");
   const [hourFilter, setHourFilter] = useState("");
@@ -498,7 +488,7 @@ const ClassAdmin = () => {
     const newOtp = Math.floor(10000 + Math.random() * 900000).toString();
     setOtp(newOtp);
     setTimeLeft(15);
-    setShowSuccessCard(true);
+    setShowOtpModal(true); // Show the OTP modal
     try {
       await post("/otp/generate", { otp: newOtp, classId: id, hour });
       toast.success("OTP generated successfully!");
@@ -506,8 +496,15 @@ const ClassAdmin = () => {
     } catch (error) {
       console.error("Failed to generate OTP:", error);
       toast.error("Failed to generate OTP. Please try again.");
-      setShowSuccessCard(false);
+      setShowOtpModal(false);
     }
+  };
+
+  const closeOtpModal = () => {
+    setShowOtpModal(false);
+    setOtp("");
+    setTimeLeft(0);
+    fetchAttendanceData(displayFromDate, displayToDate);
   };
 
   const openDateModal = () => {
@@ -596,11 +593,9 @@ const ClassAdmin = () => {
       const timer = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0) {
-      setOtp("");
-      setShowSuccessCard(false);
-      fetchAttendanceData(displayFromDate, displayToDate);
+      closeOtpModal();
     }
-  }, [timeLeft, otp, displayFromDate, displayToDate]);
+  }, [timeLeft, otp]);
 
   // Group attendance by date and user to calculate percentages
   const groupedAttendance = {};
@@ -687,6 +682,7 @@ const ClassAdmin = () => {
               className="form-select"
               value={hour}
               onChange={(e) => setHour(e.target.value)}
+              
             >
               <option value="">-- Select Hour --</option>
               <option value="I Hour">I Hour</option>
@@ -708,14 +704,23 @@ const ClassAdmin = () => {
             </button>
           </div>
         </form>
-        <div className="otp-card-space">
-          {showSuccessCard && otp && (
-            <div className={`success-card ${timeLeft === 0 ? "boom" : ""}`}>
-              <div className="otp-value">{otp}</div>
-              <div className="timer-text">Expires in {timeLeft}s</div>
+
+        {showOtpModal && otp && (
+          <div className="modal-overlay">
+            <div className="modal-content">
+              <h3>Generated OTP</h3>
+              <div className={`success-card ${timeLeft === 0 ? "boom" : ""}`}>
+                <div className="otp-value">{otp}</div>
+                <div className="timer-text">Expires in {timeLeft}s</div>
+              </div>
+              <div className="modal-buttons">
+                <button className="modal-button cancel" onClick={closeOtpModal}>
+                  Close
+                </button>
+              </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {showDateModal && (
           <div className="modal-overlay">
@@ -753,7 +758,7 @@ const ClassAdmin = () => {
 
         {attendance.length > 0 ? (
           <div className="w-full">
-            <h3 className="section-title">Attendance Details</h3>
+            {/* <h3 className="section-title">Attendance Details</h3> */}
             <div className="flex justify-center items-center mb-4 gap-4">
               <span className="text-lg font-semibold">Total Students: {totalUsers}</span>
               <span className="text-lg font-semibold text-green-600">Present: {presentCount}</span>
@@ -763,7 +768,7 @@ const ClassAdmin = () => {
               <input
                 type="text"
                 className="search-input"
-                placeholder="Search by Register Number"
+                placeholder="Search by Name or Email"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -791,8 +796,8 @@ const ClassAdmin = () => {
                   <th className="sortable" onClick={toggleSortOrder}>
                     Hour {sortOrder === "asc" ? "↑" : "↓"}
                   </th>
-                  <th>Date</th>
-                  <th>Percentage</th> {/* Added Percentage column */}
+                  {/* <th>Date</th>
+                  <th>Percentage</th> */}
                 </tr>
               </thead>
               <tbody>
@@ -801,10 +806,10 @@ const ClassAdmin = () => {
                     <td>{record.user}</td>
                     <td>{record.status}</td>
                     <td>{record.hour || "N/A"}</td>
-                    <td>{record.date}</td>
+                    {/* <td>{record.date}</td>
                     {record.isFirstRecord && (
                       <td rowSpan={record.rowSpan}>{record.percentage}%</td>
-                    )}
+                    )} */}
                   </tr>
                 ))}
               </tbody>

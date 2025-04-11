@@ -314,6 +314,7 @@ const getClassworks = async (req, res) => {
         classworks: [],
       });
     }
+    
 
     console.log(`Retrieved ${classworks.length} classworks for classId ${id}`);
     return res.status(200).json({

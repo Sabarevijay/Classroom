@@ -37,7 +37,6 @@ const styles = `
     border-top-right-radius: 1rem;
     padding: 0rem 0;
     margin: 0 -2rem;
-    // border-bottom: 1px solid #e5e7eb;
   }
 
   /* Headings */
@@ -193,7 +192,7 @@ const styles = `
   }
 
   .attendance-table thead {
-    background-color: #1a2526;
+    background-color: #59499c;
     color: #fff;
   }
 
@@ -207,7 +206,7 @@ const styles = `
   }
 
   .attendance-table tbody tr:nth-child(odd) {
-    background-color: #f1f7ff;
+    background-color: #f6f1ff;
   }
 
   .attendance-table tbody tr:nth-child(even) {
@@ -315,6 +314,8 @@ const ClassStudents = () => {
   const [showSuccess, setShowSuccess] = useState(false);
   const [userEmail, setUserEmail] = useState("");
 
+
+  console.log("Class ID in ClassStudents:", id);
   const submitOTP = async () => {
     if (!submittedOtp) {
       toast.error("Please enter an OTP");
@@ -377,7 +378,6 @@ const ClassStudents = () => {
 
   const fetchAttendance = async (email, classId) => {
     try {
-      // console.log("Fetching attendance for:", email, classId);
       const response = await get(`/attendance/getattendance?classId=${classId}`);
       const today = new Date().toISOString().split("T")[0];
       const userAttendance = response.data.attendance.filter((record) => {
@@ -388,7 +388,8 @@ const ClassStudents = () => {
           recordDate === today
         );
       });
-      // console.log("Filtered attendance:", userAttendance);
+      // Sort the attendance records by hour in ascending order
+      userAttendance.sort((a, b) => a.hour.localeCompare(b.hour));
       setAttendance(userAttendance);
     } catch (error) {
       console.error("Failed to fetch attendance data:", error);
@@ -476,7 +477,7 @@ const ClassStudents = () => {
 
         {attendance.length > 0 ? (
           <div className="w-full">
-            <h3 className="section-title">Attendance Details</h3>
+            {/* <h3 className="section-title">Attendance Details</h3> */}
             <table className="attendance-table">
               <thead>
                 <tr>

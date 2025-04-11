@@ -46,6 +46,7 @@ const styles = `
 `;
 
 const SecondNav = ({ classId }) => {
+  console.log("Class ID in SecondNav:", classId);
   const location = useLocation();
   const currentPath = location.pathname.toLowerCase(); // Convert to lowercase for case-insensitive comparison
   const basePath = `/admin/classadmin/${classId}`; // Base path for the "Attendance" tab
