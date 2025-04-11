@@ -75,6 +75,14 @@ const styles = `
     margin: 1.5rem 0;
   }
 
+  /* Error Message */
+  .error-message {
+    text-align: center;
+    color: #f44336;
+    font-size: 1.25rem;
+    margin: 1.5rem 0;
+  }
+
   /* Loading Spinner */
   .spinner {
     width: 4rem;
@@ -111,6 +119,10 @@ const styles = `
     }
 
     .no-classworks {
+      font-size: 1rem;
+    }
+
+    .error-message {
       font-size: 1rem;
     }
   }
@@ -248,8 +260,13 @@ const ClassworkUs = () => {
         setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
         console.error('Failed to fetch data:', error);
-        setError('Failed to load data. Please try again later.');
-        toast.error('Failed to load data.');
+        if (error.response?.status === 404) {
+          setError('No classwork Data found');
+          toast.error('No classwork Data found');
+        } else {
+          setError('Failed to load data. Please try again later.');
+          toast.error('Failed to load data.');
+        }
       } finally {
         setIsLoading(false);
       }
@@ -320,10 +337,6 @@ const ClassworkUs = () => {
     );
   }
 
-  if (error) {
-    return <div className="text-red-500 text-center mt-10">{error}</div>;
-  }
-
   return (
     <div className="page-container">
       <style>{styles}</style>
@@ -335,6 +348,11 @@ const ClassworkUs = () => {
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
           
+          {/* Display error message if it exists, but continue rendering the rest of the page */}
+          {error && (
+            <div className="error-message">{error}</div>
+          )}
+
           {/* Classwork List (Grouped by Title) */}
           {Object.keys(groupedClassworks).length > 0 ? (
             Object.entries(groupedClassworks).map(([title, group]) => (
@@ -342,8 +360,7 @@ const ClassworkUs = () => {
                 <div className="classwork-group-header" onClick={() => toggleGroup(title)}>
                   <div className="classwork-group-title">
                     <Folder size={20} color="#6b48ff" />
-                    {/* <span>{title} ({group.length} {group.length === 1 ? 'file' : 'files'})</span> */}
-                    <span>{title} </span>
+                    <span>{title}</span>
                   </div>
                   {expandedGroups[title] ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
                 </div>
@@ -375,7 +392,7 @@ const ClassworkUs = () => {
               </div>
             ))
           ) : (
-            <p className="no-classworks">No classwork available</p>
+            !error && <p className="no-classworks">No classwork available</p>
           )}
         </div>
       </div>
