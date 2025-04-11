@@ -9,33 +9,11 @@ import cors from 'cors';
 import StudentRoutes from "./routes/students.js";
 import path from 'path'; 
 import QuizRoutes from "./routes/Quiz.js";
-import http from 'http';
-import { Server } from 'socket.io';
-import upload from './middleware/Multer.js';
-import fs from 'fs';
 
 dotenv.config();
 
 const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-      origin: [
-        'http://localhost:5173',
-        'https://classroom-lime-mu.vercel.app',
-        'https://classroom-798mphos9-sabarevijays-projects.vercel.app',
-        'https://accounts.google.com'
-      ],
-      methods: ["GET", "POST"],
-      credentials: true
-    }
-  });
 const PORT = process.env.PORT || 8000;
-
-const imagesDir = path.join(path.resolve(), 'public/images');
-const quizzesDir = path.join(path.resolve(), 'public/quizzes');
-fs.mkdirSync(imagesDir, { recursive: true });
-fs.mkdirSync(quizzesDir, { recursive: true });
 
 DBcon();
 
@@ -80,27 +58,6 @@ app.use('/quizes', QuizRoutes);
 app.use('/otp', OTPRoutes);
 app.use('/attendance', AttendanceRoutes);
 app.use('/students', StudentRoutes);
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-  
-    socket.on('joinClass', ({ classId, userEmail }) => {
-      socket.join(classId);
-      console.log(`User ${userEmail} with socket ${socket.id} joined classroom: ${classId}`);
-    });
-  
-    socket.on('joinQuiz', ({ quizId, classId, userEmail }) => {
-      socket.join(quizId); // Join quiz-specific room
-      console.log(`User ${userEmail} with socket ${socket.id} joined quiz: ${quizId} in class: ${classId}`);
-    });
-  
-    socket.on('requestCurrentQuestion', ({ quizId, classId }) => {
-      console.log(`User with socket ${socket.id} requested current question for quiz: ${quizId}`);
-    });
-  
-    socket.on('disconnect', () => {
-      console.log('User disconnected:', socket.id);
-    });
-  });
 
 app.listen(PORT, () => {
     console.log(`App is Running on the Port ${PORT}`);
