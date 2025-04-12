@@ -5,9 +5,7 @@ import { classGet, classPost } from '../services/Endpoint';
 import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 
-// Reuse styles from Home component
 const styles = `
-  /* Main Container */
   .home-container {
     min-height: 100vh;
     background-color: #f5f5f5;
@@ -15,7 +13,6 @@ const styles = `
     flex-direction: column;
   }
 
-  /* Content Area */
   .content-area {
     flex: 1;
     padding-top: 70px;
@@ -23,7 +20,6 @@ const styles = `
     transition: padding-left 0.3s ease;
   }
 
-  /* Grid for Cards */
   .class-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -32,12 +28,11 @@ const styles = `
     justify-items: center;
   }
 
-  /* Class Card */
   .class-card {
     position: relative;
     width: 100%;
     max-width: 300px;
-    height: 200px;
+    height: 220px;
     border-radius: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -65,9 +60,22 @@ const styles = `
     font-size: 1.25rem;
     font-weight: 600;
     word-wrap: break-word;
+    margin-bottom: 0.25rem;
   }
 
-  /* More Icon (Three Dots) */
+  .class-details {
+    font-size: 0.875rem;
+    font-weight: 400;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+  }
+
+  .class-creator {
+    font-size: 0.75rem;
+    font-weight: 400;
+    opacity: 0.8;
+  }
+
   .more-icon {
     position: absolute;
     top: 0.5rem;
@@ -80,7 +88,6 @@ const styles = `
     transform: scale(1.1);
   }
 
-  /* Dropdown Menu for More Options */
   .more-menu {
     position: absolute;
     top: 2.5rem;
@@ -133,7 +140,6 @@ const styles = `
     color: #ff4d4f;
   }
 
-  /* Confirmation Modal */
   .modal-container {
     position: fixed;
     top: 0;
@@ -223,7 +229,6 @@ const styles = `
     transform: scale(1.02);
   }
 
-  /* Edit Modal */
   .edit-modal {
     background-color: #fff;
     border-radius: 0.5rem;
@@ -266,8 +271,9 @@ const styles = `
     border-radius: 0.5rem;
     font-size: 0.9rem;
     color: #333;
-    box-shadow: 0  Ti1px 3px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 1rem;
   }
 
   .edit-modal-input:focus {
@@ -294,7 +300,6 @@ const styles = `
     cursor: pointer;
   }
 
-  /* No Classes Message */
   .no-classes {
     text-align: center;
     color: #6b7280;
@@ -302,7 +307,6 @@ const styles = `
     margin: 1.5rem 0;
   }
 
-  /* Loading Spinner */
   .spinner {
     width: 2rem;
     height: 2rem;
@@ -317,7 +321,6 @@ const styles = `
     100% { transform: rotate(360deg); }
   }
 
-  /* Responsive Adjustments */
   @media (max-width: 768px) {
     .home-container {
       flex-direction: column;
@@ -336,7 +339,7 @@ const styles = `
 
     .class-card {
       max-width: 100%;
-      height: 150px;
+      height: 180px;
     }
 
     .class-initial {
@@ -345,6 +348,14 @@ const styles = `
 
     .class-name {
       font-size: 1rem;
+    }
+
+    .class-details {
+      font-size: 0.75rem;
+    }
+
+    .class-creator {
+      font-size: 0.65rem;
     }
 
     .more-icon {
@@ -400,7 +411,7 @@ const styles = `
     }
 
     .class-card {
-      height: 120px;
+      height: 160px;
     }
 
     .class-initial {
@@ -410,379 +421,440 @@ const styles = `
     .class-name {
       font-size: 0.9rem;
     }
+
+    .class-details {
+      font-size: 0.7rem;
+    }
+
+    .class-creator {
+      font-size: 0.6rem;
+    }
   }
 `;
 
 const Faculty = () => {
-    const navigate = useNavigate();
-    const [classes, setClasses] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
-    const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
-    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-    const [isEditConfirmModalOpen, setIsEditConfirmModalOpen] = useState(false);
-    const [selectedClass, setSelectedClass] = useState(null);
-    const [editClassName, setEditClassName] = useState('');
-    const [openMenuId, setOpenMenuId] = useState(null);
-    const menuRefs = useRef({});
-    const user = useSelector((state) => state.auth.user);
-    const colors = [
-      '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
-      '#009688', '#795548', '#FF9800', '#3F51B5'
-    ];
-  
-    const getClass = async () => {
-      setIsLoading(true);
-      try {
-        if (!user || !['admin', 'faculty'].includes(user.role)) {
-          throw new Error('User is not authorized');
-        }
-        const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
-        const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setClasses(sortedClass);
-      } catch (error) {
-        console.error("Error fetching faculty classes:", error);
-        toast.error("Failed to fetch classes");
-        setClasses([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-  
-    const handleRemoveClass = async () => {
-      if (!selectedClass || !selectedClass._id) return;
-      try {
-        setIsLoading(true);
-        const response = await classPost(`/facultyclass/deleteclass/${selectedClass._id}`, {});
-        if (response.data.success) {
-          setClasses(classes.filter(cls => cls._id !== selectedClass._id));
-          toast.success("Class removed successfully");
-        } else {
-          toast.error(response.data.message || "Failed to remove class");
-        }
-      } catch (error) {
-        console.error("Error removing faculty class:", error);
-        toast.error("Failed to remove class");
-      } finally {
-        setIsRemoveModalOpen(false);
-        setSelectedClass(null);
-        setIsLoading(false);
-      }
-    };
-  
-    const handleArchiveClass = async () => {
-      if (!selectedClass || !selectedClass._id) return;
-      try {
-        setIsLoading(true);
-        const response = await classPost(`/facultyclass/archiveclass/${selectedClass._id}`, {});
-        if (response.data.success) {
-          setClasses(classes.filter(cls => cls._id !== selectedClass._id));
-          toast.success("Class archived successfully");
-        } else {
-          toast.error(response.data.message || "Failed to archive class");
-        }
-      } catch (error) {
-        console.error("Error archiving faculty class:", error);
-        toast.error("Failed to archive class");
-      } finally {
-        setIsArchiveModalOpen(false);
-        setSelectedClass(null);
-        setIsLoading(false);
-      }
-    };
-  
-    const handleEditClass = async () => {
-      if (!selectedClass || !selectedClass._id || !editClassName.trim()) {
-        toast.error("Class name cannot be empty");
-        setIsEditConfirmModalOpen(false);
-        setIsEditModalOpen(true);
-        return;
-      }
-      try {
-        setIsLoading(true);
-        const response = await classPost(`/facultyclass/updateclass/${selectedClass._id}`, { ClassName: editClassName });
-        if (response.data.success) {
-          setClasses(classes.map(cls => cls._id === selectedClass._id ? { ...cls, ClassName: editClassName } : cls));
-          toast.success("Class renamed successfully");
-        } else {
-          toast.error(response.data.message || "Failed to rename class");
-        }
-      } catch (error) {
-        console.error("Error renaming faculty class:", error);
-        toast.error("Failed to rename class");
-      } finally {
-        setIsEditConfirmModalOpen(false);
-        setIsEditModalOpen(false);
-        setSelectedClass(null);
-        setEditClassName('');
-        setIsLoading(false);
-      }
-    };
-  
-    const handleClassClick = (classId) => {
-      if (!user) {
-        console.error("User not found!");
-        navigate('/');
-        return;
-      }
-      navigate(`/admin/faculty/class/${classId}`);
-    };
-  
-    const toggleMoreMenu = (classId) => {
-      setOpenMenuId(openMenuId === classId ? null : classId);
-    };
-  
-    useEffect(() => {
-      if (user) {
-        getClass();
-      } else {
-        navigate('/');
-      }
-    }, [user, navigate]);
-  
-    useEffect(() => {
-      const handleClickOutside = (event) => {
-        if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(event.target)) {
-          setOpenMenuId(null);
-        }
-      };
-  
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }, [openMenuId]);
-  
-    useEffect(() => {
-      const handleClassCreated = () => getClass();
-      window.addEventListener('facultyClassCreated', handleClassCreated);
-      return () => window.removeEventListener('facultyClassCreated', handleClassCreated);
-    }, []);
-  
-    if (isLoading) {
-      return (
-        <div className="flex justify-center items-center min-h-screen">
-          <div className="spinner"></div>
-        </div>
-      );
-    }
-  
-    return (
-      <>
-        <style>{styles}</style>
-        <div className="home-container">
-          <div className="content-area">
-            <div className="class-grid">
-              {Array.isArray(classes) && classes.length > 0 ? (
-                classes.map((cls, index) => {
-                  if (!cls || !cls._id || !cls.ClassName) return null;
-                  const color = colors[index % colors.length];
-                  const initial = cls.ClassName.charAt(0).toUpperCase();
-                  return (
-                    <div
-                      key={cls._id}
-                      className="class-card"
-                      style={{ backgroundColor: color }}
-                      onClick={(e) => {
-                        if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
-                          handleClassClick(cls._id);
-                        }
-                      }}
-                    >
-                      <div className="class-initial">{initial}</div>
-                      <div className="class-name">{cls.ClassName}</div>
-                      {['admin', 'faculty'].includes(user.role) && (
-                        <>
-                          <button
-                            className="more-icon"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleMoreMenu(cls._id);
-                            }}
-                          >
-                            <MoreVertical size={20} color="#fff" />
-                          </button>
-                          {openMenuId === cls._id && (
-                            <div
-                              className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
-                              ref={(el) => (menuRefs.current[cls._id] = el)}
-                            >
-                              <button
-                                className="more-menu-item edit"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedClass(cls);
-                                  setEditClassName(cls.ClassName);
-                                  setIsEditModalOpen(true);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                <Edit size={16} />
-                                Rename
-                              </button>
-                              <button
-                                className="more-menu-item archive"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedClass(cls);
-                                  setIsArchiveModalOpen(true);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                <Archive size={16} />
-                                Archive
-                              </button>
-                              <button
-                                className="more-menu-item delete"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setSelectedClass(cls);
-                                  setIsRemoveModalOpen(true);
-                                  setOpenMenuId(null);
-                                }}
-                              >
-                                <Trash2 size={16} />
-                                Delete
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  );
-                })
-              ) : (
-                <p className="no-classes">No classes available.</p>
-              )}
-            </div>
-          </div>
-        </div>
-  
-        {/* Remove Confirmation Modal */}
-        {isRemoveModalOpen && (
-          <div className="modal-container">
-            <div className="modal">
-              <Trash2 size={40} className="modal-icon" style={{ color: '#ff4d4f' }} />
-              <p className="modal-text">Are you sure you want to remove this classroom?</p>
-              <div className="modal-buttons">
-                <button
-                  className="modal-button cancel"
-                  onClick={() => {
-                    setIsRemoveModalOpen(false);
-                    setSelectedClass(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="modal-button confirm"
-                  onClick={handleRemoveClass}
-                >
-                  Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-  
-        {/* Archive Confirmation Modal */}
-        {isArchiveModalOpen && (
-          <div className="modal-container">
-            <div className="modal">
-              <Archive size={40} className="modal-icon" style={{ color: '#6b48ff' }} />
-              <p className="modal-text">Are you sure you want to archive this classroom?</p>
-              <div className="modal-buttons">
-                <button
-                  className="modal-button cancel"
-                  onClick={() => {
-                    setIsArchiveModalOpen(false);
-                    setSelectedClass(null);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="modal-button confirm-archive"
-                  onClick={handleArchiveClass}
-                >
-                  Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-  
-        {/* Edit Class Modal */}
-        {isEditModalOpen && (
-          <div className="modal-container">
-            <div className="edit-modal">
-              <button
-                onClick={() => {
-                  setIsEditModalOpen(false);
-                  setSelectedClass(null);
-                  setEditClassName('');
-                }}
-                className="close-button"
-              >
-                <X size={24} />
-              </button>
-              <h2 className="edit-modal-title">Rename Classroom</h2>
-              <div className="mb-4">
-                <label className="block text-lg font-medium text-gray-700 mb-2">
-                  Classroom Name
-                </label>
-                <input
-                  type="text"
-                  value={editClassName}
-                  onChange={(e) => setEditClassName(e.target.value)}
-                  className="edit-modal-input"
-                  placeholder="Enter new classroom name"
-                />
-              </div>
-              <button
-                className="edit-modal-button"
-                onClick={() => {
-                  if (!editClassName.trim()) {
-                    toast.error("Class name cannot be empty");
-                    return;
-                  }
-                  setIsEditModalOpen(false);
-                  setIsEditConfirmModalOpen(true);
-                }}
-              >
-                Save
-              </button>
-            </div>
-          </div>
-        )}
-  
-        {/* Edit Confirmation Modal */}
-        {isEditConfirmModalOpen && (
-          <div className="modal-container">
-            <div className="modal">
-              <p className="modal-text">Are you sure you want to save the changes?</p>
-              <div className="modal-buttons">
-                <button
-                  className="modal-button cancel"
-                  onClick={() => {
-                    setIsEditConfirmModalOpen(false);
-                    setIsEditModalOpen(true);
-                  }}
-                >
-                  Cancel
-                </button>
-                <button
-                  className="modal-button confirm-edit"
-                  onClick={handleEditClass}
-                >
-                  Yes
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-      </>
-    );
+  const navigate = useNavigate();
+  const [classes, setClasses] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+  const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isEditConfirmModalOpen, setIsEditConfirmModalOpen] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const [editClassName, setEditClassName] = useState('');
+  const [editSemester, setEditSemester] = useState('');
+  const [editYear, setEditYear] = useState('');
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const menuRefs = useRef({});
+  const user = useSelector((state) => state.auth.user);
+  const colors = [
+    '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
+    '#009688', '#795548', '#FF9800', '#3F51B5'
+  ];
+
+  // Function to format numbers as ordinals
+  const getOrdinal = (num) => {
+    const n = parseInt(num, 10);
+    if (isNaN(n)) return num;
+    const suffixes = ['th', 'st', 'nd', 'rd'];
+    const v = n % 100;
+    return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
   };
-  
-  export default Faculty;
+
+  // Function to get username from email
+  const getUsernameFromEmail = (email) => {
+    if (!email || !email.includes('@')) return email || 'Unknown';
+    return email.split('@')[0];
+  };
+
+  const getClass = async () => {
+    setIsLoading(true);
+    try {
+      if (!user || !['admin', 'faculty'].includes(user.role)) {
+        throw new Error('User is not authorized');
+      }
+      const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
+      const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setClasses(sortedClass);
+    } catch (error) {
+      console.error("Error fetching faculty classes:", error);
+      toast.error("Failed to fetch classes");
+      setClasses([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleRemoveClass = async () => {
+    if (!selectedClass || !selectedClass._id) return;
+    try {
+      setIsLoading(true);
+      const response = await classPost(`/facultyclass/deleteclass/${selectedClass._id}`, {});
+      if (response.data.success) {
+        setClasses(classes.filter(cls => cls._id !== selectedClass._id));
+        toast.success("Class removed successfully");
+      } else {
+        toast.error(response.data.message || "Failed to remove class");
+      }
+    } catch (error) {
+      console.error("Error removing faculty class:", error);
+      toast.error("Failed to remove class");
+    } finally {
+      setIsRemoveModalOpen(false);
+      setSelectedClass(null);
+      setIsLoading(false);
+    }
+  };
+
+  const handleArchiveClass = async () => {
+    if (!selectedClass || !selectedClass._id) return;
+    try {
+      setIsLoading(true);
+      const response = await classPost(`/facultyclass/archiveclass/${selectedClass._id}`, {});
+      if (response.data.success) {
+        setClasses(classes.filter(cls => cls._id !== selectedClass._id));
+        toast.success("Class archived successfully");
+      } else {
+        toast.error(response.data.message || "Failed to archive class");
+      }
+    } catch (error) {
+      console.error("Error archiving faculty class:", error);
+      toast.error("Failed to archive class");
+    } finally {
+      setIsArchiveModalOpen(false);
+      setSelectedClass(null);
+      setIsLoading(false);
+    }
+  };
+
+  const handleEditClass = async () => {
+    if (!selectedClass || !selectedClass._id || !editClassName.trim() || !editSemester.trim() || !editYear.trim()) {
+      toast.error("Subject name, semester, and year cannot be empty");
+      setIsEditConfirmModalOpen(false);
+      setIsEditModalOpen(true);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      const response = await classPost(`/facultyclass/updateclass/${selectedClass._id}`, {
+        ClassName: editClassName,
+        semester: editSemester,
+        year: editYear,
+      });
+      if (response.data.success) {
+        setClasses(classes.map(cls =>
+          cls._id === selectedClass._id
+            ? { ...cls, ClassName: editClassName, semester: editSemester, year: editYear }
+            : cls
+        ));
+        toast.success("Class updated successfully");
+      } else {
+        toast.error(response.data.message || "Failed to update class");
+      }
+    } catch (error) {
+      console.error("Error updating faculty class:", error);
+      toast.error("Failed to update class");
+    } finally {
+      setIsEditConfirmModalOpen(false);
+      setIsEditModalOpen(false);
+      setSelectedClass(null);
+      setEditClassName('');
+      setEditSemester('');
+      setEditYear('');
+      setIsLoading(false);
+    }
+  };
+
+  const handleClassClick = (classId) => {
+    if (!user) {
+      console.error("User not found!");
+      navigate('/');
+      return;
+    }
+    navigate(`/admin/faculty/class/${classId}`);
+  };
+
+  const toggleMoreMenu = (classId) => {
+    setOpenMenuId(openMenuId === classId ? null : classId);
+  };
+
+  useEffect(() => {
+    if (user) {
+      getClass();
+    } else {
+      navigate('/');
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(event.target)) {
+        setOpenMenuId(null);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [openMenuId]);
+
+  useEffect(() => {
+    const handleClassCreated = () => getClass();
+    window.addEventListener('facultyClassCreated', handleClassCreated);
+    return () => window.removeEventListener('facultyClassCreated', handleClassCreated);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="home-container">
+        <div className="content-area">
+          <div className="class-grid">
+            {Array.isArray(classes) && classes.length > 0 ? (
+              classes.map((cls, index) => {
+                if (!cls || !cls._id || !cls.ClassName) return null;
+                const color = colors[index % colors.length];
+                const initial = cls.ClassName.charAt(0).toUpperCase();
+                return (
+                  <div
+                    key={cls._id}
+                    className="class-card"
+                    style={{ backgroundColor: color }}
+                    onClick={(e) => {
+                      if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
+                        handleClassClick(cls._id);
+                      }
+                    }}
+                  >
+                    <div className="class-initial">{initial}</div>
+                    <div className="class-name">{cls.ClassName}</div>
+                    <div className="class-details">
+                      {getOrdinal(cls.semester)} Semester, {getOrdinal(cls.year)} Year
+                    </div>
+                    <div className="class-creator">Created by: {getUsernameFromEmail(cls.createdBy)}</div>
+                    {['admin', 'faculty'].includes(user.role) && (
+                      <>
+                        <button
+                          className="more-icon"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleMoreMenu(cls._id);
+                          }}
+                        >
+                          <MoreVertical size={20} color="#fff" />
+                        </button>
+                        {openMenuId === cls._id && (
+                          <div
+                            className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
+                            ref={(el) => (menuRefs.current[cls._id] = el)}
+                          >
+                            <button
+                              className="more-menu-item edit"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setEditClassName(cls.ClassName);
+                                setEditSemester(cls.semester || '');
+                                setEditYear(cls.year || '');
+                                setIsEditModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Edit size={16} />
+                              Edit
+                            </button>
+                            <button
+                              className="more-menu-item archive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setIsArchiveModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Archive size={16} />
+                              Archive
+                            </button>
+                            <button
+                              className="more-menu-item delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedClass(cls);
+                                setIsRemoveModalOpen(true);
+                                setOpenMenuId(null);
+                              }}
+                            >
+                              <Trash2 size={16} />
+                              Delete
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    )}
+                  </div>
+                );
+              })
+            ) : (
+              <p className="no-classes">No classes available.</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {isRemoveModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <Trash2 size={40} className="modal-icon" style={{ color: '#ff4d4f' }} />
+            <p className="modal-text">Are you sure you want to remove this classroom?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsRemoveModalOpen(false);
+                  setSelectedClass(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm"
+                onClick={handleRemoveClass}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isArchiveModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <Archive size={40} className="modal-icon" style={{ color: '#6b48ff' }} />
+            <p className="modal-text">Are you sure you want to archive this classroom?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsArchiveModalOpen(false);
+                  setSelectedClass(null);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm-archive"
+                onClick={handleArchiveClass}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isEditModalOpen && (
+        <div className="modal-container">
+          <div className="edit-modal">
+            <button
+              onClick={() => {
+                setIsEditModalOpen(false);
+                setSelectedClass(null);
+                setEditClassName('');
+                setEditSemester('');
+                setEditYear('');
+              }}
+              className="close-button"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="edit-modal-title">Edit Classroom</h2>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Subject Name
+              </label>
+              <input
+                type="text"
+                value={editClassName}
+                onChange={(e) => setEditClassName(e.target.value)}
+                className="edit-modal-input"
+                placeholder="Enter new subject name"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Semester
+              </label>
+              <input
+                type="number"
+                value={editSemester}
+                onChange={(e) => setEditSemester(e.target.value)}
+                className="edit-modal-input"
+                placeholder="Enter semester (e.g., 1, 2)"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Year
+              </label>
+              <input
+                type="number"
+                value={editYear}
+                onChange={(e) => setEditYear(e.target.value)}
+                className="edit-modal-input"
+                placeholder="Enter year (e.g., 1, 2)"
+              />
+            </div>
+            <button
+              className="edit-modal-button"
+              onClick={() => {
+                if (!editClassName.trim() || !editSemester.trim() || !editYear.trim()) {
+                  toast.error("Subject name, semester, and year cannot be empty");
+                  return;
+                }
+                setIsEditModalOpen(false);
+                setIsEditConfirmModalOpen(true);
+              }}
+            >
+              Save
+            </button>
+          </div>
+        </div>
+      )}
+
+      {isEditConfirmModalOpen && (
+        <div className="modal-container">
+          <div className="modal">
+            <p className="modal-text">Are you sure you want to save the changes?</p>
+            <div className="modal-buttons">
+              <button
+                className="modal-button cancel"
+                onClick={() => {
+                  setIsEditConfirmModalOpen(false);
+                  setIsEditModalOpen(true);
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                className="modal-button confirm-edit"
+                onClick={handleEditClass}
+              >
+                Yes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </>
+  );
+};
+
+export default Faculty;

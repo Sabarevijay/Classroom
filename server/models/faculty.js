@@ -7,16 +7,24 @@ const facultyClassSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    semester: {
+      type: String,
+      required: true,
+    },
+    year: {
+      type: Number,
+      required: true,
+    },
     isArchived: {
       type: Boolean,
       default: false,
     },
     createdBy: {
-      type: String, // Store user email or ID to track who created it
+      type: String,
       required: true,
     },
   },
-  { timestamps: true, collection: "facultyclasses" } // Explicit collection name
+  { timestamps: true, collection: "facultyclasses" }
 );
 
 const FacultyClassModel = mongoose.model("FacultyClass", facultyClassSchema);

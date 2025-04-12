@@ -1,21 +1,21 @@
 // controllers/FacultyClass.js
-import FacultyClassModel from "../models/faculty.js"; // Corrected import
+import FacultyClassModel from "../models/faculty.js";
 import ClassworkModel from "../models/Classwork.js";
 import path from "path";
 import fs from "fs";
 
 const CreateFacultyClass = async (req, res) => {
   try {
-    const { ClassName } = req.body;
+    const { ClassName, semester, year } = req.body;
     const userEmail = req.body.createdBy;
-    if (!ClassName || !userEmail) {
+    if (!ClassName || !semester || !year || !userEmail) {
       return res.status(400).json({
         success: false,
-        message: "Class name and creator email are required",
+        message: "Class name, semester, year, and creator email are required",
       });
     }
 
-    const NewClass = await FacultyClassModel.create({ ClassName, createdBy: userEmail });
+    const NewClass = await FacultyClassModel.create({ ClassName, semester, year, createdBy: userEmail });
     return res.status(201).json({
       success: true,
       message: "Faculty class created successfully",
@@ -99,18 +99,18 @@ const getFacultyClassById = async (req, res) => {
 const editFacultyClass = async (req, res) => {
   try {
     const { id } = req.params;
-    const { ClassName } = req.body;
+    const { ClassName, semester, year } = req.body;
 
-    if (!ClassName) {
+    if (!ClassName || !semester || !year) {
       return res.status(400).json({
         success: false,
-        message: "Class name is required",
+        message: "Class name, semester, and year are required",
       });
     }
 
     const updatedClass = await FacultyClassModel.findByIdAndUpdate(
       id,
-      { ClassName },
+      { ClassName, semester, year },
       { new: true, runValidators: true }
     );
 
@@ -250,7 +250,7 @@ const getArchivedFacultyClasses = async (req, res) => {
 export {
   CreateFacultyClass,
   getFacultyClasses,
-  getAllFacultyClasses, // New export
+  getAllFacultyClasses,
   getFacultyClassById,
   editFacultyClass,
   deleteFacultyClass,

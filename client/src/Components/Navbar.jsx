@@ -816,6 +816,8 @@ const Navbar = () => {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isMobileSidebarHovered, setIsMobileSidebarHovered] = useState(false);
   const [className, setClassName] = useState('');
+  const [semester, setSemester] = useState('');
+  const [year, setYear] = useState('');
   const userMenuRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
@@ -844,8 +846,6 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  
-
   const openPopup = () => {
     setIsPopupOpen(true);
     setIsUserMenuOpen(false);
@@ -854,6 +854,8 @@ const Navbar = () => {
   const closePopup = () => {
     setIsPopupOpen(false);
     setClassName('');
+    setSemester('');
+    setYear('');
   };
 
   const toggleUserMenu = () => {
@@ -880,23 +882,31 @@ const Navbar = () => {
 
   const handleCreateClass = async () => {
     if (!className.trim()) {
-      toast.error("Please enter a class name");
+      toast.error("Please enter a subject name");
+      return;
+    }
+
+    const isFacultyPage = location.pathname === "/admin/faculty";
+    if (isFacultyPage && (!semester.trim() || !year.trim())) {
+      toast.error("Please enter both semester and year");
       return;
     }
 
     try {
       setIsLoading(true);
-      const isFacultyPage = location.pathname === "/admin/faculty";
       const endpoint = isFacultyPage ? "/facultyclass/createclass" : "/class/createclass";
-      const payload = isFacultyPage ? { ClassName: className, createdBy: userEmail } : { ClassName: className };
+      const payload = isFacultyPage
+        ? { ClassName: className, semester, year, createdBy: userEmail }
+        : { ClassName: className };
 
       const response = await classPost(endpoint, payload);
 
       if (response.status === 201 && response.data.message.includes("created successfully")) {
         closePopup();
         setClassName('');
+        setSemester('');
+        setYear('');
         toast.success("Class created successfully");
-        // Trigger refetch in Faculty or Home
         window.dispatchEvent(new Event(isFacultyPage ? "facultyClassCreated" : "classCreated"));
       } else {
         throw new Error("Unexpected response from server");
@@ -909,6 +919,7 @@ const Navbar = () => {
       setIsLoading(false);
     }
   };
+
   const handleLogout = async () => {
     try {
       const response = await post(`/auth/logout`);
@@ -932,9 +943,7 @@ const Navbar = () => {
     }
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [userMenuRef]);
 
   if (isLoading) {
@@ -969,17 +978,16 @@ const Navbar = () => {
           <span className="navbar-title">BIT ClassRoom</span>
         </div>
         <div className="navbar-right" ref={userMenuRef}>
-        {userRole === "admin" && (location.pathname === "/home" || location.pathname === "/admin/faculty") && (
-          <button
-            className="add-classroom-button"
-            onClick={openPopup}
-            // data-tooltip="Add a new classroom"
-          >
-            <Plus size={20} />
-          </button>
-        )}
+          {userRole === "admin" && (location.pathname === "/home" || location.pathname === "/admin/faculty") && (
+            <button
+              className="add-classroom-button"
+              onClick={openPopup}
+            >
+              <Plus size={20} />
+            </button>
+          )}
           <div className="profile-container">
-            <div className="profile-wrapper" >
+            <div className="profile-wrapper">
               {profileImage ? (
                 <img
                   src={profileImage}
@@ -1010,7 +1018,6 @@ const Navbar = () => {
                 <button
                   className="dropdown-item"
                   onClick={handleLogout}
-                  // data-tooltip="Sign out of your account"
                 >
                   Log Out
                 </button>
@@ -1042,7 +1049,6 @@ const Navbar = () => {
               </button>
             </div>
 
-            {/* Classroom Name and Horizontal Line */}
             <div className="mobile-classroom-name">
               {classroomName}
             </div>
@@ -1149,7 +1155,7 @@ const Navbar = () => {
             <h2 className="popup-title">Add Classroom</h2>
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Enter a Class name
+                Subject Name
               </label>
               <input
                 id="class-name"
@@ -1157,8 +1163,39 @@ const Navbar = () => {
                 value={className}
                 onChange={(e) => setClassName(e.target.value)}
                 className="popup-input"
+                placeholder="Enter subject name"
               />
             </div>
+            {location.pathname === "/admin/faculty" && (
+              <>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Semester
+                  </label>
+                  <input
+                    id="semester"
+                    type="number"
+                    value={semester}
+                    onChange={(e) => setSemester(e.target.value)}
+                    className="popup-input"
+                    placeholder="Enter semester (e.g., 1, 2)"
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Year
+                  </label>
+                  <input
+                    id="year"
+                    type="number"
+                    value={year}
+                    onChange={(e) => setYear(e.target.value)}
+                    className="popup-input"
+                    placeholder="Enter year (e.g., 1, 2)"
+                  />
+                </div>
+              </>
+            )}
             <button
               className="popup-button"
               onClick={handleCreateClass}
