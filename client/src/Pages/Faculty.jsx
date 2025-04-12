@@ -57,7 +57,7 @@ const styles = `
   }
 
   .class-name {
-    font-size: 1.25rem;
+    font-size: 2rem;
     font-weight: 600;
     word-wrap: break-word;
     margin-bottom: 0.25rem;
@@ -633,12 +633,12 @@ const Faculty = () => {
                       }
                     }}
                   >
-                    <div className="class-initial">{initial}</div>
+                    {/* <div className="class-initial">{initial}</div> */}
                     <div className="class-name">{cls.ClassName}</div>
                     <div className="class-details">
                       {getOrdinal(cls.semester)} Semester, {getOrdinal(cls.year)} Year
                     </div>
-                    <div className="class-creator">Created by: {getUsernameFromEmail(cls.createdBy)}</div>
+                    <div className="class-creator">Faculty: {getUsernameFromEmail(cls.createdBy)}</div>
                     {['admin', 'faculty'].includes(user.role) && (
                       <>
                         <button
