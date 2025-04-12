@@ -13,11 +13,12 @@ const getAttendance = async (req, res) => {
           message: "Class ID is required",
         });
       }
+      
   
-      console.log("Fetching attendance for classId:", classId, "fromDate:", fromDate, "toDate:", toDate);
+      // console.log("Fetching attendance for classId:", classId, "fromDate:", fromDate, "toDate:", toDate);
   
       const attendance = await AttendanceModel.find({ classId });
-      console.log("Total attendance records found:", attendance.length);
+      // console.log("Total attendance records found:", attendance.length);
   
       if (!attendance || attendance.length === 0) {
         console.log("No attendance records found for classId:", classId);

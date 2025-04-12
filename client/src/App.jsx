@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Component } from 'react';
 import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
 import Login from './Pages/Login';
 import Home from './Pages/Home';
@@ -14,7 +14,7 @@ import ArchivedClass from './Pages/ArchivedClass';
 import Classwork from './Pages/Classwork';
 import ClassworkUs from './Pages/ClassworkUs';
 import BootIntro from './Components/BootIntro';
-import QuizAdmin from './Pages/QuizAdmin'; // Import the new Quiz component
+import QuizAdmin from './Pages/QuizAdmin';
 import QuizUser from './Pages/QuizUser';
 import { useSelector } from 'react-redux';
 import { BootIntroProvider, useBootIntro } from './context/BootIntroContext';
@@ -25,9 +25,31 @@ import Students from './Pages/Students';
 import Faculty from './Pages/Faculty';
 import Mentor from './Pages/Mentor';
 import Setting from './Pages/Setting';
+import FacultyClass from './Pages/FacultyClass';
 
-// Replace with your actual Google Client ID from your .env file
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
+
+// Error Boundary Component
+class ErrorBoundary extends Component {
+  state = { error: null };
+
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <h1>Something went wrong.</h1>
+          <p>{this.state.error.message}</p>
+          <button onClick={() => window.location.reload()}>Reload Page</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const AppContent = () => {
   const location = useLocation();
@@ -38,6 +60,7 @@ const AppContent = () => {
   );
 
   useEffect(() => {
+    console.log('Current path:', location.pathname, 'User:', user); // Debug
     const previousPath = sessionStorage.getItem('previousPath');
     const currentPath = location.pathname;
 
@@ -50,17 +73,18 @@ const AppContent = () => {
       currentPath !== '/' &&
       currentPath !== '/register'
     ) {
-      console.log('Showing BootIntro'); // Debugging
+      console.log('Showing BootIntro');
       setShowBootIntro(true);
       document.body.style.overflow = 'hidden';
     }
   }, [location, user, hasBootIntroShown, setShowBootIntro]);
 
   const handleBootIntroComplete = () => {
-    console.log('BootIntro Complete'); // Debugging
+    console.log('BootIntro Complete');
     setShowBootIntro(false);
     setHasBootIntroShown(true);
     localStorage.setItem('hasBootIntroShown', 'true');
+    document.body.style.overflow = 'auto';
   };
 
   useEffect(() => {
@@ -86,7 +110,6 @@ const AppContent = () => {
           }
         >
           <Route index element={<Home />} />
-          
           <Route
             path='classstudents/:id'
             element={
@@ -95,7 +118,7 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} /> 
+          <Route path="classstudents/:id/classwork" element={<ClassworkUs />} />
           <Route 
             path="classstudents/:id/quiz" 
             element={
@@ -105,9 +128,7 @@ const AppContent = () => {
             } 
           />
         </Route>
-        
 
-        {/* Protect Admin Pages */}
         <Route 
           path='/admin' 
           element={
@@ -123,7 +144,7 @@ const AppContent = () => {
                 <ArchivedClass />
               </ProtectedRoute>
             } 
-          /> 
+          />
           <Route 
             path='students' 
             element={ 
@@ -131,7 +152,7 @@ const AppContent = () => {
                 <Students />
               </ProtectedRoute>
             } 
-          /> 
+          />
           <Route 
             path='faculty' 
             element={ 
@@ -139,7 +160,7 @@ const AppContent = () => {
                 <Faculty />
               </ProtectedRoute>
             } 
-          /> 
+          />
           <Route 
             path='mentor' 
             element={ 
@@ -147,7 +168,7 @@ const AppContent = () => {
                 <Mentor />
               </ProtectedRoute>
             } 
-          /> 
+          />
           <Route 
             path='setting' 
             element={ 
@@ -155,7 +176,15 @@ const AppContent = () => {
                 <Setting />
               </ProtectedRoute>
             } 
-          /> 
+          />
+          <Route 
+            path='faculty/class/:classId' 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <FacultyClass />
+              </ProtectedRoute>
+            } 
+          />
 
           <Route
             path='classadmin/:id'
@@ -165,9 +194,9 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
-          <Route path="classadmin/:id/addStudents" element={<Addstudents />} /> 
-          <Route path="classadmin/:id/classwork" element={<Classwork />} /> 
-          <Route path="classadmin/:id/stream" element={<StreamAdmin />} /> 
+          <Route path="classadmin/:id/addStudents" element={<Addstudents />} />
+          <Route path="classadmin/:id/classwork" element={<Classwork />} />
+          <Route path="classadmin/:id/stream" element={<StreamAdmin />} />
           <Route 
             path="classadmin/:id/quiz" 
             element={
@@ -175,9 +204,9 @@ const AppContent = () => {
                 <QuizAdmin />
               </ProtectedRoute>
             }
-          /> 
+          />
         </Route>
-      </Routes> 
+      </Routes>
     </>
   );
 };
@@ -189,7 +218,9 @@ const App = () => {
         <SidebarProvider>
           <BootIntroProvider>
             <Toaster />
-            <AppContent />
+            <ErrorBoundary>
+              <AppContent />
+            </ErrorBoundary>
           </BootIntroProvider>
         </SidebarProvider>
       </BrowserRouter>

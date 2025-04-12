@@ -1,73 +1,301 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { classGet, classPost, downloadFile } from '../services/Endpoint';
+import { useNavigate } from 'react-router-dom';
+import { useSelector } from 'react-redux';
+import { classGet, classPost } from '../services/Endpoint';
+import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { Trash2, Download, Folder, ChevronDown, ChevronUp } from 'lucide-react';
 
-const styles=`
-
- .page-container {
-    background-color: #d3d8e0;
+// Reuse styles from Home component
+const styles = `
+  /* Main Container */
+  .home-container {
     min-height: 100vh;
+    background-color: #f5f5f5;
     display: flex;
     flex-direction: column;
+  }
+
+  /* Content Area */
+  .content-area {
+    flex: 1;
+    padding-top: 70px;
+    padding-left: 80px;
+    transition: padding-left 0.3s ease;
+  }
+
+  /* Grid for Cards */
+  .class-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    justify-items: center;
+  }
+
+  /* Class Card */
+  .class-card {
+    position: relative;
+    width: 100%;
+    max-width: 300px;
+    height: 200px;
+    border-radius: 1rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem;
+    color: #fff;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: pointer;
+  }
+
+  .class-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .class-initial {
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  .class-name {
+    font-size: 1.25rem;
+    font-weight: 600;
+    word-wrap: break-word;
+  }
+
+  /* More Icon (Three Dots) */
+  .more-icon {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    transition: transform 0.2s;
+    cursor: pointer;
+  }
+
+  .more-icon:hover {
+    transform: scale(1.1);
+  }
+
+  /* Dropdown Menu for More Options */
+  .more-menu {
+    position: absolute;
+    top: 2.5rem;
+    right: 0.5rem;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e5e7eb;
+    width: 150px;
+    z-index: 100;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease-in-out;
+  }
+
+  .more-menu.open {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .more-menu-item {
+    width: 100%;
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+    background: none;
+    border: none;
+    text-align: left;
+    transition: all 0.2s ease-in-out;
+    display: flex;
     align-items: center;
-    padding: 20px;
+    gap: 0.5rem;
+    cursor: pointer;
+  }
+
+  .more-menu-item:hover {
+    background-color: #f3f4f6;
+  }
+
+  .more-menu-item.edit {
+    color: #6b48ff;
+  }
+
+  .more-menu-item.archive {
+    color: #6b48ff;
+  }
+
+  .more-menu-item.delete {
+    color: #ff4d4f;
+  }
+
+  /* Confirmation Modal */
+  .modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+  }
+
+  .modal {
+    background-color: #fff;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+
+  .modal-icon {
+    margin-bottom: 1rem;
+  }
+
+  .modal-text {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: #333;
+    margin-bottom: 1rem;
+  }
+
+  .modal-buttons {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .modal-button {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .modal-button.cancel {
+    background-color: #e5e7eb;
+    color: #333;
+  }
+
+  .modal-button.cancel:hover {
+    background-color: #d1d5db;
+    transform: scale(1.02);
+  }
+
+  .modal-button.confirm {
+    background-color: #ff4d4f;
+    color: #fff;
+  }
+
+  .modal-button.confirm:hover {
+    background-color: #e63946;
+    transform: scale(1.02);
+  }
+
+  .modal-button.confirm-archive {
+    background-color: #6b48ff;
+    color: #fff;
+  }
+
+  .modal-button.confirm-archive:hover {
+    background-color: #5a3de6;
+    transform: scale(1.02);
+  }
+
+  .modal-button.confirm-edit {
+    background-color: #6b48ff;
+    color: #fff;
+  }
+
+  .modal-button.confirm-edit:hover {
+    background-color: #5a3de6;
+    transform: scale(1.02);
+  }
+
+  /* Edit Modal */
+  .edit-modal {
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 400px;
     position: relative;
   }
 
-  /* Card Container for all content */
-  .card-container {
-    background-color: #fff;
-    border-radius: 1rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    width: 100%;
-    max-width: 700px;
-    padding: 0 2rem 2rem 2rem;
-    margin-top: 4rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-  }
-
-  /* Style for SecondNav to merge with the top of the card */
-  .second-nav {
-    background-color: #fff;
-    border-top-left-radius: 1rem;
-    border-top-right-radius: 1rem;
-    padding: 0rem 0;
-    margin: 0 -2rem;
-  }
-
-  /* Headings */
-  .class-name {
-    font-size: 2.5rem;
-    font-weight: 800;
+  .close-button {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    padding: 0.25rem;
+    border-radius: 50%;
     color: #6b48ff;
-    margin-bottom: 0.2rem;
-    text-align: center;
+    transition: background-color 0.2s, transform 0.2s;
   }
 
-  .section-title {
-    font-size: 1.5rem;
+  .close-button:hover {
+    background-color: #f1f7ff;
+    transform: scale(1.1);
+    cursor: pointer;
+  }
+
+  .edit-modal-title {
+    font-size: 1.25rem;
     font-weight: 700;
     color: #000;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
   }
 
-  /* Content Container */
-  .content-container {
+  .edit-modal-input {
     width: 100%;
-    padding: 1.5rem;
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-    text-align: center;
+    padding: 0.5rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    color: #333;
+    box-shadow: 0  Ti1px 3px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.2s, box-shadow 0.2s;
   }
 
-  /* No Classworks Message */
-  .no-classworks {
+  .edit-modal-input:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  .edit-modal-button {
+    width: 100%;
+    padding: 0.5rem;
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .edit-modal-button:hover {
+    background-color: #5a3de6;
+    transform: scale(1.02);
+    cursor: pointer;
+  }
+
+  /* No Classes Message */
+  .no-classes {
     text-align: center;
     color: #6b7280;
     font-size: 1.25rem;
@@ -76,533 +304,485 @@ const styles=`
 
   /* Loading Spinner */
   .spinner {
-    width: 4rem;
-    height: 4rem;
-    border: 4px solid #6b48ff;
-    border-top: 4px solid transparent;
+    width: 2rem;
+    height: 2rem;
+    border: 3px solid #6b48ff;
+    border-top: 3px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
   }
 
   @keyframes spin {
-    0% {
-      transform: rotate(0deg);
-    }
-    100% {
-      transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
   }
 
-  /* Responsive adjustments */
+  /* Responsive Adjustments */
   @media (max-width: 768px) {
-    .card-container {
-      padding: 0 1rem 1rem 1rem;
-      margin-top: 0.5rem;
+    .home-container {
+      flex-direction: column;
     }
 
-    .second-nav {
-      margin: 0 -1rem;
-      padding: 0.75rem 0;
+    .content-area {
+      padding-left: 0;
+      padding-top: 60px;
+    }
+
+    .class-grid {
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 1rem;
+      padding: 2rem 0.5rem 0.5rem;
+    }
+
+    .class-card {
+      max-width: 100%;
+      height: 150px;
+    }
+
+    .class-initial {
+      font-size: 2rem;
     }
 
     .class-name {
-      font-size: 1.8rem;
-    }
-
-    .no-classworks {
       font-size: 1rem;
     }
+
+    .more-icon {
+      padding: 0.3rem;
+    }
+
+    .modal {
+      padding: 1rem;
+      max-width: 90%;
+    }
+
+    .modal-text {
+      font-size: 1rem;
+    }
+
+    .modal-button {
+      padding: 0.5rem 0.75rem;
+      font-size: 0.85rem;
+    }
+
+    .edit-modal {
+      padding: 1rem;
+    }
+
+    .edit-modal-title {
+      font-size: 1.1rem;
+    }
+
+    .edit-modal-input {
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .edit-modal-button {
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .no-classes {
+      font-size: 1rem;
+    }
+
+    .spinner {
+      width: 1.5rem;
+      height: 1.5rem;
+    }
   }
 
-  /* Styles for classwork management */
-  .upload-form {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
+  @media (max-width: 480px) {
+    .class-grid {
+      grid-template-columns: 1fr;
+      padding: 2.5rem 0.5rem 0.5rem;
+    }
 
-  .file-input {
-    padding: 0.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-  }
+    .class-card {
+      height: 120px;
+    }
 
-  .upload-button {
-    background-color: #6b48ff;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 0.5rem;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
+    .class-initial {
+      font-size: 1.5rem;
+    }
 
-  .upload-button:hover {
-    background-color: #5a3de6;
+    .class-name {
+      font-size: 0.9rem;
+    }
   }
-
-  /* Folder-like structure for classworks */
-  .classwork-group {
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    margin: 0.5rem 0;
-    background-color: #f9f9f9;
-  }
-
-  .classwork-group-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .classwork-group-header:hover {
-    background-color: #e0e7ff;
-  }
-
-  .classwork-group-title {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 1.1rem;
-    font-weight: 600;
-    color: #333;
-  }
-
-  .classwork-group-actions {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-  }
-
-  .classwork-group-files {
-    padding: 0.5rem 1rem;
-    background-color: #fff;
-    border-top: 1px solid #e5e7eb;
-  }
-
-  .classwork-file {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem 0;
-  }
-
-  .action-buttons {
-    display: flex;
-    gap: 2rem;
-    position: relative;
-  }
-
-  .action-buttons button {
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s, color 0.2s;
-  }
-
-  .delete-button {
-    color: #f44336;
-  }
-
-  .delete-button:hover {
-    color: #d32f2f;
-    transform: scale(1.1);
-  }
-
-  .download-button {
-    color: #4CAF50;
-  }
-
-  .download-button:hover {
-    color: #388E3C;
-    transform: scale(1.1);
-  }
-
-  /* Tooltip Styles for Icons */
-  .action-buttons button::before,
-  .classwork-group-actions button::before {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background-color: #333;
-    color: #fff;
-    padding: 5px 10px;
-    border-radius: 5px;
-    font-size: 0.75rem;
-    font-weight: 400;
-    white-space: nowrap;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease-in-out;
-    z-index: 10;
-    margin-bottom: 5px;
-  }
-
-  .action-buttons button::after,
-  .classwork-group-actions button::after {
-    content: '';
-    position: absolute;
-    bottom: 90%;
-    left: 50%;
-    transform: translateX(-50%);
-    border-width: 5px;
-    border-style: solid;
-    border-color: #333 transparent transparent transparent;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.2s ease-in-out;
-  }
-
-  .action-buttons button:hover::before,
-  .action-buttons button:hover::after,
-  .classwork-group-actions button:hover::before,
-  .classwork-group-actions button:hover::after {
-    opacity: 1;
-    visibility: visible;
-  }
-
-  /* Drag and Drop Area */
-  .drag-drop-area {
-    border: 2px dashed #6b48ff;
-    border-radius: 0.5rem;
-    padding: 2rem;
-    text-align: center;
-    background-color: #f9f9f9;
-    cursor: pointer;
-    transition: background-color 0.2s;
-  }
-
-  .drag-drop-area.drag-over {
-    background-color: #e0e7ff;
-  }
-
-  .drag-drop-text {
-    color: #6b48ff;
-    font-size: 1rem;
-    font-weight: 500;
-  }
-
-  .file-list {
-    margin-top: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-  }
-
-  .file-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background-color: #f9f9f9;
-  }
-
-  .file-item button {
-    color: #f44336;
-    border: none;
-    background: none;
-    cursor: pointer;
-    transition: color 0.2s, transform 0.2s;
-  }
-
-  .file-item button:hover {
-    color: #d32f2f;
-    transform: scale(1.1);
-  }
-
 `;
 
-
 const Faculty = () => {
-    const { id } = useParams();
-    const [classData, setClassData] = useState(null);
+    const navigate = useNavigate();
+    const [classes, setClasses] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [classworks, setClassworks] = useState([]);
-    const [files, setFiles] = useState([]);
-    const [title, setTitle] = useState('');
-    const [dragOver, setDragOver] = useState(false);
-    const [expandedGroups, setExpandedGroups] = useState({});
-    const fileInputRef = useRef(null);
-
-    useEffect(() => {
-        const fetchData = async () => {
-          try {
-            const classResponse = await classGet(`/class/getclass/${id}`);
-            setClassData(classResponse.data.classData);
-            
-            const classworkResponse = await classGet(`/class/classwork/${id}`);
-            console.log('Classwork Response:', classworkResponse.data);
-            setClassworks(classworkResponse.data.classworks || []);
-          } catch (error) {
-            console.error('Failed to fetch data:', error);
-            if (error.response?.status === 404) {
-              setError('No classwork found for this class. Please upload classwork to get started.');
-              console.log("Setting error for 404:", 'No classwork found for this class. Please upload classwork to get started.');
-              toast.error('No classwork found for this class.');
-            } else {
-              setError('Failed to load data. Please try again later.');
-              toast.error('Failed to load data.');
-            }
-          } finally {
-            setIsLoading(false);
-          }
-        };
-    
-        fetchData();
-      }, [id]);
-      const handleFileChange = (e) => {
-        const selectedFiles = Array.from(e.target.files);
-        setFiles((prevFiles) => [...prevFiles, ...selectedFiles]);
-      };
-    
-      const handleDragOver = (e) => {
-        e.preventDefault();
-        setDragOver(true);
-      };
-    
-      const handleDragLeave = (e) => {
-        e.preventDefault();
-        setDragOver(false);
-      };
-    
-      const handleDrop = (e) => {
-        e.preventDefault();
-        setDragOver(false);
-        const droppedFiles = Array.from(e.dataTransfer.files);
-        setFiles((prevFiles) => [...prevFiles, ...droppedFiles]);
-      };
-    
-      const handleRemoveFile = (index) => {
-        setFiles((prevFiles) => prevFiles.filter((_, i) => i !== index));
-      };
-    
-      const handleFileUpload = async (e) => {
-        e.preventDefault();
-        if (files.length === 0 || !title) {
-          toast.error('Please provide a title and at least one file');
-          return;
+    const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
+    const [isArchiveModalOpen, setIsArchiveModalOpen] = useState(false);
+    const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+    const [isEditConfirmModalOpen, setIsEditConfirmModalOpen] = useState(false);
+    const [selectedClass, setSelectedClass] = useState(null);
+    const [editClassName, setEditClassName] = useState('');
+    const [openMenuId, setOpenMenuId] = useState(null);
+    const menuRefs = useRef({});
+    const user = useSelector((state) => state.auth.user);
+    const colors = [
+      '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
+      '#009688', '#795548', '#FF9800', '#3F51B5'
+    ];
+  
+    const getClass = async () => {
+      setIsLoading(true);
+      try {
+        if (!user || !['admin', 'faculty'].includes(user.role)) {
+          throw new Error('User is not authorized');
         }
-    
-        const formData = new FormData();
-        files.forEach((file) => formData.append('files', file));
-        formData.append('title', title);
-        formData.append('classId', id);
-    
-        try {
-          console.log('Uploading files with data:', { title, classId: id, files: files.map(f => f.name) });
-          const response = await classPost('/class/classwork/upload', formData, {
-            headers: {
-              'Content-Type': 'multipart/form-data',
-            },
-          });
-          console.log('Upload response:', response.data);
-          setClassworks((prev) => [...prev, ...response.data.classworks]);
-          setFiles([]);
-          setTitle('');
-          setError(null); // Clear the error state after successful upload
-          toast.success('Classwork uploaded successfully');
-        } catch (error) {
-          console.error('Upload error:', error.response?.data || error.message);
-          toast.error(`Failed to upload classwork: ${error.response?.data?.message || 'Unknown error'}`);
-        }
-      };
-    
-      const handleDelete = async (classworkId) => {
-        try {
-          await classPost(`/class/classwork/delete/${classworkId}`);
-          setClassworks(classworks.filter(cw => cw._id !== classworkId));
-          toast.success('Classwork deleted successfully');
-        } catch (error) {
-          console.error('Delete error:', error.response?.data || error.message);
-          toast.error('Failed to delete classwork');
-        }
-      };
-    
-      const handleDeleteGroup = async (group) => {
-        try {
-          await Promise.all(
-            group.map(async (classwork) => {
-              await classPost(`/class/classwork/delete/${classwork._id}`);
-            })
-          );
-          setClassworks(classworks.filter(cw => !group.some(item => item._id === cw._id)));
-          toast.success('Folder deleted successfully');
-        } catch (error) {
-          console.error('Delete group error:', error.response?.data || error.message);
-          toast.error('Failed to delete folder');
-        }
-      };
-    
-      const handleDownload = async (classworkId, filename) => {
-        try {
-          const response = await downloadFile(`/class/classwork/download/${classworkId}`);
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', filename);
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-          toast.success('Download started');
-        } catch (error) {
-          console.error('Download error:', error.response?.data || error.message);
-          toast.error('Failed to download file');
-        }
-      };
-    
-      // Group classworks by title
-      const groupedClassworks = classworks.reduce((acc, classwork) => {
-        const key = classwork.title;
-        if (!acc[key]) {
-          acc[key] = [];
-        }
-        acc[key].push(classwork);
-        return acc;
-      }, {});
-    
-      const toggleGroup = (title) => {
-        setExpandedGroups((prev) => ({
-          ...prev,
-          [title]: !prev[title],
-        }));
-      };
-    
-      if (isLoading) {
-        return (
-          <div className="flex justify-center items-center min-h-screen">
-            <div className="spinner"></div>
-          </div>
-        );
+        const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
+        const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+        setClasses(sortedClass);
+      } catch (error) {
+        console.error("Error fetching faculty classes:", error);
+        toast.error("Failed to fetch classes");
+        setClasses([]);
+      } finally {
+        setIsLoading(false);
       }
-  return (
-    <>
-     <div className="page-container">
-      <style>{styles}</style>
-      <div className="card-container">
-        <div className="second-nav">
-          
+    };
+  
+    const handleRemoveClass = async () => {
+      if (!selectedClass || !selectedClass._id) return;
+      try {
+        setIsLoading(true);
+        const response = await classPost(`/facultyclass/deleteclass/${selectedClass._id}`, {});
+        if (response.data.success) {
+          setClasses(classes.filter(cls => cls._id !== selectedClass._id));
+          toast.success("Class removed successfully");
+        } else {
+          toast.error(response.data.message || "Failed to remove class");
+        }
+      } catch (error) {
+        console.error("Error removing faculty class:", error);
+        toast.error("Failed to remove class");
+      } finally {
+        setIsRemoveModalOpen(false);
+        setSelectedClass(null);
+        setIsLoading(false);
+      }
+    };
+  
+    const handleArchiveClass = async () => {
+      if (!selectedClass || !selectedClass._id) return;
+      try {
+        setIsLoading(true);
+        const response = await classPost(`/facultyclass/archiveclass/${selectedClass._id}`, {});
+        if (response.data.success) {
+          setClasses(classes.filter(cls => cls._id !== selectedClass._id));
+          toast.success("Class archived successfully");
+        } else {
+          toast.error(response.data.message || "Failed to archive class");
+        }
+      } catch (error) {
+        console.error("Error archiving faculty class:", error);
+        toast.error("Failed to archive class");
+      } finally {
+        setIsArchiveModalOpen(false);
+        setSelectedClass(null);
+        setIsLoading(false);
+      }
+    };
+  
+    const handleEditClass = async () => {
+      if (!selectedClass || !selectedClass._id || !editClassName.trim()) {
+        toast.error("Class name cannot be empty");
+        setIsEditConfirmModalOpen(false);
+        setIsEditModalOpen(true);
+        return;
+      }
+      try {
+        setIsLoading(true);
+        const response = await classPost(`/facultyclass/updateclass/${selectedClass._id}`, { ClassName: editClassName });
+        if (response.data.success) {
+          setClasses(classes.map(cls => cls._id === selectedClass._id ? { ...cls, ClassName: editClassName } : cls));
+          toast.success("Class renamed successfully");
+        } else {
+          toast.error(response.data.message || "Failed to rename class");
+        }
+      } catch (error) {
+        console.error("Error renaming faculty class:", error);
+        toast.error("Failed to rename class");
+      } finally {
+        setIsEditConfirmModalOpen(false);
+        setIsEditModalOpen(false);
+        setSelectedClass(null);
+        setEditClassName('');
+        setIsLoading(false);
+      }
+    };
+  
+    const handleClassClick = (classId) => {
+      if (!user) {
+        console.error("User not found!");
+        navigate('/');
+        return;
+      }
+      navigate(`/admin/faculty/class/${classId}`);
+    };
+  
+    const toggleMoreMenu = (classId) => {
+      setOpenMenuId(openMenuId === classId ? null : classId);
+    };
+  
+    useEffect(() => {
+      if (user) {
+        getClass();
+      } else {
+        navigate('/');
+      }
+    }, [user, navigate]);
+  
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (openMenuId && menuRefs.current[openMenuId] && !menuRefs.current[openMenuId].contains(event.target)) {
+          setOpenMenuId(null);
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, [openMenuId]);
+  
+    useEffect(() => {
+      const handleClassCreated = () => getClass();
+      window.addEventListener('facultyClassCreated', handleClassCreated);
+      return () => window.removeEventListener('facultyClassCreated', handleClassCreated);
+    }, []);
+  
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center min-h-screen">
+          <div className="spinner"></div>
         </div>
-        {/* <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2> */}
-        <h2 className='class-name'>Documents</h2>
-        <div className="content-container">
-          {/* <h3 className="section-title">Classwork</h3> */}
-          
-          {/* Display error message if it exists, but continue rendering the form */}
-          {/* {error && (
-            <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
-          )} */}
-
-          {/* Upload Form */}
-          <form className="upload-form" onSubmit={handleFileUpload}>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Document title"
-              className="file-input"
-            />
-            <div
-              className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current.click()}
-            >
-              <p className="drag-drop-text">
-                Drag and drop files here or click to select files
-              </p>
-              <input
-                type="file"
-                name="files"
-                multiple
-                onChange={handleFileChange}
-                className="file-input"
-                accept=".pdf,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                ref={fileInputRef}
-              />
-            </div>
-            {files.length > 0 && (
-              <div className="file-list">
-                {files.map((file, index) => (
-                  <div key={index} className="file-item">
-                    <span>{file.name}</span>
-                    <button onClick={() => handleRemoveFile(index)}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button type="submit" className="upload-button">Upload </button>
-          </form>
-
-          {/* Classwork List (Grouped by Title) */}
-          {Object.keys(groupedClassworks).length > 0 ? (
-            Object.entries(groupedClassworks).map(([title, group]) => (
-              <div key={title} className="classwork-group">
-                <div className="classwork-group-header">
-                  <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
-                    <Folder size={20} color="#6b48ff" />
-                    <span>{title}</span>
-                  </div>
-                  <div className="classwork-group-actions">
-                    <button
-                      className="delete-button"
+      );
+    }
+  
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="home-container">
+          <div className="content-area">
+            <div className="class-grid">
+              {Array.isArray(classes) && classes.length > 0 ? (
+                classes.map((cls, index) => {
+                  if (!cls || !cls._id || !cls.ClassName) return null;
+                  const color = colors[index % colors.length];
+                  const initial = cls.ClassName.charAt(0).toUpperCase();
+                  return (
+                    <div
+                      key={cls._id}
+                      className="class-card"
+                      style={{ backgroundColor: color }}
                       onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteGroup(group);
+                        if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
+                          handleClassClick(cls._id);
+                        }
                       }}
-                      data-tooltip="Delete Folder"
                     >
-                      <Trash2 size={20} />
-                    </button>
-                    {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
-                  </div>
-                </div>
-                {expandedGroups[title] && (
-                  <div className="classwork-group-files">
-                    {group.map((classwork) => (
-                      <div key={classwork._id} className="classwork-file">
-                        <span>{classwork.originalFilename || classwork.filename}</span>
-                        <div className="action-buttons">
+                      <div className="class-initial">{initial}</div>
+                      <div className="class-name">{cls.ClassName}</div>
+                      {['admin', 'faculty'].includes(user.role) && (
+                        <>
                           <button
-                            className="delete-button"
-                            onClick={() => handleDelete(classwork._id)}
-                            data-tooltip="Delete Classwork"
+                            className="more-icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMoreMenu(cls._id);
+                            }}
                           >
-                            <Trash2 size={20} />
+                            <MoreVertical size={20} color="#fff" />
                           </button>
-                          <button
-                            className="download-button"
-                            onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}
-                            data-tooltip="Download Classwork"
-                          >
-                            <Download size={20} />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="no-classworks">No Documents available.</p>
-          )}
+                          {openMenuId === cls._id && (
+                            <div
+                              className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
+                              ref={(el) => (menuRefs.current[cls._id] = el)}
+                            >
+                              <button
+                                className="more-menu-item edit"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClass(cls);
+                                  setEditClassName(cls.ClassName);
+                                  setIsEditModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Edit size={16} />
+                                Rename
+                              </button>
+                              <button
+                                className="more-menu-item archive"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClass(cls);
+                                  setIsArchiveModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Archive size={16} />
+                                Archive
+                              </button>
+                              <button
+                                className="more-menu-item delete"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClass(cls);
+                                  setIsRemoveModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="no-classes">No classes available.</p>
+              )}
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
-    </>   
-  )
-}
-
-export default Faculty
+  
+        {/* Remove Confirmation Modal */}
+        {isRemoveModalOpen && (
+          <div className="modal-container">
+            <div className="modal">
+              <Trash2 size={40} className="modal-icon" style={{ color: '#ff4d4f' }} />
+              <p className="modal-text">Are you sure you want to remove this classroom?</p>
+              <div className="modal-buttons">
+                <button
+                  className="modal-button cancel"
+                  onClick={() => {
+                    setIsRemoveModalOpen(false);
+                    setSelectedClass(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="modal-button confirm"
+                  onClick={handleRemoveClass}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+  
+        {/* Archive Confirmation Modal */}
+        {isArchiveModalOpen && (
+          <div className="modal-container">
+            <div className="modal">
+              <Archive size={40} className="modal-icon" style={{ color: '#6b48ff' }} />
+              <p className="modal-text">Are you sure you want to archive this classroom?</p>
+              <div className="modal-buttons">
+                <button
+                  className="modal-button cancel"
+                  onClick={() => {
+                    setIsArchiveModalOpen(false);
+                    setSelectedClass(null);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="modal-button confirm-archive"
+                  onClick={handleArchiveClass}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+  
+        {/* Edit Class Modal */}
+        {isEditModalOpen && (
+          <div className="modal-container">
+            <div className="edit-modal">
+              <button
+                onClick={() => {
+                  setIsEditModalOpen(false);
+                  setSelectedClass(null);
+                  setEditClassName('');
+                }}
+                className="close-button"
+              >
+                <X size={24} />
+              </button>
+              <h2 className="edit-modal-title">Rename Classroom</h2>
+              <div className="mb-4">
+                <label className="block text-lg font-medium text-gray-700 mb-2">
+                  Classroom Name
+                </label>
+                <input
+                  type="text"
+                  value={editClassName}
+                  onChange={(e) => setEditClassName(e.target.value)}
+                  className="edit-modal-input"
+                  placeholder="Enter new classroom name"
+                />
+              </div>
+              <button
+                className="edit-modal-button"
+                onClick={() => {
+                  if (!editClassName.trim()) {
+                    toast.error("Class name cannot be empty");
+                    return;
+                  }
+                  setIsEditModalOpen(false);
+                  setIsEditConfirmModalOpen(true);
+                }}
+              >
+                Save
+              </button>
+            </div>
+          </div>
+        )}
+  
+        {/* Edit Confirmation Modal */}
+        {isEditConfirmModalOpen && (
+          <div className="modal-container">
+            <div className="modal">
+              <p className="modal-text">Are you sure you want to save the changes?</p>
+              <div className="modal-buttons">
+                <button
+                  className="modal-button cancel"
+                  onClick={() => {
+                    setIsEditConfirmModalOpen(false);
+                    setIsEditModalOpen(true);
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="modal-button confirm-edit"
+                  onClick={handleEditClass}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </>
+    );
+  };
+  
+  export default Faculty;

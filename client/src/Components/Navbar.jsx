@@ -844,6 +844,8 @@ const Navbar = () => {
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
+  
+
   const openPopup = () => {
     setIsPopupOpen(true);
     setIsUserMenuOpen(false);
@@ -881,17 +883,21 @@ const Navbar = () => {
       toast.error("Please enter a class name");
       return;
     }
-  
+
     try {
       setIsLoading(true);
-      const response = await classPost('/class/createclass', { ClassName: className });
-      
-      // Check if the response indicates success
-      if (response.status === 201 && response.data.message === "Class created successfully") {
+      const isFacultyPage = location.pathname === "/admin/faculty";
+      const endpoint = isFacultyPage ? "/facultyclass/createclass" : "/class/createclass";
+      const payload = isFacultyPage ? { ClassName: className, createdBy: userEmail } : { ClassName: className };
+
+      const response = await classPost(endpoint, payload);
+
+      if (response.status === 201 && response.data.message.includes("created successfully")) {
         closePopup();
         setClassName('');
         toast.success("Class created successfully");
-        window.location.reload(); // Only reload on success
+        // Trigger refetch in Faculty or Home
+        window.dispatchEvent(new Event(isFacultyPage ? "facultyClassCreated" : "classCreated"));
       } else {
         throw new Error("Unexpected response from server");
       }
@@ -903,7 +909,6 @@ const Navbar = () => {
       setIsLoading(false);
     }
   };
-
   const handleLogout = async () => {
     try {
       const response = await post(`/auth/logout`);
@@ -964,15 +969,15 @@ const Navbar = () => {
           <span className="navbar-title">BIT ClassRoom</span>
         </div>
         <div className="navbar-right" ref={userMenuRef}>
-          {userRole === "admin" && location.pathname === "/home" && (
-            <button
-              className="add-classroom-button"
-              onClick={openPopup}
-              // data-tooltip="Add a new classroom"
-            >
-              <Plus size={20} />
-            </button>
-          )}
+        {userRole === "admin" && (location.pathname === "/home" || location.pathname === "/admin/faculty") && (
+          <button
+            className="add-classroom-button"
+            onClick={openPopup}
+            // data-tooltip="Add a new classroom"
+          >
+            <Plus size={20} />
+          </button>
+        )}
           <div className="profile-container">
             <div className="profile-wrapper" >
               {profileImage ? (

@@ -569,6 +569,22 @@ const Home = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [openMenuId]);
+  useEffect(() => {
+    const handleClassCreated = () => {
+      console.log("classCreated event received, refetching classes...");
+      getClass();
+    };
+    window.addEventListener('classCreated', handleClassCreated);
+    return () => window.removeEventListener('classCreated', handleClassCreated);
+  }, []);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="spinner"></div>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (
