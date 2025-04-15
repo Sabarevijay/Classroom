@@ -887,8 +887,8 @@ const Navbar = () => {
     }
 
     const isFacultyPage = location.pathname === "/admin/faculty";
-    if (isFacultyPage && (!semester.trim() || !year.trim())) {
-      toast.error("Please enter both semester and year");
+    if (isFacultyPage && (!semester || !year)) {
+      toast.error("Please select both semester and year");
       return;
     }
 
@@ -1172,27 +1172,36 @@ const Navbar = () => {
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Semester
                   </label>
-                  <input
+                  <select
                     id="semester"
-                    type="number"
                     value={semester}
                     onChange={(e) => setSemester(e.target.value)}
                     className="popup-input"
-                    placeholder="Enter semester (e.g., 1, 2)"
-                  />
+                  >
+                    <option value="">Select semester</option>
+                    <option value="Odd">Odd</option>
+                    <option value="Even">Even</option>
+                  </select>
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Year
+                    Academic Year
                   </label>
-                  <input
+                  <select
                     id="year"
-                    type="number"
                     value={year}
                     onChange={(e) => setYear(e.target.value)}
                     className="popup-input"
-                    placeholder="Enter year (e.g., 1, 2)"
-                  />
+                  >
+                    <option value="">Select year</option>
+                    <option value="2019-20">2019-20</option>
+                    <option value="2020-21">2020-21</option>
+                    <option value="2021-22">2021-22</option>
+                    <option value="2022-23">2022-23</option>
+                    <option value="2024-25">2024-25</option>
+                    <option value="2025-26">2025-26</option>
+                    <option value="2026-27">2026-27</option>
+                  </select>
                 </div>
               </>
             )}

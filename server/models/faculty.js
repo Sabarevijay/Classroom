@@ -9,10 +9,12 @@ const facultyClassSchema = new mongoose.Schema(
     },
     semester: {
       type: String,
+      enum: ['Odd', 'Even'],
       required: true,
     },
     year: {
-      type: Number,
+      type: String,
+      enum: ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'],
       required: true,
     },
     isArchived: {

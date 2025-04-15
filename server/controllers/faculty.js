@@ -6,16 +6,33 @@ import fs from "fs";
 
 const CreateFacultyClass = async (req, res) => {
   try {
-    const { ClassName, semester, year } = req.body;
-    const userEmail = req.body.createdBy;
-    if (!ClassName || !semester || !year || !userEmail) {
+    const { ClassName, semester, year, createdBy } = req.body;
+
+    // Validate required fields
+    if (!ClassName || !semester || !year || !createdBy) {
       return res.status(400).json({
         success: false,
         message: "Class name, semester, year, and creator email are required",
       });
     }
 
-    const NewClass = await FacultyClassModel.create({ ClassName, semester, year, createdBy: userEmail });
+    // Validate semester and year values
+    const validSemesters = ['Odd', 'Even'];
+    const validYears = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
+    if (!validSemesters.includes(semester)) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester must be 'Odd' or 'Even'",
+      });
+    }
+    if (!validYears.includes(year)) {
+      return res.status(400).json({
+        success: false,
+        message: "Year must be one of: " + validYears.join(', '),
+      });
+    }
+
+    const NewClass = await FacultyClassModel.create({ ClassName, semester, year, createdBy });
     return res.status(201).json({
       success: true,
       message: "Faculty class created successfully",
@@ -40,7 +57,7 @@ const getFacultyClasses = async (req, res) => {
       });
     }
 
-    const classes = await FacultyClassModel.find({ createdBy: userEmail }).sort({ createdAt: -1 });
+    const classes = await FacultyClassModel.find({ createdBy: userEmail, isArchived: false }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       message: "Faculty classes retrieved successfully",
@@ -57,7 +74,7 @@ const getFacultyClasses = async (req, res) => {
 
 const getAllFacultyClasses = async (req, res) => {
   try {
-    const classes = await FacultyClassModel.find().sort({ createdAt: -1 });
+    const classes = await FacultyClassModel.find({ isArchived: false }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
       message: "All faculty classes retrieved successfully",
@@ -101,10 +118,27 @@ const editFacultyClass = async (req, res) => {
     const { id } = req.params;
     const { ClassName, semester, year } = req.body;
 
+    // Validate required fields
     if (!ClassName || !semester || !year) {
       return res.status(400).json({
         success: false,
         message: "Class name, semester, and year are required",
+      });
+    }
+
+    // Validate semester and year values
+    const validSemesters = ['Odd', 'Even'];
+    const validYears = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
+    if (!validSemesters.includes(semester)) {
+      return res.status(400).json({
+        success: false,
+        message: "Semester must be 'Odd' or 'Even'",
+      });
+    }
+    if (!validYears.includes(year)) {
+      return res.status(400).json({
+        success: false,
+        message: "Year must be one of: " + validYears.join(', '),
       });
     }
 
@@ -226,7 +260,7 @@ const getArchivedFacultyClasses = async (req, res) => {
       });
     }
 
-    const archivedClasses = await FacultyClassModel.find({ createdBy: userEmail, isArchived: true });
+    const archivedClasses = await FacultyClassModel.find({ createdBy: userEmail, isArchived: true }).sort({ createdAt: -1 });
     if (!archivedClasses || archivedClasses.length === 0) {
       return res.status(404).json({
         success: false,

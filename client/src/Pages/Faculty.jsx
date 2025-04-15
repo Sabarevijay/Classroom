@@ -64,15 +64,15 @@ const styles = `
   }
 
   .class-details {
-    font-size: 0.875rem;
-    font-weight: 400;
+    font-size: 1 rem;
+    font-weight: 500;
     opacity: 0.9;
     margin-bottom: 0.25rem;
   }
 
   .class-creator {
-    font-size: 0.75rem;
-    font-weight: 400;
+    font-size:1 rem;
+    font-weight: 500;
     opacity: 0.8;
   }
 
@@ -263,7 +263,7 @@ const styles = `
     text-align: center;
   }
 
-  .edit-modal-input {
+  .edit-modal-input, .edit-modal-select {
     width: 100%;
     padding: 0.5rem;
     background-color: #fff;
@@ -276,7 +276,7 @@ const styles = `
     margin-bottom: 1rem;
   }
 
-  .edit-modal-input:focus {
+  .edit-modal-input:focus, .edit-modal-select:focus {
     outline: none;
     border-color: #6b48ff;
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
@@ -314,11 +314,6 @@ const styles = `
     border-top: 3px solid transparent;
     border-radius: 50%;
     animation: spin 1s linear infinite;
-  }
-
-  @keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
   }
 
   @media (max-width: 768px) {
@@ -384,7 +379,7 @@ const styles = `
       font-size: 1.1rem;
     }
 
-    .edit-modal-input {
+    .edit-modal-input, .edit-modal-select {
       padding: 0.4rem;
       font-size: 0.85rem;
     }
@@ -452,16 +447,9 @@ const Faculty = () => {
     '#009688', '#795548', '#FF9800', '#3F51B5'
   ];
 
-  // Function to format numbers as ordinals
-  const getOrdinal = (num) => {
-    const n = parseInt(num, 10);
-    if (isNaN(n)) return num;
-    const suffixes = ['th', 'st', 'nd', 'rd'];
-    const v = n % 100;
-    return n + (suffixes[(v - 20) % 10] || suffixes[v] || suffixes[0]);
-  };
+  const semesterOptions = ['Odd', 'Even'];
+  const yearOptions = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
 
-  // Function to get username from email
   const getUsernameFromEmail = (email) => {
     if (!email || !email.includes('@')) return email || 'Unknown';
     return email.split('@')[0];
@@ -528,7 +516,7 @@ const Faculty = () => {
   };
 
   const handleEditClass = async () => {
-    if (!selectedClass || !selectedClass._id || !editClassName.trim() || !editSemester.trim() || !editYear.trim()) {
+    if (!selectedClass || !selectedClass._id || !editClassName.trim() || !editSemester || !editYear) {
       toast.error("Subject name, semester, and year cannot be empty");
       setIsEditConfirmModalOpen(false);
       setIsEditModalOpen(true);
@@ -633,10 +621,9 @@ const Faculty = () => {
                       }
                     }}
                   >
-                    {/* <div className="class-initial">{initial}</div> */}
                     <div className="class-name">{cls.ClassName}</div>
                     <div className="class-details">
-                      {getOrdinal(cls.semester)} Semester, {getOrdinal(cls.year)} Year
+                      {cls.semester} -Semester, {cls.year}
                     </div>
                     <div className="class-creator">Faculty: {getUsernameFromEmail(cls.createdBy)}</div>
                     {['admin', 'faculty'].includes(user.role) && (
@@ -670,7 +657,7 @@ const Faculty = () => {
                               <Edit size={16} />
                               Edit
                             </button>
-                            <button
+                            {/* <button
                               className="more-menu-item archive"
                               onClick={(e) => {
                                 e.stopPropagation();
@@ -681,7 +668,7 @@ const Faculty = () => {
                             >
                               <Archive size={16} />
                               Archive
-                            </button>
+                            </button> */}
                             <button
                               className="more-menu-item delete"
                               onClick={(e) => {
@@ -792,30 +779,36 @@ const Faculty = () => {
               <label className="block text-lg font-medium text-gray-700 mb-2">
                 Semester
               </label>
-              <input
-                type="number"
+              <select
                 value={editSemester}
                 onChange={(e) => setEditSemester(e.target.value)}
-                className="edit-modal-input"
-                placeholder="Enter semester (e.g., 1, 2)"
-              />
+                className="edit-modal-select"
+              >
+                <option value="">Select semester</option>
+                {semesterOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <div className="mb-4">
               <label className="block text-lg font-medium text-gray-700 mb-2">
-                Year
+                Academic Year
               </label>
-              <input
-                type="number"
+              <select
                 value={editYear}
                 onChange={(e) => setEditYear(e.target.value)}
-                className="edit-modal-input"
-                placeholder="Enter year (e.g., 1, 2)"
-              />
+                className="edit-modal-select"
+              >
+                <option value="">Select year</option>
+                {yearOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <button
               className="edit-modal-button"
               onClick={() => {
-                if (!editClassName.trim() || !editSemester.trim() || !editYear.trim()) {
+                if (!editClassName.trim() || !editSemester || !editYear) {
                   toast.error("Subject name, semester, and year cannot be empty");
                   return;
                 }
