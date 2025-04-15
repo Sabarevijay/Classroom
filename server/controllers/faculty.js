@@ -1,22 +1,20 @@
 // controllers/FacultyClass.js
 import FacultyClassModel from "../models/faculty.js";
-import ClassworkModel from "../models/Classwork.js";
+import FacultyClassworkModel from "../models/FacultyClasswork.js";
 import path from "path";
 import fs from "fs";
 
 const CreateFacultyClass = async (req, res) => {
   try {
-    const { ClassName, semester, year, createdBy } = req.body;
-
-    // Validate required fields
-    if (!ClassName || !semester || !year || !createdBy) {
+    const { ClassName, semester, year } = req.body;
+    const userEmail = req.body.createdBy;
+    if (!ClassName || !semester || !year || !userEmail) {
       return res.status(400).json({
         success: false,
         message: "Class name, semester, year, and creator email are required",
       });
     }
 
-    // Validate semester and year values
     const validSemesters = ['Odd', 'Even'];
     const validYears = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
     if (!validSemesters.includes(semester)) {
@@ -32,7 +30,7 @@ const CreateFacultyClass = async (req, res) => {
       });
     }
 
-    const NewClass = await FacultyClassModel.create({ ClassName, semester, year, createdBy });
+    const NewClass = await FacultyClassModel.create({ ClassName, semester, year, createdBy: userEmail });
     return res.status(201).json({
       success: true,
       message: "Faculty class created successfully",
@@ -118,7 +116,6 @@ const editFacultyClass = async (req, res) => {
     const { id } = req.params;
     const { ClassName, semester, year } = req.body;
 
-    // Validate required fields
     if (!ClassName || !semester || !year) {
       return res.status(400).json({
         success: false,
@@ -126,7 +123,6 @@ const editFacultyClass = async (req, res) => {
       });
     }
 
-    // Validate semester and year values
     const validSemesters = ['Odd', 'Even'];
     const validYears = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
     if (!validSemesters.includes(semester)) {
@@ -180,6 +176,9 @@ const deleteFacultyClass = async (req, res) => {
         message: "Faculty class not found",
       });
     }
+
+    // Optionally delete associated classworks
+    await ClassworkModel.deleteMany({ classId: id, classType: 'faculty' });
 
     return res.status(200).json({
       success: true,
@@ -281,6 +280,136 @@ const getArchivedFacultyClasses = async (req, res) => {
   }
 };
 
+const getClassworks = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const classExists = await FacultyClassModel.findById(id);
+    if (!classExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Faculty class not found",
+      });
+    }
+
+    const classworks = await FacultyClassworkModel.find({ classId: id, classType: 'faculty' }).sort({ createdAt: -1 });
+    return res.status(200).json({
+      success: true,
+      message: "Classworks retrieved successfully",
+      classworks,
+    });
+  } catch (error) {
+    console.error("getClassworks error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const uploadClasswork = async (req, res) => {
+  try {
+    const { classId, title } = req.body;
+    if (!classId || !title || !req.files || req.files.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "Class ID, title, and at least one file are required",
+      });
+    }
+
+    const classExists = await FacultyClassModel.findById(classId);
+    if (!classExists) {
+      return res.status(404).json({
+        success: false,
+        message: "Faculty class not found",
+      });
+    }
+
+    const classworks = [];
+    for (const file of req.files) {
+      const classwork = await FacultyClassworkModel.create({
+        title,
+        filename: file.filename,
+        originalFilename: file.originalname,
+        path: file.path,
+        classId,
+        classType: 'faculty',
+      });
+      classworks.push(classwork);
+    }
+
+    return res.status(201).json({
+      success: true,
+      message: "Classworks uploaded successfully",
+      classworks,
+    });
+  } catch (error) {
+    console.error("uploadClasswork error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const deleteClasswork = async (req, res) => {
+  try {
+    const { classworkId } = req.params;
+    const classwork = await FacultyClassworkModel.findById(classworkId);
+    if (!classwork || classwork.classType !== 'faculty') {
+      return res.status(404).json({
+        success: false,
+        message: "Classwork not found",
+      });
+    }
+
+    // Delete file from storage
+    if (fs.existsSync(classwork.path)) {
+      fs.unlinkSync(classwork.path);
+    }
+
+    await FacultyClassworkModel.findByIdAndDelete(classworkId);
+    return res.status(200).json({
+      success: true,
+      message: "Classwork deleted successfully",
+    });
+  } catch (error) {
+    console.error("deleteClasswork error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const downloadClasswork = async (req, res) => {
+  try {
+    const { classworkId } = req.params;
+    const classwork = await FacultyClassworkModel.findById(classworkId);
+    if (!classwork || classwork.classType !== 'faculty') {
+      return res.status(404).json({
+        success: false,
+        message: "Classwork not found",
+      });
+    }
+
+    const filePath = path.resolve(classwork.path);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found on server",
+      });
+    }
+
+    res.download(filePath, classwork.originalFilename);
+  } catch (error) {
+    console.error("downloadClasswork error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
 export {
   CreateFacultyClass,
   getFacultyClasses,
@@ -291,4 +420,8 @@ export {
   archiveFacultyClass,
   unarchiveFacultyClass,
   getArchivedFacultyClasses,
+  getClassworks,
+  uploadClasswork,
+  deleteClasswork,
+  downloadClasswork,
 };

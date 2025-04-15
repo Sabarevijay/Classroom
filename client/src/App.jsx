@@ -26,10 +26,10 @@ import Faculty from './Pages/Faculty';
 import Mentor from './Pages/Mentor';
 import Setting from './Pages/Setting';
 import FacultyClass from './Pages/FacultyClass';
+import FacultyClasswork from './Pages/FacultyClasswork'; // New import
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
-// Error Boundary Component
 class ErrorBoundary extends Component {
   state = { error: null };
 
@@ -60,7 +60,7 @@ const AppContent = () => {
   );
 
   useEffect(() => {
-    console.log('Current path:', location.pathname, 'User:', user); // Debug
+    console.log('Current path:', location.pathname, 'User:', user);
     const previousPath = sessionStorage.getItem('previousPath');
     const currentPath = location.pathname;
 
@@ -132,7 +132,7 @@ const AppContent = () => {
         <Route 
           path='/admin' 
           element={
-            <ProtectedRoute allowedRoles={['admin']}>
+            <ProtectedRoute allowedRoles={['admin', 'faculty']}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -156,7 +156,7 @@ const AppContent = () => {
           <Route 
             path='faculty' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'faculty']}>
                 <Faculty />
               </ProtectedRoute>
             } 
@@ -180,12 +180,11 @@ const AppContent = () => {
           <Route 
             path='faculty/class/:classId' 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <FacultyClass />
+              <ProtectedRoute allowedRoles={['admin', 'faculty']}>
+                <FacultyClasswork /> {/* Updated to FacultyClasswork */}
               </ProtectedRoute>
-            } 
+            }
           />
-
           <Route
             path='classadmin/:id'
             element={
