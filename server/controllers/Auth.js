@@ -6,21 +6,21 @@ import { OAuth2Client } from 'google-auth-library';
 
 dotenv.config();
 
-const client = new OAuth2Client(process.env.VITE_GOOGLE_CLIENT_ID);
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const Register = async (req, res) => {
   try {
-    const { Register, email, password } = req.body;
+    const { name, email, password } = req.body; // Changed 'Register' to 'name'
     const existUser = await UserModel.findOne({ email });
     if (existUser) {
       return res.status(409).json({
-        success: false, // Fixed string "false" to boolean
+        success: false,
         message: "User Already Exist",
       });
     }
-    const hashedPassword = bcryptjs.hashSync(password, 10); // Fixed typo: hasepassword
-    const NewUser = new UserModel({ // Fixed await on instantiation
-      Register, // Still included for regular registration
+    const hashedPassword = bcryptjs.hashSync(password, 10);
+    const NewUser = new UserModel({
+      name,
       email,
       password: hashedPassword,
     });
@@ -28,17 +28,19 @@ const Register = async (req, res) => {
     return res.status(201).json({
       success: true,
       message: "User Registered successfully",
-      user: NewUser,
+      user: {
+        email: NewUser.email,
+        role: NewUser.role
+      },
     });
   } catch (error) {
     console.log('Register error:', error);
     return res.status(500).json({
       success: false,
-      message: "Internal server error", // Fixed message
+      message: "Internal server error",
     });
   }
 };
-
 
 const Login = async (req, res) => {
   try {
@@ -64,16 +66,18 @@ const Login = async (req, res) => {
       });
     }
 
-    // Token includes id and email (Register optional)
     const token = jwt.sign(
-      { id: FindUser._id, email: FindUser.email }, // Changed from Register to email
+      { id: FindUser._id, email: FindUser.email, role: FindUser.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Added expiration for consistency with googleLogin
+      { expiresIn: '1h' }
     );
     res.status(200).json({
       success: true,
       message: "Login successful",
-      user: { email: FindUser.email }, // Return email instead of full user object
+      user: { 
+        email: FindUser.email,
+        role: FindUser.role
+      },
       token,
     });
   } catch (error) {
@@ -98,46 +102,41 @@ const Logout = async (req, res) => {
   }
 };
 
-// In your auth controller
 const getUsers = async (req, res) => {
-    try {
-      // Debugging logs
-    //   console.log('Authorization header:', req.headers.authorization);
-    //   console.log('Authenticated user:', req.user);
-  
-      if (!req.user || !req.user.id) {
-        return res.status(401).json({
-          success: false,
-          message: "Unauthorized - No user ID found in token",
-        });
-      }
-  
-      const user = await UserModel.findById(req.user.id).select('-password');
-      
-      if (!user) {
-        return res.status(404).json({
-          success: false,
-          message: "User not found",
-        });
-      }
-  
-      return res.status(200).json({
-        success: true,
-        user: {
-          id: user._id,
-          email: user.email,
-          name: user.name,
-          role: user.role
-        }
-      });
-    } catch (error) {
-      console.error('getUsers error:', error);
-      return res.status(500).json({
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
         success: false,
-        message: "Internal server error",
+        message: "Unauthorized - No user ID found in token",
       });
     }
-  };
+
+    const user = await UserModel.findById(req.user.id).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: user._id,
+        email: user.email,
+        name: user.name,
+        role: user.role
+      }
+    });
+  } catch (error) {
+    console.error('getUsers error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 const googleLogin = async (req, res) => {
   try {
@@ -145,7 +144,7 @@ const googleLogin = async (req, res) => {
 
     const ticket = await client.verifyIdToken({
       idToken: token,
-      audience: process.env.VITE_GOOGLE_CLIENT_ID,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
 
     const { email, name, sub: googleId } = ticket.getPayload();
@@ -169,20 +168,17 @@ const googleLogin = async (req, res) => {
       await user.save();
     }
 
-    const currentTime = Math.floor(Date.now() / 1000);
     const jwtToken = jwt.sign(
-      { id: user._id, email: user.email, role: user.role }, // Added email for consistency
+      { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-    //   { expiresIn: '1h' }
+      { expiresIn: '1h' } // Added expiration
     );
-    // console.log('Generated token at:', currentTime);
-    // console.log('Token:', jwtToken);
 
     const redirectUrl = role === 'admin' ? '/admin' : '/home';
     res.status(200).json({
       success: true,
       message: "Google Login successful",
-      user: { email: user.email, role: user.role }, // Return email instead of full user
+      user: { email: user.email, role: user.role },
       token: jwtToken,
       redirectUrl,
     });
@@ -190,7 +186,7 @@ const googleLogin = async (req, res) => {
     console.error('googleLogin error:', error);
     res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: error.message || "Internal server error",
     });
   }
 };

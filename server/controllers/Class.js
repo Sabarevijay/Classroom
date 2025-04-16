@@ -273,9 +273,10 @@ const uploadClasswork = async (req, res) => {
       const classwork = {
         title,
         classId,
-        filename: file.filename, // Renamed filename (e.g., files-1234567890.pdf)
+        filename: file.filename, // Multer-generated filename (e.g., 1234567890.pdf)
         originalFilename: file.originalname, // Original filename (e.g., my-document.pdf)
-        filePath: file.path,
+        fileData: file.buffer, // Store the file data as a Buffer
+        contentType: file.mimetype, // Store the MIME type (e.g., application/pdf)
         uploadDate: new Date(),
       };
       const newClasswork = await ClassworkModel.create(classwork);
@@ -404,12 +405,16 @@ const downloadClasswork = async (req, res) => {
         message: "Classwork not found",
       });
     }
+    res.set({
+      'Content-Type': classwork.contentType,
+      'Content-Disposition': `attachment; filename="${classwork.originalFilename}"`,
+    });
 
-    const filePath = path.join(path.resolve(), "public/images", classwork.filename);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({ success: false, message: "File not found" });
-    }
-
+    // const filePath = path.join(path.resolve(), "public/images", classwork.filename);
+    // if (!fs.existsSync(filePath)) {
+    //   return res.status(404).json({ success: false, message: "File not found" });
+    // }
+    res.send(classwork.fileData);
     // Use originalFilename if available, otherwise fall back to filename
     const downloadName = classwork.originalFilename || classwork.filename;
     return res.download(filePath, downloadName);

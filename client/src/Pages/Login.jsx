@@ -39,17 +39,22 @@ const Login = () => {
       
       if (data.success) {
         localStorage.setItem("token", data.token);
-        dispatch(SetUser(data.user));
+        dispatch(SetUser({
+          email: data.user.email,
+          role: data.user.role // Include role in Redux state
+        }));
         toast.success(data.message);
-        navigate("/home");
+        // Redirect based on role
+        navigate(data.user.role === 'admin' ? '/admin' : '/home');
       } else {
         toast.error(data.message);
         setError(data.message);
       }
     } catch (error) {
       console.log(error);
-      toast.error("Login failed. Please try again.");
-      setError("Login failed. Please try again.");
+      const errorMessage = error.response?.data?.message || "Login failed. Please try again.";
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -67,19 +72,19 @@ const Login = () => {
         localStorage.setItem("token", res.data.token);
         dispatch(SetUser({
           email: res.data.user?.email,
-          Register: res.data.user?.Register,
           role: res.data.user?.role
         }));
-        toast.success("Google Login successful");
-        navigate("/home");
+        toast.success(res.data.message);
+        navigate(res.data.redirectUrl); // Use redirectUrl from backend
       } else {
-        toast.error("Google Login failed");
-        setError("Google Login failed");
+        toast.error(res.data.message || "Google Login failed");
+        setError(res.data.message || "Google Login failed");
       }
     } catch (error) {
       console.log(error);
-      toast.error("Google Login failed");
-      setError("Google Login failed");
+      const errorMessage = error.response?.data?.message || "Google Login failed";
+      toast.error(errorMessage);
+      setError(errorMessage);
     } finally {
       setIsLoading(false);
     }
@@ -133,6 +138,12 @@ const Login = () => {
 
             {error && (
               <div className="text-red-500 text-center text-sm mb-4">{error}</div>
+            )}
+
+            {isLoading && (
+              <div className="text-center mb-4">
+                <div className="inline-block w-6 h-6 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
@@ -193,9 +204,7 @@ const Login = () => {
 
             {/* OR Separator */}
             <div className="my-4 text-center text-gray-600">
-             
-
- <span className="text-sm">Or continue with</span>
+              <span className="text-sm">Or continue with</span>
             </div>
 
             {/* Google Login */}
@@ -204,8 +213,8 @@ const Login = () => {
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleFailure}
                 disabled={isLoading}
-                flow="auth-code" // Use authorization code flow
-                redirect_uri="http://localhost:8000/auth/google/callback" // Your callback URL
+                flow="auth-code"
+                redirect_uri="http://localhost:8000/auth/google/callback"
               />
             </div>
           </motion.div>

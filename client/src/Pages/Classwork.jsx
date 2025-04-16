@@ -345,7 +345,7 @@ const Classwork = () => {
         if (error.response?.status === 404) {
           setError('No classwork found for this class. Please upload classwork to get started.');
           console.log("Setting error for 404:", 'No classwork found for this class. Please upload classwork to get started.');
-          toast.error('No classwork found for this class.');
+          // toast.error('No classwork found for this class.');
         } else {
           setError('Failed to load data. Please try again later.');
           toast.error('Failed to load data.');
@@ -494,10 +494,10 @@ const Classwork = () => {
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
           
-          {/* Display error message if it exists, but continue rendering the form */}
+          {/* Display error message if it exists, but continue rendering the form
           {error && (
             <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
-          )}
+          )} */}
 
           {/* Upload Form */}
           <form className="upload-form" onSubmit={handleFileUpload}>

@@ -14,8 +14,16 @@ const classworkSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  filePath: {
+  originalFilename: {
     type: String,
+    required: true,
+  },
+  fileData: {
+    type: Buffer, // Store the file as a Buffer
+    required: true,
+  },
+  contentType: {
+    type: String, // Store the MIME type of the file (e.g., application/pdf, image/jpeg)
     required: true,
   },
   uploadDate: {
