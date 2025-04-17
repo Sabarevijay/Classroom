@@ -17,7 +17,7 @@ const UserSchema = new mongoose.Schema({
   role: {
     type: String,
     enum: ['admin', 'user'],
-    default: 'admin'
+    default: 'user'
   },
   googleId: { // Add this field for Google OAuth
     type: String,

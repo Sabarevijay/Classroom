@@ -20,15 +20,32 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [splineLoaded, setSplineLoaded] = useState(false);
 
+  // Validate email domain on change
+  const validateEmail = (email) => {
+    const domain = email.substring(email.lastIndexOf('@') + 1).toLowerCase();
+    return domain === 'bitsathy.ac.in';
+  };
+
   const handleChange = (e) => {
-    setValue({
-      ...value,
-      [e.target.name]: e.target.value
-    });
+    const { name, value: inputValue } = e.target;
+    setValue((prev) => ({
+      ...prev,
+      [name]: inputValue
+    }));
+    if (name === 'email' && !validateEmail(inputValue) && inputValue) {
+      setError("Email must belong to bitsathy.ac.in domain");
+    } else if (name === 'email' && validateEmail(inputValue)) {
+      setError(null);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!validateEmail(value.email)) {
+      setError("Email must belong to bitsathy.ac.in domain");
+      toast.error("Email must belong to bitsathy.ac.in domain");
+      return;
+    }
     try {
       setIsLoading(true);
       setError(null);
@@ -41,11 +58,10 @@ const Login = () => {
         localStorage.setItem("token", data.token);
         dispatch(SetUser({
           email: data.user.email,
-          role: data.user.role // Include role in Redux state
+          role: data.user.role
         }));
         toast.success(data.message);
-        // Redirect based on role
-        navigate(data.user.role === 'admin' ? '/admin' : '/home');
+        navigate(data.redirectUrl || (data.user.role === 'admin' ? '/home' : '/home')); // Use redirectUrl if provided
       } else {
         toast.error(data.message);
         setError(data.message);
@@ -154,7 +170,7 @@ const Login = () => {
                   name="email"
                   value={value.email}
                   onChange={handleChange}
-                  placeholder="Email"
+                  placeholder="Email (e.g., test@bitsathy.ac.in)"
                   className="w-full px-4 py-3 rounded-lg bg-white text-gray-800 border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none transition-all duration-300"
                   required
                   disabled={isLoading}
@@ -213,8 +229,7 @@ const Login = () => {
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleFailure}
                 disabled={isLoading}
-                flow="auth-code"
-                redirect_uri="http://localhost:8000/auth/google/callback"
+                // Removed flow="auth-code" and redirect_uri since we're using ID token flow
               />
             </div>
           </motion.div>

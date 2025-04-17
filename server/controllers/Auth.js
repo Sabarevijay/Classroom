@@ -8,21 +8,59 @@ dotenv.config();
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
+// Function to validate email domain
+const validateEmailDomain = (email) => {
+  const domain = email.substring(email.lastIndexOf('@') + 1);
+  return domain.toLowerCase() === 'bitsathy.ac.in';
+};
+
+// Function to determine role based on email
+const determineRole = (email) => {
+  const charBeforeAt = email.charAt(email.indexOf('@') - 1);
+  if (/[a-zA-Z]/.test(charBeforeAt)) {
+    return 'admin';
+  } else if (/[0-9]/.test(charBeforeAt)) {
+    return 'user';
+  }
+  return 'user'; // Default role if condition doesn't match
+};
+
 const Register = async (req, res) => {
   try {
-    const { name, email, password } = req.body; // Changed 'Register' to 'name'
+    const { Register, email, password } = req.body;
+    if (!Register || !email || !password) {
+      return res.status(400).json({
+        success: false,
+        message: "All fields are required",
+      });
+    }
+
+    // Validate email domain
+    if (!validateEmailDomain(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email must belong to bitsathy.ac.in domain",
+      });
+    }
+
     const existUser = await UserModel.findOne({ email });
     if (existUser) {
       return res.status(409).json({
         success: false,
-        message: "User Already Exist",
+        message: "User Already Exists",
       });
     }
+
     const hashedPassword = bcryptjs.hashSync(password, 10);
+    
+    // Determine role based on email
+    const role = determineRole(email);
+
     const NewUser = new UserModel({
-      name,
+      Register,
       email,
       password: hashedPassword,
+      role, // Assign role
     });
     await NewUser.save();
     return res.status(201).json({
@@ -51,6 +89,15 @@ const Login = async (req, res) => {
         message: "All fields are required",
       });
     }
+
+    // Validate email domain
+    if (!validateEmailDomain(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email must belong to bitsathy.ac.in domain",
+      });
+    }
+
     const FindUser = await UserModel.findOne({ email });
     if (!FindUser) {
       return res.status(400).json({
@@ -58,6 +105,16 @@ const Login = async (req, res) => {
         message: "No user found",
       });
     }
+
+    // Verify role consistency
+    const expectedRole = determineRole(email);
+    if (FindUser.role !== expectedRole) {
+      return res.status(403).json({
+        success: false,
+        message: "Role mismatch. Please contact support.",
+      });
+    }
+
     const comparePassword = await bcryptjs.compare(password, FindUser.password);
     if (!comparePassword) {
       return res.status(400).json({
@@ -149,6 +206,14 @@ const googleLogin = async (req, res) => {
 
     const { email, name, sub: googleId } = ticket.getPayload();
 
+    // Validate email domain
+    if (!validateEmailDomain(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email must belong to bitsathy.ac.in domain",
+      });
+    }
+
     let role = 'user';
     const charBeforeAt = email.charAt(email.indexOf('@') - 1);
     if (/[a-zA-Z]/.test(charBeforeAt)) {
@@ -171,10 +236,10 @@ const googleLogin = async (req, res) => {
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' } // Added expiration
+      { expiresIn: '1h' }
     );
 
-    const redirectUrl = role === 'admin' ? '/admin' : '/home';
+    const redirectUrl = role === 'admin' ? '/home' : '/home';
     res.status(200).json({
       success: true,
       message: "Google Login successful",
