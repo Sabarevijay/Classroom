@@ -1,45 +1,32 @@
-import jwt from 'jsonwebtoken'
+import jwt from 'jsonwebtoken';
+import UserModel from '../models/user.js';
 
-const authMiddleware = (req, res, next) => {
-    const authHeader = req.headers['authorization'] || req.headers['Authorization'];
-    
-    if (!authHeader) {
-        return res.status(401).json({ 
-            success: false,
-            message: "Access Denied: No token provided" 
-        });
+const authMiddleware = async (req, res, next) => {
+  try {
+    const token = req.headers.authorization?.split(" ")[1]; // Bearer token
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: No token provided",
+      });
     }
-
-    // Check if header is in the format "Bearer <token>"
-    const parts = authHeader.split(' ');
-    if (parts.length !== 2 || parts[0].toLowerCase() !== 'bearer') {
-        return res.status(401).json({ 
-            success: false,
-            message: "Invalid authorization header format" 
-        });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await UserModel.findById(decoded.id).select('-password');
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User not found",
+      });
     }
-
-    const token = parts[1];
-    
-    try {
-        const verified = jwt.verify(token, process.env.JWT_SECRET);
-        req.user = verified;
-        next();
-    } catch (error) {
-        console.error('Token verification error:', error);
-        
-        let message = "Invalid Token";
-        if (error.name === 'TokenExpiredError') {
-            message = "Token Expired";
-        } else if (error.name === 'JsonWebTokenError') {
-            message = "Malformed Token";
-        }
-        
-        return res.status(401).json({ 
-            success: false,
-            message 
-        });
-    }
+    req.user = user; // Attach user to request
+    next();
+  } catch (error) {
+    console.error("Auth middleware error:", error);
+    return res.status(401).json({
+      success: false,
+      message: "Unauthorized: Invalid token",
+    });
+  }
 };
 
-export default authMiddleware
+export default authMiddleware;

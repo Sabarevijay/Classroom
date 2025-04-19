@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { classGet, classPost } from '../services/Endpoint';
 import { useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
+import { RemoveUser } from '../redux/AuthSlice'; 
 import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -414,6 +415,7 @@ const styles = `
 
 const Home = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [classes, setClasses] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
@@ -439,8 +441,14 @@ const Home = () => {
       }
       if (user.role === 'admin') {
         const response = await classGet("/class/getclass");
-        const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-        setClasses(sortedClass);
+        if (response.data.success) {
+          const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+          setClasses(sortedClass);
+          console.log("Fetched classes for admin:", sortedClass);
+        } else {
+          setClasses([]);
+          toast.error(response.data.message || "No classes found");
+        }
       } else if (user.role === 'user') {
         const studentResponse = await classGet(`/class/studentclasses/${userEmail}`);
         if (studentResponse.data.success) {
@@ -448,12 +456,20 @@ const Home = () => {
           setClasses(sortedClass);
         } else {
           setClasses([]);
+          toast.error(studentResponse.data.message || "No classes assigned to you");
         }
       }
     } catch (error) {
       console.error("Error fetching classes:", error);
-      toast.error("Failed to fetch classes");
-      setClasses([]);
+      if (error.message === 'Unauthorized: Please log in again.') {
+        localStorage.removeItem('token');
+        dispatch(RemoveUser());
+        toast.error("Session expired. Please log in again.");
+        navigate('/');
+      } else {
+        toast.error(error.message || "Failed to fetch classes");
+        setClasses([]);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -472,7 +488,14 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error removing class:", error);
-      toast.error("Failed to remove class");
+      if (error.message === 'Unauthorized: Please log in again.') {
+        localStorage.removeItem('token');
+        dispatch(RemoveUser());
+        toast.error("Session expired. Please log in again.");
+        navigate('/');
+      } else {
+        toast.error(error.message || "Failed to remove class");
+      }
     } finally {
       setIsRemoveModalOpen(false);
       setSelectedClass(null);
@@ -493,7 +516,14 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error archiving class:", error);
-      toast.error("Failed to archive class");
+      if (error.message === 'Unauthorized: Please log in again.') {
+        localStorage.removeItem('token');
+        dispatch(RemoveUser());
+        toast.error("Session expired. Please log in again.");
+        navigate('/');
+      } else {
+        toast.error(error.message || "Failed to archive class");
+      }
     } finally {
       setIsArchiveModalOpen(false);
       setSelectedClass(null);
@@ -519,7 +549,14 @@ const Home = () => {
       }
     } catch (error) {
       console.error("Error renaming class:", error);
-      toast.error("Failed to rename class");
+      if (error.message === 'Unauthorized: Please log in again.') {
+        localStorage.removeItem('token');
+        dispatch(RemoveUser());
+        toast.error("Session expired. Please log in again.");
+        navigate('/');
+      } else {
+        toast.error(error.message || "Failed to rename class");
+      }
     } finally {
       setIsEditConfirmModalOpen(false);
       setIsEditModalOpen(false);
@@ -528,7 +565,6 @@ const Home = () => {
       setIsLoading(false);
     }
   };
-
   const handleClassClick = (classId) => {
     if (!user) {
       console.error("User not found!");
@@ -555,7 +591,7 @@ const Home = () => {
     } else {
       navigate('/');
     }
-  }, [user, navigate]);
+  }, [user, navigate, dispatch]); // Add dispatch to dependencies
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -569,6 +605,7 @@ const Home = () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [openMenuId]);
+
   useEffect(() => {
     const handleClassCreated = () => {
       console.log("classCreated event received, refetching classes...");

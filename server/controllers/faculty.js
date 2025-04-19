@@ -48,17 +48,26 @@ const CreateFacultyClass = async (req, res) => {
 const getFacultyClasses = async (req, res) => {
   try {
     const userEmail = req.query.email;
-    if (!userEmail) {
+    const userRole = req.user?.role;
+    if (!userEmail || !userRole) {
       return res.status(400).json({
         success: false,
-        message: "User email is required",
+        message: "User email and role are required",
       });
     }
 
-    const classes = await FacultyClassModel.find({ createdBy: userEmail, isArchived: false }).sort({ createdAt: -1 });
+    if (userRole !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: Only admins can access this endpoint",
+      });
+    }
+
+    // Admins can see all classes
+    const classes = await FacultyClassModel.find({ isArchived: false }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
-      message: "Faculty classes retrieved successfully",
+      message: "Classes retrieved successfully",
       getclass: classes,
     });
   } catch (error) {

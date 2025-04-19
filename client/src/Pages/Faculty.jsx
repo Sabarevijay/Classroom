@@ -64,14 +64,14 @@ const styles = `
   }
 
   .class-details {
-    font-size: 1 rem;
+    font-size: 1rem;
     font-weight: 500;
     opacity: 0.9;
     margin-bottom: 0.25rem;
   }
 
   .class-creator {
-    font-size:1 rem;
+    font-size: 1rem;
     font-weight: 500;
     opacity: 0.8;
   }
@@ -458,7 +458,7 @@ const Faculty = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      if (!user || !['admin', 'faculty'].includes(user.role)) {
+      if (!user || user.role !== 'admin') { // Only allow admins to access this page
         throw new Error('User is not authorized');
       }
       const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
@@ -625,8 +625,8 @@ const Faculty = () => {
                     <div className="class-details">
                       {cls.semester} -Semester, {cls.year}
                     </div>
-                    <div className="class-creator">Faculty: {getUsernameFromEmail(cls.createdBy)}</div>
-                    {['admin', 'faculty'].includes(user.role) && (
+                    <div className="class-creator">Created By: {getUsernameFromEmail(cls.createdBy)}</div>
+                    {cls.createdBy === user.email && (
                       <>
                         <button
                           className="more-icon"
@@ -657,18 +657,6 @@ const Faculty = () => {
                               <Edit size={16} />
                               Edit
                             </button>
-                            {/* <button
-                              className="more-menu-item archive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClass(cls);
-                                setIsArchiveModalOpen(true);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              <Archive size={16} />
-                              Archive
-                            </button> */}
                             <button
                               className="more-menu-item delete"
                               onClick={(e) => {

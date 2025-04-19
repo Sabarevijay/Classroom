@@ -16,23 +16,24 @@ import {
   downloadClasswork,
 } from "../controllers/faculty.js";
 import  upload from "../middleware/Multer.js"; // Assuming you have multer middleware
+import authMiddleware from "../middleware/Authmiddleware.js";
 
 
 
 const FacultyClassRoutes = express.Router();
 
-FacultyClassRoutes.post("/createclass", CreateFacultyClass);
-FacultyClassRoutes.get("/getclass", getFacultyClasses);
-FacultyClassRoutes.get("/getallclasses", getAllFacultyClasses);
+FacultyClassRoutes.post("/createclass",authMiddleware, CreateFacultyClass);
+FacultyClassRoutes.get("/getclass",authMiddleware, getFacultyClasses);
+FacultyClassRoutes.get("/getallclasses",authMiddleware, getAllFacultyClasses);
 FacultyClassRoutes.get("/getclass/:id", getFacultyClassById);
-FacultyClassRoutes.post("/updateclass/:id", editFacultyClass);
-FacultyClassRoutes.post("/deleteclass/:id", deleteFacultyClass);
-FacultyClassRoutes.post("/archiveclass/:id", archiveFacultyClass);
-FacultyClassRoutes.post("/unarchiveclass/:id", unarchiveFacultyClass);
-FacultyClassRoutes.get("/getarchived", getArchivedFacultyClasses);
-FacultyClassRoutes.get("/classwork/:id", getClassworks);
-FacultyClassRoutes.post("/classwork/upload", upload.array("files"), uploadClasswork);
-FacultyClassRoutes.post("/classwork/delete/:classworkId", deleteClasswork);
-FacultyClassRoutes.get("/classwork/download/:classworkId", downloadClasswork);
+FacultyClassRoutes.post("/updateclass/:id",authMiddleware, editFacultyClass);
+FacultyClassRoutes.post("/deleteclass/:id",authMiddleware, deleteFacultyClass);
+FacultyClassRoutes.post("/archiveclass/:id",authMiddleware, archiveFacultyClass);
+FacultyClassRoutes.post("/unarchiveclass/:id",authMiddleware, unarchiveFacultyClass);
+FacultyClassRoutes.get("/getarchived",authMiddleware, getArchivedFacultyClasses);
+FacultyClassRoutes.get("/classwork/:id",authMiddleware, getClassworks);
+FacultyClassRoutes.post("/classwork/upload",authMiddleware, upload.array("files"), uploadClasswork);
+FacultyClassRoutes.post("/classwork/delete/:classworkId",authMiddleware, deleteClasswork);
+FacultyClassRoutes.get("/classwork/download/:classworkId",authMiddleware, downloadClasswork);
 
 export default FacultyClassRoutes;

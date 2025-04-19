@@ -16,7 +16,20 @@ const CreateClass = async (req, res) => {
       });
     }
 
-    const NewClass = await ClassModel.create({ ClassName });
+    // Use req.user.email from authMiddleware
+    const createdBy = req.user?.email;
+    if (!createdBy) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: Admin email not found",
+      });
+    }
+
+    const NewClass = await ClassModel.create({
+      ClassName,
+      createdBy, // Store the creator's email
+    });
+
     return res.status(201).json({
       message: "Class created successfully",
       class: NewClass,
@@ -32,26 +45,39 @@ const CreateClass = async (req, res) => {
 
 const getClasses = async (req, res) => {
   try {
-    const getclass = await ClassModel.find();
-    if (!getclass) {
-      return res.status(400).json({
+    // Use req.user.email from authMiddleware
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({
         success: false,
-        message: "No post Found",
+        message: "Unauthorized: User email not found",
       });
     }
+
+    // Fetch classes created by the admin
+    const getclass = await ClassModel.find({ createdBy: userEmail });
+    if (!getclass || getclass.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "No classes found",
+      });
+    }
+
     return res.status(200).json({
       success: true,
-      message: "Class displayed successfully",
+      message: "Classes displayed successfully",
       getclass,
     });
   } catch (error) {
     console.log(error);
     return res.status(500).json({
-      success: true,
-      message: "Internal server occured",
+      success: false,
+      message: "Internal server error",
     });
   }
 };
+
+
 const getClassById = async (req, res) => {
   try {
     const { id } = req.params;

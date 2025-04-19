@@ -25,7 +25,7 @@ import Students from './Pages/Students';
 import Faculty from './Pages/Faculty';
 import Mentor from './Pages/Mentor';
 import Setting from './Pages/Setting';
-import FacultyClass from './Pages/FacultyClass';
+// import FacultyClass from './Pages/FacultyClass';
 import FacultyClasswork from './Pages/FacultyClasswork'; // New import
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";

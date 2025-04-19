@@ -6,12 +6,12 @@ import { classGet, classPost, downloadFile } from '../services/Endpoint';
 import toast from 'react-hot-toast';
 import { FaTrash } from 'react-icons/fa';
 
-const socket = io('http://localhost:8000', {
-  transports: ['websocket', 'polling'],
-  reconnection: true,
-  reconnectionAttempts: 5,
-  reconnectionDelay: 1000,
-});
+// const socket = io('http://localhost:8000', {
+//   transports: ['websocket', 'polling'],
+//   reconnection: true,
+//   reconnectionAttempts: 5,
+//   reconnectionDelay: 1000,
+// });
 
 const styles = `
   /* Page Background */
