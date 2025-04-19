@@ -1,18 +1,23 @@
 import mongoose from "mongoose";
 
 const classSchema = new mongoose.Schema({
-  ClassName: {
+  ClassName:  { 
+     type: String,
+     required: true
+     },
+  semester: { 
+    type: String, 
+    enum: ['Odd', 'Even'], 
+    required: true 
+  }, 
+  year: {
     type: String,
-    required: true,
-  },
-  isArchived: {
-    type: Boolean,
-    default: false,
-  },
+     required: true
+     }, 
   createdBy: {
-    type: String, // Store the email of the admin who created the class
-    required: true,
-  },
+     type: String,
+      required: true
+     }, 
 }, { timestamps: true });
 
 const ClassModel = mongoose.model('Class', classSchema);

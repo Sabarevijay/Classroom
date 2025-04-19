@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { classGet, classPost } from '../services/Endpoint';
-import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
+import { Edit, Trash2, Archive, X, MoreVertical, ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 const styles = `
@@ -54,6 +54,13 @@ const styles = `
     font-weight: 700;
     line-height: 1;
     margin-bottom: 0.5rem;
+  }
+    .class-allfiles{
+    font-size: 2rem;
+    font-weight: 600;
+    word-wrap: break-word;
+    text-align:center;
+    margin-bottom: 0.25rem;
   }
 
   .class-name {
@@ -316,6 +323,25 @@ const styles = `
     animation: spin 1s linear infinite;
   }
 
+  .back-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background-color: #6b48ff;
+    color: #fff;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+    margin-bottom: 1rem;
+  }
+
+  .back-button:hover {
+    background-color: #5a3de6;
+    transform: scale(1.02);
+  }
+
   @media (max-width: 768px) {
     .home-container {
       flex-direction: column;
@@ -397,6 +423,11 @@ const styles = `
       width: 1.5rem;
       height: 1.5rem;
     }
+
+    .back-button {
+      font-size: 0.85rem;
+      padding: 0.4rem 0.75rem;
+    }
   }
 
   @media (max-width: 480px) {
@@ -440,6 +471,7 @@ const Faculty = () => {
   const [editSemester, setEditSemester] = useState('');
   const [editYear, setEditYear] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [showOtherClasses, setShowOtherClasses] = useState(false); // State to toggle views
   const menuRefs = useRef({});
   const user = useSelector((state) => state.auth.user);
   const colors = [
@@ -458,7 +490,7 @@ const Faculty = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      if (!user || user.role !== 'admin') { // Only allow admins to access this page
+      if (!user || user.role !== 'admin') {
         throw new Error('User is not authorized');
       }
       const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
@@ -591,6 +623,10 @@ const Faculty = () => {
     return () => window.removeEventListener('facultyClassCreated', handleClassCreated);
   }, []);
 
+  // Split classes into two groups: current user's classes and other users' classes
+  const myClasses = classes.filter(cls => cls.createdBy === user.email);
+  const otherClasses = classes.filter(cls => cls.createdBy !== user.email);
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -604,82 +640,129 @@ const Faculty = () => {
       <style>{styles}</style>
       <div className="home-container">
         <div className="content-area">
-          <div className="class-grid">
-            {Array.isArray(classes) && classes.length > 0 ? (
-              classes.map((cls, index) => {
-                if (!cls || !cls._id || !cls.ClassName) return null;
-                const color = colors[index % colors.length];
-                const initial = cls.ClassName.charAt(0).toUpperCase();
-                return (
-                  <div
-                    key={cls._id}
-                    className="class-card"
-                    style={{ backgroundColor: color }}
-                    onClick={(e) => {
-                      if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
-                        handleClassClick(cls._id);
-                      }
-                    }}
-                  >
-                    <div className="class-name">{cls.ClassName}</div>
-                    <div className="class-details">
-                      {cls.semester} -Semester, {cls.year}
-                    </div>
-                    <div className="class-creator">Created By: {getUsernameFromEmail(cls.createdBy)}</div>
-                    {cls.createdBy === user.email && (
-                      <>
-                        <button
-                          className="more-icon"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            toggleMoreMenu(cls._id);
-                          }}
-                        >
-                          <MoreVertical size={20} color="#fff" />
-                        </button>
-                        {openMenuId === cls._id && (
-                          <div
-                            className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
-                            ref={(el) => (menuRefs.current[cls._id] = el)}
+          {showOtherClasses ? (
+            <>
+              <button
+                className="back-button"
+                onClick={() => setShowOtherClasses(false)}
+              >
+                <ArrowLeft size={20} />
+                Back to My Classes
+              </button>
+              <div className="class-grid">
+                {otherClasses.length > 0 ? (
+                  otherClasses.map((cls, index) => {
+                    if (!cls || !cls._id || !cls.ClassName) return null;
+                    const color = colors[index % colors.length];
+                    return (
+                      <div
+                        key={cls._id}
+                        className="class-card"
+                        style={{ backgroundColor: color }}
+                        onClick={() => handleClassClick(cls._id)}
+                      >
+                        <div className="class-name">{cls.ClassName}</div>
+                        <div className="class-details">
+                          {cls.semester} -Semester, {cls.year}
+                        </div>
+                        <div className="class-creator">Created By: {getUsernameFromEmail(cls.createdBy)}</div>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <p className="no-classes">No classes by other users.</p>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="class-grid">
+              {/* Render "All Files" card as the first card */}
+              {otherClasses.length > 0 && (
+                <div
+                  className="class-card"
+                  style={{ backgroundColor: colors[0] }} // Use the first color for consistency
+                  onClick={() => setShowOtherClasses(true)}
+                >
+                  <div className="class-allfiles">All Files</div>
+                </div>
+              )}
+
+              {/* Render current user's classes as individual cards after "All Files" */}
+              {myClasses.length > 0 ? (
+                myClasses.map((cls, index) => {
+                  if (!cls || !cls._id || !cls.ClassName) return null;
+                  const color = colors[(index + 1) % colors.length]; // Offset color index to avoid overlap with "All Files"
+                  return (
+                    <div
+                      key={cls._id}
+                      className="class-card"
+                      style={{ backgroundColor: color }}
+                      onClick={(e) => {
+                        if (!e.target.closest('.more-icon') && !e.target.closest('.more-menu')) {
+                          handleClassClick(cls._id);
+                        }
+                      }}
+                    >
+                      <div className="class-name">{cls.ClassName}</div>
+                      <div className="class-details">
+                        {cls.semester} -Semester, {cls.year}
+                      </div>
+                      <div className="class-creator">Created By: {getUsernameFromEmail(cls.createdBy)}</div>
+                      {cls.createdBy === user.email && (
+                        <>
+                          <button
+                            className="more-icon"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMoreMenu(cls._id);
+                            }}
                           >
-                            <button
-                              className="more-menu-item edit"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClass(cls);
-                                setEditClassName(cls.ClassName);
-                                setEditSemester(cls.semester || '');
-                                setEditYear(cls.year || '');
-                                setIsEditModalOpen(true);
-                                setOpenMenuId(null);
-                              }}
+                            <MoreVertical size={20} color="#fff" />
+                          </button>
+                          {openMenuId === cls._id && (
+                            <div
+                              className={`more-menu ${openMenuId === cls._id ? 'open' : ''}`}
+                              ref={(el) => (menuRefs.current[cls._id] = el)}
                             >
-                              <Edit size={16} />
-                              Edit
-                            </button>
-                            <button
-                              className="more-menu-item delete"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedClass(cls);
-                                setIsRemoveModalOpen(true);
-                                setOpenMenuId(null);
-                              }}
-                            >
-                              <Trash2 size={16} />
-                              Delete
-                            </button>
-                          </div>
-                        )}
-                      </>
-                    )}
-                  </div>
-                );
-              })
-            ) : (
-              <p className="no-classes">No classes available.</p>
-            )}
-          </div>
+                              <button
+                                className="more-menu-item edit"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClass(cls);
+                                  setEditClassName(cls.ClassName);
+                                  setEditSemester(cls.semester || '');
+                                  setEditYear(cls.year || '');
+                                  setIsEditModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Edit size={16} />
+                                Edit
+                              </button>
+                              <button
+                                className="more-menu-item delete"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedClass(cls);
+                                  setIsRemoveModalOpen(true);
+                                  setOpenMenuId(null);
+                                }}
+                              >
+                                <Trash2 size={16} />
+                                Delete
+                              </button>
+                            </div>
+                          )}
+                        </>
+                      )}
+                    </div>
+                  );
+                })
+              ) : otherClasses.length === 0 ? ( // If there are no other classes, show "No classes created by you."
+                <p className="no-classes">No classes created by you.</p>
+              ) : null}
+            </div>
+          )}
         </div>
       </div>
 

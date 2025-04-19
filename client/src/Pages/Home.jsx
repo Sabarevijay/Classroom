@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from 'react';
 import { classGet, classPost } from '../services/Endpoint';
 import { useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { RemoveUser } from '../redux/AuthSlice'; 
+import { RemoveUser } from '../redux/AuthSlice';
 import { Edit, Trash2, Archive, X, MoreVertical } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -37,7 +37,7 @@ const styles = `
     position: relative;
     width: 100%;
     max-width: 300px;
-    height: 200px;
+    height: 220px; /* Increased height to accommodate new fields */
     border-radius: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -62,9 +62,23 @@ const styles = `
   }
 
   .class-name {
-    font-size: 1.25rem;
-    font-weight: 600;
+    font-size: 2rem;
+    font-weight: 500;
     word-wrap: break-word;
+    margin-bottom: 0.25rem;
+  }
+
+  .class-details {
+    font-size: 1rem;
+    font-weight: 600;
+    opacity: 0.9;
+    margin-bottom: 0.25rem;
+  }
+
+  .class-creator {
+    font-size: 1rem;
+    font-weight: 500;
+    opacity: 0.8;
   }
 
   /* More Icon (Three Dots) */
@@ -258,7 +272,7 @@ const styles = `
     text-align: center;
   }
 
-  .edit-modal-input {
+  .edit-modal-input, .edit-modal-select {
     width: 100%;
     padding: 0.5rem;
     background-color: #fff;
@@ -268,9 +282,10 @@ const styles = `
     color: #333;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: border-color 0.2s, box-shadow 0.2s;
+    margin-bottom: 1rem;
   }
 
-  .edit-modal-input:focus {
+  .edit-modal-input:focus, .edit-modal-select:focus {
     outline: none;
     border-color: #6b48ff;
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
@@ -336,7 +351,7 @@ const styles = `
 
     .class-card {
       max-width: 100%;
-      height: 150px;
+      height: 180px;
     }
 
     .class-initial {
@@ -345,6 +360,14 @@ const styles = `
 
     .class-name {
       font-size: 1rem;
+    }
+
+    .class-details {
+      font-size: 0.75rem;
+    }
+
+    .class-creator {
+      font-size: 0.65rem;
     }
 
     .more-icon {
@@ -373,7 +396,7 @@ const styles = `
       font-size: 1.1rem;
     }
 
-    .edit-modal-input {
+    .edit-modal-input, .edit-modal-select {
       padding: 0.4rem;
       font-size: 0.85rem;
     }
@@ -400,7 +423,7 @@ const styles = `
     }
 
     .class-card {
-      height: 120px;
+      height: 160px;
     }
 
     .class-initial {
@@ -409,6 +432,14 @@ const styles = `
 
     .class-name {
       font-size: 0.9rem;
+    }
+
+    .class-details {
+      font-size: 0.7rem;
+    }
+
+    .class-creator {
+      font-size: 0.6rem;
     }
   }
 `;
@@ -424,6 +455,8 @@ const Home = () => {
   const [isEditConfirmModalOpen, setIsEditConfirmModalOpen] = useState(false);
   const [selectedClass, setSelectedClass] = useState(null);
   const [editClassName, setEditClassName] = useState('');
+  const [editSemester, setEditSemester] = useState('');
+  const [editYear, setEditYear] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRefs = useRef({});
   const user = useSelector((state) => state.auth.user);
@@ -431,6 +464,14 @@ const Home = () => {
     '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
     '#009688', '#795548', '#FF9800', '#3F51B5'
   ];
+
+  const semesterOptions = ['Odd', 'Even'];
+  const yearOptions = ['2019-20', '2020-21', '2021-22', '2022-23', '2024-25', '2025-26', '2026-27'];
+
+  const getUsernameFromEmail = (email) => {
+    if (!email || !email.includes('@')) return email || 'Unknown';
+    return email.split('@')[0];
+  };
 
   const getClass = async () => {
     setIsLoading(true);
@@ -532,39 +573,50 @@ const Home = () => {
   };
 
   const handleEditClass = async () => {
-    if (!selectedClass || !selectedClass._id || !editClassName.trim()) {
-      toast.error("Class name cannot be empty");
+    if (!selectedClass || !selectedClass._id || !editClassName.trim() || !editSemester || !editYear) {
+      toast.error("Subject name, semester, and year cannot be empty");
       setIsEditConfirmModalOpen(false);
       setIsEditModalOpen(true);
       return;
     }
     try {
       setIsLoading(true);
-      const response = await classPost(`/class/updateclass/${selectedClass._id}`, { ClassName: editClassName });
+      const response = await classPost(`/class/updateclass/${selectedClass._id}`, {
+        ClassName: editClassName,
+        semester: editSemester,
+        year: editYear,
+      });
       if (response.data.success) {
-        setClasses(classes.map(cls => cls._id === selectedClass._id ? { ...cls, ClassName: editClassName } : cls));
-        toast.success("Class renamed successfully");
+        setClasses(classes.map(cls =>
+          cls._id === selectedClass._id
+            ? { ...cls, ClassName: editClassName, semester: editSemester, year: editYear }
+            : cls
+        ));
+        toast.success("Class updated successfully");
       } else {
-        toast.error(response.data.message || "Failed to rename class");
+        toast.error(response.data.message || "Failed to update class");
       }
     } catch (error) {
-      console.error("Error renaming class:", error);
+      console.error("Error updating class:", error);
       if (error.message === 'Unauthorized: Please log in again.') {
         localStorage.removeItem('token');
         dispatch(RemoveUser());
         toast.error("Session expired. Please log in again.");
         navigate('/');
       } else {
-        toast.error(error.message || "Failed to rename class");
+        toast.error(error.message || "Failed to update class");
       }
     } finally {
       setIsEditConfirmModalOpen(false);
       setIsEditModalOpen(false);
       setSelectedClass(null);
       setEditClassName('');
+      setEditSemester('');
+      setEditYear('');
       setIsLoading(false);
     }
   };
+
   const handleClassClick = (classId) => {
     if (!user) {
       console.error("User not found!");
@@ -591,7 +643,7 @@ const Home = () => {
     } else {
       navigate('/');
     }
-  }, [user, navigate, dispatch]); // Add dispatch to dependencies
+  }, [user, navigate, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -623,14 +675,6 @@ const Home = () => {
     );
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center min-h-screen">
-        <div className="spinner"></div>
-      </div>
-    );
-  }
-
   return (
     <>
       <style>{styles}</style>
@@ -653,8 +697,12 @@ const Home = () => {
                       }
                     }}
                   >
-                    <div className="class-initial">{initial}</div>
+                    {/* <div className="class-initial">{initial}</div> */}
                     <div className="class-name">{cls.ClassName}</div>
+                    <div className="class-details">
+                      {cls.semester} -Semester, {cls.year}
+                    </div>
+                    <div className="class-creator">Created By: {getUsernameFromEmail(cls.createdBy)}</div>
                     {user.role === 'admin' && (
                       <>
                         <button
@@ -677,12 +725,14 @@ const Home = () => {
                                 e.stopPropagation();
                                 setSelectedClass(cls);
                                 setEditClassName(cls.ClassName);
+                                setEditSemester(cls.semester || '');
+                                setEditYear(cls.year || '');
                                 setIsEditModalOpen(true);
                                 setOpenMenuId(null);
                               }}
                             >
                               <Edit size={16} />
-                              Rename
+                              Edit
                             </button>
                             <button
                               className="more-menu-item archive"
@@ -785,29 +835,61 @@ const Home = () => {
                 setIsEditModalOpen(false);
                 setSelectedClass(null);
                 setEditClassName('');
+                setEditSemester('');
+                setEditYear('');
               }}
               className="close-button"
             >
               <X size={24} />
             </button>
-            <h2 className="edit-modal-title">Rename Classroom</h2>
+            <h2 className="edit-modal-title">Edit Classroom</h2>
             <div className="mb-4">
               <label className="block text-lg font-medium text-gray-700 mb-2">
-                Classroom Name
+                Subject Name
               </label>
               <input
                 type="text"
                 value={editClassName}
                 onChange={(e) => setEditClassName(e.target.value)}
                 className="edit-modal-input"
-                placeholder="Enter new classroom name"
+                placeholder="Enter new subject name"
               />
+            </div>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Semester
+              </label>
+              <select
+                value={editSemester}
+                onChange={(e) => setEditSemester(e.target.value)}
+                className="edit-modal-select"
+              >
+                <option value="">Select semester</option>
+                {semesterOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-lg font-medium text-gray-700 mb-2">
+                Academic Year
+              </label>
+              <select
+                value={editYear}
+                onChange={(e) => setEditYear(e.target.value)}
+                className="edit-modal-select"
+              >
+                <option value="">Select year</option>
+                {yearOptions.map(option => (
+                  <option key={option} value={option}>{option}</option>
+                ))}
+              </select>
             </div>
             <button
               className="edit-modal-button"
               onClick={() => {
-                if (!editClassName.trim()) {
-                  toast.error("Class name cannot be empty");
+                if (!editClassName.trim() || !editSemester || !editYear) {
+                  toast.error("Subject name, semester, and year cannot be empty");
                   return;
                 }
                 setIsEditModalOpen(false);

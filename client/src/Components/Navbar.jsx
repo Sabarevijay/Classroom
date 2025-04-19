@@ -885,29 +885,32 @@ const Navbar = () => {
       toast.error("Please enter a subject name");
       return;
     }
-
-    const isFacultyPage = location.pathname === "/admin/faculty";
-    if (isFacultyPage && (!semester || !year)) {
+  
+    // Require semester and year for both /home and /admin/faculty
+    if (!semester || !year) {
       toast.error("Please select both semester and year");
       return;
     }
-
+  
     try {
       setIsLoading(true);
-      const endpoint = isFacultyPage ? "/facultyclass/createclass" : "/class/createclass";
-      const payload = isFacultyPage
-        ? { ClassName: className, semester, year, createdBy: userEmail }
-        : { ClassName: className };
-
+      const endpoint = location.pathname === "/admin/faculty" ? "/facultyclass/createclass" : "/class/createclass";
+      const payload = {
+        ClassName: className,
+        semester,
+        year,
+        createdBy: userEmail, // Include createdBy in the payload
+      };
+  
       const response = await classPost(endpoint, payload);
-
+  
       if (response.status === 201 && response.data.message.includes("created successfully")) {
         closePopup();
         setClassName('');
         setSemester('');
         setYear('');
         toast.success("Class created successfully");
-        window.dispatchEvent(new Event(isFacultyPage ? "facultyClassCreated" : "classCreated"));
+        window.dispatchEvent(new Event(location.pathname === "/admin/faculty" ? "facultyClassCreated" : "classCreated"));
       } else {
         throw new Error("Unexpected response from server");
       }
@@ -1142,79 +1145,75 @@ const Navbar = () => {
         </>
       )}
 
-      {isPopupOpen && (
-        <div className="popup-container">
-          <div className="popup">
-            <button
-              onClick={closePopup}
-              className="close-button"
-              data-tooltip="Close popup"
-            >
-              <X size={24} />
-            </button>
-            <h2 className="popup-title">Add Classroom</h2>
-            <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Subject Name
-              </label>
-              <input
-                id="class-name"
-                type="text"
-                value={className}
-                onChange={(e) => setClassName(e.target.value)}
-                className="popup-input"
-                placeholder="Enter subject name"
-              />
-            </div>
-            {location.pathname === "/admin/faculty" && (
-              <>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Semester
-                  </label>
-                  <select
-                    id="semester"
-                    value={semester}
-                    onChange={(e) => setSemester(e.target.value)}
-                    className="popup-input"
-                  >
-                    <option value="">Select semester</option>
-                    <option value="Odd">Odd</option>
-                    <option value="Even">Even</option>
-                  </select>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Academic Year
-                  </label>
-                  <select
-                    id="year"
-                    value={year}
-                    onChange={(e) => setYear(e.target.value)}
-                    className="popup-input"
-                  >
-                    <option value="">Select year</option>
-                    <option value="2019-20">2019-20</option>
-                    <option value="2020-21">2020-21</option>
-                    <option value="2021-22">2021-22</option>
-                    <option value="2022-23">2022-23</option>
-                    <option value="2024-25">2024-25</option>
-                    <option value="2025-26">2025-26</option>
-                    <option value="2026-27">2026-27</option>
-                  </select>
-                </div>
-              </>
-            )}
-            <button
-              className="popup-button"
-              onClick={handleCreateClass}
-              data-tooltip="Create a new classroom"
-            >
-              Create
-            </button>
-          </div>
-        </div>
-      )}
+{isPopupOpen && (
+  <div className="popup-container">
+    <div className="popup">
+      <button
+        onClick={closePopup}
+        className="close-button"
+        data-tooltip="Close popup"
+      >
+        <X size={24} />
+      </button>
+      <h2 className="popup-title">Add Classroom</h2>
+      <div className="mb-4">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
+          Subject Name
+        </label>
+        <input
+          id="class-name"
+          type="text"
+          value={className}
+          onChange={(e) => setClassName(e.target.value)}
+          className="popup-input"
+          placeholder="Enter subject name"
+        />
+      </div>
+      <div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Semester
+  </label>
+  <select
+    id="semester"
+    value={semester}
+    onChange={(e) => setSemester(e.target.value)}
+    className="popup-input"
+  >
+    <option value="">Select semester</option>
+    <option value="Odd">Odd</option>
+    <option value="Even">Even</option>
+  </select>
+</div>
+<div className="mb-4">
+  <label className="block text-sm font-medium text-gray-700 mb-2">
+    Academic Year
+  </label>
+  <select
+    id="year"
+    value={year}
+    onChange={(e) => setYear(e.target.value)} // Note: This was incorrectly setEditYear in the previous code
+    className="popup-input"
+  >
+    <option value="">Select year</option>
+    <option value="2019-20">2019-20</option>
+    <option value="2020-21">2020-21</option>
+    <option value="2021-22">2021-22</option>
+    <option value="2022-23">2022-23</option>
+    <option value="2024-25">2024-25</option>
+    <option value="2025-26">2025-26</option>
+    <option value="2026-27">2026-27</option>
+  </select>
+</div>
+      <button
+        className="popup-button"
+        onClick={handleCreateClass}
+        data-tooltip="Create a new classroom"
+      >
+        Create
+      </button>
+    </div>
+  </div>
+)}
     </>
   );
 };

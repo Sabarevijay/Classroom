@@ -126,7 +126,7 @@ const Login = async (req, res) => {
     const token = jwt.sign(
       { id: FindUser._id, email: FindUser.email, role: FindUser.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' }
     );
     res.status(200).json({
       success: true,
@@ -236,7 +236,7 @@ const googleLogin = async (req, res) => {
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '1h' }
+      { expiresIn: '24h' }
     );
 
     const redirectUrl = role === 'admin' ? '/home' : '/home';

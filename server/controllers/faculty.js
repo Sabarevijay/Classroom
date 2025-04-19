@@ -48,7 +48,7 @@ const CreateFacultyClass = async (req, res) => {
 const getFacultyClasses = async (req, res) => {
   try {
     const userEmail = req.query.email;
-    const userRole = req.user?.role;
+    const userRole = req.user?.role; // Assuming req.user is populated by authMiddleware
     if (!userEmail || !userRole) {
       return res.status(400).json({
         success: false,
@@ -56,18 +56,23 @@ const getFacultyClasses = async (req, res) => {
       });
     }
 
-    if (userRole !== 'admin') {
+    let classes;
+    if (userRole === 'admin') {
+      // Admins can see all faculty classes
+      classes = await FacultyClassModel.find({ isArchived: false }).sort({ createdAt: -1 });
+    } else if (userRole === 'faculty') {
+      // Faculty members can only see their own classes
+      classes = await FacultyClassModel.find({ createdBy: userEmail, isArchived: false }).sort({ createdAt: -1 });
+    } else {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized: Only admins can access this endpoint",
+        message: "Unauthorized: Only admins and faculty members can access this endpoint",
       });
     }
 
-    // Admins can see all classes
-    const classes = await FacultyClassModel.find({ isArchived: false }).sort({ createdAt: -1 });
     return res.status(200).json({
       success: true,
-      message: "Classes retrieved successfully",
+      message: "Faculty classes retrieved successfully",
       getclass: classes,
     });
   } catch (error) {
@@ -333,6 +338,15 @@ const uploadClasswork = async (req, res) => {
       });
     }
 
+    // Get the creator's email from req.user (populated by authMiddleware)
+    const createdBy = req.user?.email;
+    if (!createdBy) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User email not found",
+      });
+    }
+
     const classworks = [];
     for (const file of req.files) {
       const classwork = await FacultyClassworkModel.create({
@@ -342,6 +356,7 @@ const uploadClasswork = async (req, res) => {
         path: file.path,
         classId,
         classType: 'faculty',
+        createdBy,
       });
       classworks.push(classwork);
     }
@@ -368,6 +383,31 @@ const deleteClasswork = async (req, res) => {
       return res.status(404).json({
         success: false,
         message: "Classwork not found",
+      });
+    }
+
+    // Fetch the class to check the creator
+    const classData = await FacultyClassModel.findById(classwork.classId);
+    if (!classData) {
+      return res.status(404).json({
+        success: false,
+        message: "Class not found",
+      });
+    }
+
+    // Check if the current user is the creator of the class
+    const userEmail = req.user?.email;
+    if (!userEmail) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized: User email not found",
+      });
+    }
+
+    if (classData.createdBy !== userEmail) {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized: You can only delete classworks in classes you created",
       });
     }
 

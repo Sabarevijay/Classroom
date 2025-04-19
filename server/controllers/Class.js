@@ -8,34 +8,29 @@ import fs from "fs";
 
 const CreateClass = async (req, res) => {
   try {
-    const { ClassName } = req.body;
-    if (!ClassName) {
+    const { ClassName, semester, year } = req.body;
+    const createdBy = req.user?.email; // Assuming auth middleware sets req.user
+    if (!ClassName || !semester || !year || !createdBy) {
       return res.status(400).json({
         success: false,
-        message: "Class name is required",
+        message: "Class name, semester, year, and creator email are required",
       });
     }
 
-    // Use req.user.email from authMiddleware
-    const createdBy = req.user?.email;
-    if (!createdBy) {
-      return res.status(401).json({
-        success: false,
-        message: "Unauthorized: Admin email not found",
-      });
-    }
-
-    const NewClass = await ClassModel.create({
+    const newClass = await ClassModel.create({
       ClassName,
-      createdBy, // Store the creator's email
+      semester,
+      year,
+      createdBy,
     });
 
     return res.status(201).json({
+      success: true,
       message: "Class created successfully",
-      class: NewClass,
+      class: newClass,
     });
   } catch (error) {
-    console.error(error);
+    console.error("createClass error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",

@@ -1,6 +1,6 @@
-// client/src/Pages/FacultyClasswork.js
 import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { classGet, classPost, downloadFile } from '../services/Endpoint';
 import toast from 'react-hot-toast';
 import { Trash2, Download, Folder, ChevronDown, ChevronUp } from 'lucide-react';
@@ -22,7 +22,7 @@ const styles = `
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 700px;
-    padding: 2rem; /* Adjusted padding to balance layout */
+    padding: 2rem;
     margin-top: 1rem;
     display: flex;
     flex-direction: column;
@@ -301,12 +301,14 @@ const FacultyClasswork = () => {
   const [dragOver, setDragOver] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
   const fileInputRef = useRef(null);
+  const user = useSelector((state) => state.auth.user);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const classResponse = await classGet(`/facultyclass/getclass/${classId}`);
         setClassData(classResponse.data.classData);
+        console.log('Class Data:', classResponse.data.classData);
 
         const classworkResponse = await classGet(`/facultyclass/classwork/${classId}`);
         console.log('Classwork Response:', classworkResponse.data);
@@ -325,8 +327,9 @@ const FacultyClasswork = () => {
       }
     };
 
+    console.log('Current user email:', user?.email);
     fetchData();
-  }, [classId]);
+  }, [classId, user]);
 
   const handleFileChange = (e) => {
     const selectedFiles = Array.from(e.target.files);
@@ -464,49 +467,52 @@ const FacultyClasswork = () => {
             <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
           )}
 
-          <form className="upload-form" onSubmit={handleFileUpload}>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Classwork title"
-              className="file-input"
-            />
-            <div
-              className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current.click()}
-            >
-              <p className="drag-drop-text">
-                Drag and drop files here or click to select files
-              </p>
+          {/* Show the form only if the user created the class */}
+          {classData?.createdBy && classData.createdBy === user.email && (
+            <form className="upload-form" onSubmit={handleFileUpload}>
               <input
-                type="file"
-                name="files"
-                multiple
-                onChange={handleFileChange}
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Classwork title"
                 className="file-input"
-                accept=".pdf,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                ref={fileInputRef}
               />
-            </div>
-            {files.length > 0 && (
-              <div className="file-list">
-                {files.map((file, index) => (
-                  <div key={index} className="file-item">
-                    <span>{file.name}</span>
-                    <button onClick={() => handleRemoveFile(index)}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
+              <div
+                className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
+                onDragOver={handleDragOver}
+                onDragLeave={handleDragLeave}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current.click()}
+              >
+                <p className="drag-drop-text">
+                  Drag and drop files here or click to select files
+                </p>
+                <input
+                  type="file"
+                  name="files"
+                  multiple
+                  onChange={handleFileChange}
+                  className="file-input"
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  style={{ display: 'none' }}
+                  ref={fileInputRef}
+                />
               </div>
-            )}
-            <button type="submit" className="upload-button">Upload Classwork</button>
-          </form>
+              {files.length > 0 && (
+                <div className="file-list">
+                  {files.map((file, index) => (
+                    <div key={index} className="file-item">
+                      <span>{file.name}</span>
+                      <button onClick={() => handleRemoveFile(index)}>
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <button type="submit" className="upload-button">Upload Classwork</button>
+            </form>
+          )}
 
           {Object.keys(groupedClassworks).length > 0 ? (
             Object.entries(groupedClassworks).map(([title, group]) => (
@@ -517,16 +523,18 @@ const FacultyClasswork = () => {
                     <span>{title}</span>
                   </div>
                   <div className="classwork-group-actions">
-                    <button
-                      className="delete-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteGroup(group);
-                      }}
-                      data-tooltip="Delete Folder"
-                    >
-                      <Trash2 size={20} />
-                    </button>
+                    {classData?.createdBy && classData.createdBy === user.email && (
+                      <button
+                        className="delete-button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteGroup(group);
+                        }}
+                        data-tooltip="Delete Folder"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    )}
                     {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
                   </div>
                 </div>
@@ -536,13 +544,15 @@ const FacultyClasswork = () => {
                       <div key={classwork._id} className="classwork-file">
                         <span>{classwork.originalFilename || classwork.filename}</span>
                         <div className="action-buttons">
-                          <button
-                            className="delete-button"
-                            onClick={() => handleDelete(classwork._id)}
-                            data-tooltip="Delete Classwork"
-                          >
-                            <Trash2 size={20} />
-                          </button>
+                          {classData?.createdBy && classData.createdBy === user.email && (
+                            <button
+                              className="delete-button"
+                              onClick={() => handleDelete(classwork._id)}
+                              data-tooltip="Delete Classwork"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          )}
                           <button
                             className="download-button"
                             onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}

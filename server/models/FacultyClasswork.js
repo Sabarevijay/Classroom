@@ -28,6 +28,10 @@ const classworkSchema = new mongoose.Schema(
       enum: ['class', 'faculty'],
       required: true,
     },
+    createdBy: {
+        type: String,
+        required: true, 
+      },
   },
   { timestamps: true, collection: "classworks" }
 );
