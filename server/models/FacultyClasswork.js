@@ -1,4 +1,3 @@
-// server/models/Classwork.js
 import mongoose from "mongoose";
 
 const classworkSchema = new mongoose.Schema(
@@ -15,8 +14,12 @@ const classworkSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    path: {
-      type: String,
+    data: {
+      type: Buffer, // Store the file content as a Buffer
+      required: true,
+    },
+    contentType: {
+      type: String, // Store the MIME type of the file (e.g., "application/pdf")
       required: true,
     },
     classId: {
@@ -29,9 +32,9 @@ const classworkSchema = new mongoose.Schema(
       required: true,
     },
     createdBy: {
-        type: String,
-        required: true, 
-      },
+      type: String,
+      required: true,
+    },
   },
   { timestamps: true, collection: "classworks" }
 );

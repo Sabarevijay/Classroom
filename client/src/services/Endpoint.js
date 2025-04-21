@@ -49,8 +49,23 @@ export const classGet = (url, params) => instance.get(url, { params });
 export const addstudentsPost = (url, data) => instance.post(url, data);
 export const deleteRequest = (url, data) => instance.delete(url, { data });
 
-export const downloadFile = (url) =>
-  instance.get(url, { responseType: 'blob' });
+// Updated downloadFile function to handle binary data from the database
+export const downloadFile = async (url) => {
+  try {
+    const response = await instance.get(url, {
+      responseType: 'arraybuffer', // Use 'arraybuffer' for binary data
+    });
+    return response;
+  } catch (error) {
+    console.error('downloadFile error:', error.response?.data || error.message);
+    if (error.response?.status === 401) {
+      localStorage.removeItem('token');
+      window.location.href = '/';
+      throw new Error('Unauthorized: Please log in again.');
+    }
+    throw error;
+  }
+};
 
 export const getUser = async () => {
   try {
@@ -71,6 +86,4 @@ export const getUser = async () => {
     }
     throw error;
   }
-
-  
 };

@@ -417,20 +417,21 @@ const FacultyClasswork = () => {
   const handleDownload = async (classworkId, filename) => {
     try {
       const response = await downloadFile(`/facultyclass/classwork/download/${classworkId}`);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url); // Clean up the URL object
       toast.success('Download started');
     } catch (error) {
       console.error('Download error:', error.response?.data || error.message);
       toast.error('Failed to download file');
     }
   };
-
   const groupedClassworks = classworks.reduce((acc, classwork) => {
     const key = classwork.title;
     if (!acc[key]) {
