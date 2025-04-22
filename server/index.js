@@ -20,6 +20,8 @@ DBcon();
 
 const allowedOrigins = [
     'http://localhost:5173',
+    'http://10.70.2.38',
+    'https://classroom.bitsathy.ac.in',
     'https://classroom-lime-mu.vercel.app',
     'https://classroom-798mphos9-sabarevijays-projects.vercel.app', 
     'https://accounts.google.com' 

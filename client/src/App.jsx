@@ -27,6 +27,7 @@ import Mentor from './Pages/Mentor';
 import Setting from './Pages/Setting';
 // import FacultyClass from './Pages/FacultyClass';
 import FacultyClasswork from './Pages/FacultyClasswork'; // New import
+import UserDetails from './Pages/UserDetails';
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
@@ -142,6 +143,14 @@ const AppContent = () => {
             element={ 
               <ProtectedRoute allowedRoles={['admin']}>
                 <ArchivedClass />
+              </ProtectedRoute>
+            } 
+          />
+           <Route 
+            path='userdetails' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin']}>
+                <UserDetails />
               </ProtectedRoute>
             } 
           />

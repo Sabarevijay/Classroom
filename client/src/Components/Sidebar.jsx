@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Home, Archive, AlignJustify, X, Users, UserCheck, Settings, GraduationCap } from 'lucide-react';
+import { Home, Archive, AlignJustify, X, Users, UserCheck, Settings, GraduationCap, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useSidebar } from '../context/SidebarContext';
@@ -314,7 +314,8 @@ const Sidebar = () => {
           </div>
           <div className="bottom-links">
             {userRole === 'admin' && (
-              <div
+              <>
+                            <div
                 className={`nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
                 onClick={() => navigate('/admin/archived')}
                 data-tooltip="View archived classes"
@@ -322,6 +323,17 @@ const Sidebar = () => {
                 <Archive size={20} className="nav-icon" />
                 <span className="nav-text">Archived Class</span>
               </div>
+
+               <div
+               className={`nav-item ${window.location.pathname === '/admin/userdetails' ? 'active' : ''}`}
+               onClick={() => navigate('/admin/userdetails')}
+               data-tooltip="View user details"
+             >
+               <Info size={20} className="nav-icon" />
+               <span className="nav-text">User details</span>
+             </div>
+             </>
+
             )}
             <div
               className={`nav-item settings ${window.location.pathname === '/settings' ? 'active' : ''}`}

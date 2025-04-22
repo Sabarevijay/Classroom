@@ -158,6 +158,140 @@ const Logout = async (req, res) => {
     });
   }
 };
+const editUser = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - No user ID found in token",
+      });
+    }
+
+    // Check if the authenticated user is an admin
+    const authenticatedUser = await UserModel.findById(req.user.id);
+    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized - Only admins can edit users",
+      });
+    }
+
+    const { id } = req.params;
+    const { name, email, role, Register } = req.body;
+
+    // Validate inputs
+    if (!email || !role) {
+      return res.status(400).json({
+        success: false,
+        message: "Email and role are required",
+      });
+    }
+
+    // Validate email domain
+    if (!validateEmailDomain(email)) {
+      return res.status(400).json({
+        success: false,
+        message: "Email must belong to bitsathy.ac.in domain",
+      });
+    }
+
+    // Validate role
+    const validRoles = ['admin', 'user'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        success: false,
+        message: "Role must be 'admin' or 'user'",
+      });
+    }
+
+    // Check if email is already in use by another user
+    const existingUser = await UserModel.findOne({ email });
+    if (existingUser && existingUser._id.toString() !== id) {
+      return res.status(409).json({
+        success: false,
+        message: "Email is already in use by another user",
+      });
+    }
+    const updatedUser = await UserModel.findByIdAndUpdate(
+      id,
+      { name, email, role, Register },
+      { new: true, runValidators: true }
+    ).select('-password');
+
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User updated successfully",
+      user: {
+        id: updatedUser._id,
+        name: updatedUser.name,
+        email: updatedUser.email,
+        role: updatedUser.role,
+        register: updatedUser.Register,
+      },
+    });
+  } catch (error) {
+    console.error('editUser error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+const deleteUser = async (req, res) => {
+  try {
+    if (!req.user || !req.user.id) {
+      return res.status(401).json({
+        success: false,
+        message: "Unauthorized - No user ID found in token",
+      });
+    }
+
+    // Check if the authenticated user is an admin
+    const authenticatedUser = await UserModel.findById(req.user.id);
+    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+      return res.status(403).json({
+        success: false,
+        message: "Unauthorized - Only admins can delete users",
+      });
+    }
+
+    const { id } = req.params;
+
+    // Prevent admin from deleting themselves
+    if (id === req.user.id) {
+      return res.status(403).json({
+        success: false,
+        message: "Admins cannot delete themselves",
+      });
+    }
+
+    const userToDelete = await UserModel.findByIdAndDelete(id);
+    if (!userToDelete) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "User deleted successfully",
+    });
+  } catch (error) {
+    console.error('deleteUser error:', error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
 
 const getUsers = async (req, res) => {
   try {
@@ -168,23 +302,33 @@ const getUsers = async (req, res) => {
       });
     }
 
-    const user = await UserModel.findById(req.user.id).select('-password');
-    
-    if (!user) {
+    // Check the role of the authenticated user
+    const authenticatedUser = await UserModel.findById(req.user.id).select('-password');
+    if (!authenticatedUser) {
       return res.status(404).json({
         success: false,
-        message: "User not found",
+        message: "Authenticated user not found",
       });
+    }
+
+    let users;
+    if (authenticatedUser.role === 'admin') {
+      // Admins can see all users
+      users = await UserModel.find().select('-password'); // Exclude passwords
+    } else {
+      // Non-admins can only see their own details
+      users = [authenticatedUser];
     }
 
     return res.status(200).json({
       success: true,
-      user: {
+      users: users.map(user => ({
         id: user._id,
-        email: user.email,
         name: user.name,
-        role: user.role
-      }
+        email: user.email,
+        role: user.role,
+        register: user.Register, // Include the Register field if it exists
+      })),
     });
   } catch (error) {
     console.error('getUsers error:', error);
@@ -256,4 +400,4 @@ const googleLogin = async (req, res) => {
   }
 };
 
-export { Register, Login, Logout, getUsers, googleLogin };
+export { Register, Login, Logout, getUsers,editUser, deleteUser, googleLogin };
