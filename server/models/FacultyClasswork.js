@@ -14,8 +14,12 @@ const classworkSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    fileId: {
-      type: mongoose.Schema.Types.ObjectId, // Reference to GridFS file ID
+    data: {
+      type: Buffer, // Store the file content as a Buffer
+      required: true,
+    },
+    contentType: {
+      type: String, // Store the MIME type of the file (e.g., "application/pdf")
       required: true,
     },
     fileSize: {
@@ -33,7 +37,7 @@ const classworkSchema = new mongoose.Schema(
     },
     createdBy: {
       type: String,
-      required: true,
+      required: true, 
     },
   },
   { timestamps: true, collection: "classworks" }

@@ -340,6 +340,7 @@ const uploadClasswork = async (req, res) => {
       });
     }
 
+    // Get the creator's email from req.user (populated by authMiddleware)
     const createdBy = req.user?.email;
     if (!createdBy) {
       console.log('User email not found in req.user');
@@ -349,43 +350,19 @@ const uploadClasswork = async (req, res) => {
       });
     }
 
-    const gridfsBucket = req.gridfsBucket;
-    if (!gridfsBucket) {
-      return res.status(500).json({
-        success: false,
-        message: "GridFS bucket not initialized",
-      });
-    }
-
     const classworks = [];
     for (const file of req.files) {
-      const fileStream = fs.createReadStream(file.path);
-      const uploadStream = gridfsBucket.openUploadStream(file.originalname, {
-        metadata: { classId, createdBy },
-      });
-
-      fileStream.pipe(uploadStream);
-
-      const fileId = await new Promise((resolve, reject) => {
-        uploadStream.on('finish', () => resolve(uploadStream.id));
-        uploadStream.on('error', reject);
-      });
-
       const classwork = await FacultyClassworkModel.create({
         title,
         filename: file.filename,
         originalFilename: file.originalname,
-        fileId,
-        fileSize: file.size,
+        path: file.path, // Store the filesystem path
+        fileSize: file.size, // Store file size in bytes
         classId,
         classType: 'faculty',
         createdBy,
       });
       classworks.push(classwork);
-
-      if (fs.existsSync(file.path)) {
-        fs.unlinkSync(file.path);
-      }
     }
 
     return res.status(201).json({
@@ -402,57 +379,6 @@ const uploadClasswork = async (req, res) => {
   }
 };
 
-// downloadClasswork
-const downloadClasswork = async (req, res) => {
-  try {
-    const { classworkId } = req.params;
-    const classwork = await FacultyClassworkModel.findById(classworkId);
-    if (!classwork || classwork.classType !== 'faculty') {
-      return res.status(404).json({
-        success: false,
-        message: "Classwork not found",
-      });
-    }
-
-    const gridfsBucket = req.gridfsBucket;
-    if (!gridfsBucket) {
-      return res.status(500).json({
-        success: false,
-        message: "GridFS bucket not initialized",
-      });
-    }
-
-    const file = await gridfsBucket.find({ _id: classwork.fileId }).toArray();
-    if (!file || file.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found in GridFS",
-      });
-    }
-
-    res.setHeader('Content-Disposition', `attachment; filename="${classwork.originalFilename}"`);
-    res.setHeader('Content-Type', file[0].contentType || 'application/octet-stream');
-
-    const downloadStream = gridfsBucket.openDownloadStream(classwork.fileId);
-    downloadStream.pipe(res);
-
-    downloadStream.on('error', (error) => {
-      console.error('Download stream error:', error);
-      res.status(500).json({
-        success: false,
-        message: "Error streaming file from GridFS",
-      });
-    });
-  } catch (error) {
-    console.error("downloadClasswork error:", error);
-    return res.status(500).json({
-      success: false,
-      message: "Internal server error",
-    });
-  }
-};
-
-// deleteClasswork
 const deleteClasswork = async (req, res) => {
   try {
     const { classworkId } = req.params;
@@ -464,6 +390,7 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
+    // Fetch the class to check the creator
     const classData = await FacultyClassModel.findById(classwork.classId);
     if (!classData) {
       return res.status(404).json({
@@ -472,6 +399,7 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
+    // Check if the current user is the creator of the class
     const userEmail = req.user?.email;
     if (!userEmail) {
       return res.status(401).json({
@@ -487,23 +415,47 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    const gridfsBucket = req.gridfsBucket;
-    if (!gridfsBucket) {
-      return res.status(500).json({
-        success: false,
-        message: "GridFS bucket not initialized",
-      });
+    // Delete file from storage
+    if (fs.existsSync(classwork.path)) {
+      fs.unlinkSync(classwork.path);
     }
 
-    await gridfsBucket.delete(classwork.fileId);
     await FacultyClassworkModel.findByIdAndDelete(classworkId);
-
     return res.status(200).json({
       success: true,
       message: "Classwork deleted successfully",
     });
   } catch (error) {
     console.error("deleteClasswork error:", error);
+    return res.status(500).json({
+      success: false,
+      message: "Internal server error",
+    });
+  }
+};
+
+const downloadClasswork = async (req, res) => {
+  try {
+    const { classworkId } = req.params;
+    const classwork = await FacultyClassworkModel.findById(classworkId);
+    if (!classwork || classwork.classType !== 'faculty') {
+      return res.status(404).json({
+        success: false,
+        message: "Classwork not found",
+      });
+    }
+
+    const filePath = path.resolve(classwork.path);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found on server",
+      });
+    }
+
+    res.download(filePath, classwork.originalFilename);
+  } catch (error) {
+    console.error("downloadClasswork error:", error);
     return res.status(500).json({
       success: false,
       message: "Internal server error",
