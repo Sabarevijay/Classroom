@@ -15,7 +15,7 @@ import FacultyClassRoutes from "./routes/faculty.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 5000;
 
 // MongoDB connection and GridFS setup
 let gridfsBucket;
