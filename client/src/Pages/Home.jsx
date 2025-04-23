@@ -604,7 +604,7 @@ const Home = () => {
         toast.error("Session expired. Please log in again.");
         navigate('/');
       } else {
-        // toast.error(error.message || "Failed to update class");
+        toast.error(error.message || "Failed to update class");
       }
     } finally {
       setIsEditConfirmModalOpen(false);
