@@ -497,7 +497,7 @@ const Home = () => {
           setClasses(sortedClass);
         } else {
           setClasses([]);
-          toast.error(studentResponse.data.message || "No classes assigned to you");
+          // toast.error(studentResponse.data.message || "No classes assigned to you");
         }
       }
     } catch (error) {
@@ -508,7 +508,7 @@ const Home = () => {
         toast.error("Session expired. Please log in again.");
         navigate('/');
       } else {
-        toast.error(error.message || "Failed to fetch classes");
+        // toast.error(error.message || "Failed to fetch classes");
         setClasses([]);
       }
     } finally {
