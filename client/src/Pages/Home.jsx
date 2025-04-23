@@ -488,7 +488,7 @@ const Home = () => {
           console.log("Fetched classes for admin:", sortedClass);
         } else {
           setClasses([]);
-          toast.error(response.data.message || "No classes found");
+          // toast.error(response.data.message || "No classes found");
         }
       } else if (user.role === 'user') {
         const studentResponse = await classGet(`/class/studentclasses/${userEmail}`);
