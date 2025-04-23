@@ -14,8 +14,8 @@ const classworkSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    path: {
-      type: String,
+    fileId: {
+      type: mongoose.Schema.Types.ObjectId, // Reference to GridFS file ID
       required: true,
     },
     fileSize: {
@@ -33,7 +33,7 @@ const classworkSchema = new mongoose.Schema(
     },
     createdBy: {
       type: String,
-      required: true, 
+      required: true,
     },
   },
   { timestamps: true, collection: "classworks" }
