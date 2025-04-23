@@ -42,7 +42,7 @@ app.use(cors({
 }));
 
 app.use((req, res, next) => {
-    res.setHeader("Cross-Origin-Opener-Policy", "unsafe-none");
+    res.setHeader("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
     next();
 });
 

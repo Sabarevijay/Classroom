@@ -415,11 +415,6 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    // Delete file from storage
-    if (fs.existsSync(classwork.path)) {
-      fs.unlinkSync(classwork.path);
-    }
-
     await FacultyClassworkModel.findByIdAndDelete(classworkId);
     return res.status(200).json({
       success: true,
