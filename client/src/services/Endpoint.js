@@ -10,10 +10,10 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    // console.log('Token from localStorage:', token); // Debug token presence
+    console.log('Token from localStorage:', token); // Debug token presence
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      // console.log('Authorization header set:', config.headers['Authorization']); // Debug header
+      console.log('Authorization header set:', config.headers['Authorization']); // Debug header
     } else {
       console.log('No token found in localStorage');
     }
