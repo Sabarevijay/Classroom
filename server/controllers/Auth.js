@@ -380,7 +380,7 @@ const googleLogin = async (req, res) => {
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      { expiresIn: '24h' }
+      // { expiresIn: '24h' }
     );
 
     const redirectUrl = role === 'admin' ? '/home' : '/home';

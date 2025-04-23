@@ -340,7 +340,6 @@ const uploadClasswork = async (req, res) => {
       });
     }
 
-    // Get the creator's email from req.user (populated by authMiddleware)
     const createdBy = req.user?.email;
     if (!createdBy) {
       console.log('User email not found in req.user');
@@ -352,12 +351,22 @@ const uploadClasswork = async (req, res) => {
 
     const classworks = [];
     for (const file of req.files) {
+      // Verify the file exists on the filesystem
+      const filePath = path.resolve(file.path);
+      if (!fs.existsSync(filePath)) {
+        console.log('File not found on server:', filePath);
+        return res.status(500).json({
+          success: false,
+          message: "File not found on server after upload",
+        });
+      }
+
       const classwork = await FacultyClassworkModel.create({
         title,
         filename: file.filename,
         originalFilename: file.originalname,
-        path: file.path, // Store the filesystem path
-        fileSize: file.size, // Store file size in bytes
+        path: file.path,
+        fileSize: file.size,
         classId,
         classType: 'faculty',
         createdBy,
@@ -390,7 +399,6 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    // Fetch the class to check the creator
     const classData = await FacultyClassModel.findById(classwork.classId);
     if (!classData) {
       return res.status(404).json({
@@ -399,7 +407,6 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    // Check if the current user is the creator of the class
     const userEmail = req.user?.email;
     if (!userEmail) {
       return res.status(401).json({
@@ -413,6 +420,12 @@ const deleteClasswork = async (req, res) => {
         success: false,
         message: "Unauthorized: You can only delete classworks in classes you created",
       });
+    }
+
+    // Delete the file from the filesystem
+    const filePath = path.resolve(classwork.path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
 
     await FacultyClassworkModel.findByIdAndDelete(classworkId);
