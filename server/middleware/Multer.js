@@ -1,4 +1,3 @@
-// server/middleware/multer.js
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -21,7 +20,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: function (req, file, cb) {
     const filetypes = /pdf|jpg|jpeg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());

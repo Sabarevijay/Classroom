@@ -594,7 +594,7 @@ const Home = () => {
         ));
         toast.success("Class updated successfully");
       } else {
-        toast.error(response.data.message || "Failed to update class");
+        // toast.error(response.data.message || "Failed to update class");
       }
     } catch (error) {
       console.error("Error updating class:", error);
@@ -604,7 +604,7 @@ const Home = () => {
         toast.error("Session expired. Please log in again.");
         navigate('/');
       } else {
-        toast.error(error.message || "Failed to update class");
+        // toast.error(error.message || "Failed to update class");
       }
     } finally {
       setIsEditConfirmModalOpen(false);
@@ -628,7 +628,7 @@ const Home = () => {
     } else if (user.role === 'user') {
       navigate(`/home/classstudents/${classId}`);
     } else {
-      console.error("Unknown role:", user.role);
+      // console.error("Unknown role:", user.role);
       navigate('/');
     }
   };
@@ -660,7 +660,7 @@ const Home = () => {
 
   useEffect(() => {
     const handleClassCreated = () => {
-      console.log("classCreated event received, refetching classes...");
+      // console.log("classCreated event received, refetching classes...");
       getClass();
     };
     window.addEventListener('classCreated', handleClassCreated);

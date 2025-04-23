@@ -324,6 +324,7 @@ const uploadClasswork = async (req, res) => {
   try {
     const { classId, title } = req.body;
     if (!classId || !title || !req.files || req.files.length === 0) {
+      console.log('Missing required fields:', { classId, title, files: req.files });
       return res.status(400).json({
         success: false,
         message: "Class ID, title, and at least one file are required",
@@ -332,14 +333,17 @@ const uploadClasswork = async (req, res) => {
 
     const classExists = await FacultyClassModel.findById(classId);
     if (!classExists) {
+      console.log('Class not found for ID:', classId);
       return res.status(404).json({
         success: false,
         message: "Faculty class not found",
       });
     }
 
+    // Get the creator's email from req.user (populated by authMiddleware)
     const createdBy = req.user?.email;
     if (!createdBy) {
+      console.log('User email not found in req.user');
       return res.status(401).json({
         success: false,
         message: "Unauthorized: User email not found",
@@ -348,26 +352,17 @@ const uploadClasswork = async (req, res) => {
 
     const classworks = [];
     for (const file of req.files) {
-      // Read the file content into a Buffer
-      const fileData = fs.readFileSync(file.path);
-
       const classwork = await FacultyClassworkModel.create({
         title,
         filename: file.filename,
         originalFilename: file.originalname,
-        data: fileData, // Store the file content as a Buffer
-        contentType: file.mimetype, // Store the MIME type
+        path: file.path, // Store the filesystem path
+        fileSize: file.size, // Store file size in bytes
         classId,
         classType: 'faculty',
         createdBy,
       });
-
       classworks.push(classwork);
-
-      // Delete the temporary file from the filesystem since we’ve stored it in the database
-      if (fs.existsSync(file.path)) {
-        fs.unlinkSync(file.path);
-      }
     }
 
     return res.status(201).json({
@@ -376,10 +371,10 @@ const uploadClasswork = async (req, res) => {
       classworks,
     });
   } catch (error) {
-    console.error("uploadClasswork error:", error);
+    console.error("uploadClasswork error:", error.message, error.stack);
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: `Internal server error: ${error.message}`,
     });
   }
 };
@@ -420,7 +415,11 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    // Delete the classwork document (file data is stored in the document, so no need to delete from filesystem)
+    // Delete file from storage
+    if (fs.existsSync(classwork.path)) {
+      fs.unlinkSync(classwork.path);
+    }
+
     await FacultyClassworkModel.findByIdAndDelete(classworkId);
     return res.status(200).json({
       success: true,
@@ -446,12 +445,15 @@ const downloadClasswork = async (req, res) => {
       });
     }
 
-    // Set headers for file download
-    res.setHeader('Content-Disposition', `attachment; filename="${classwork.originalFilename}"`);
-    res.setHeader('Content-Type', classwork.contentType);
+    const filePath = path.resolve(classwork.path);
+    if (!fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        message: "File not found on server",
+      });
+    }
 
-    // Send the file data as a Buffer
-    res.send(classwork.data);
+    res.download(filePath, classwork.originalFilename);
   } catch (error) {
     console.error("downloadClasswork error:", error);
     return res.status(500).json({
@@ -460,7 +462,6 @@ const downloadClasswork = async (req, res) => {
     });
   }
 };
-
 export {
   CreateFacultyClass,
   getFacultyClasses,

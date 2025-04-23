@@ -165,6 +165,17 @@ const styles = `
     padding: 0.5rem 0;
   }
 
+  .file-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .file-size {
+    font-size: 0.85rem;
+    color: #6b7280;
+  }
+
   .action-buttons {
     display: flex;
     gap: 2rem;
@@ -290,6 +301,15 @@ const styles = `
   }
 `;
 
+// Utility function to format file size
+const formatFileSize = (bytes) => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+};
+
 const FacultyClasswork = () => {
   const { classId } = useParams();
   const [classData, setClassData] = useState(null);
@@ -308,19 +328,19 @@ const FacultyClasswork = () => {
       try {
         const classResponse = await classGet(`/facultyclass/getclass/${classId}`);
         setClassData(classResponse.data.classData);
-        console.log('Class Data:', classResponse.data.classData);
+        // console.log('Class Data:', classResponse.data.classData);
 
         const classworkResponse = await classGet(`/facultyclass/classwork/${classId}`);
-        console.log('Classwork Response:', classworkResponse.data);
+        // console.log('Classwork Response:', classworkResponse.data);
         setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
-        console.error('Failed to fetch data:', error);
+        // console.error('Failed to fetch data:', error);
         if (error.response?.status === 404) {
           setError('No classwork found for this class. Please upload classwork to get started.');
           toast.error('No classwork found for this class.');
         } else {
           setError('Failed to load data. Please try again later.');
-          toast.error('Failed to load data.');
+          // toast.error('Failed to load data.');
         }
       } finally {
         setIsLoading(false);
@@ -370,13 +390,13 @@ const FacultyClasswork = () => {
     formData.append('classId', classId);
 
     try {
-      console.log('Uploading files with data:', { title, classId, files: files.map(f => f.name) });
+      // console.log('Uploading files with data:', { title, classId, files: files.map(f => f.name) });
       const response = await classPost('/facultyclass/classwork/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-      console.log('Upload response:', response.data);
+      // console.log('Upload response:', response.data);
       setClassworks((prev) => [...prev, ...response.data.classworks]);
       setFiles([]);
       setTitle('');
@@ -428,10 +448,11 @@ const FacultyClasswork = () => {
       window.URL.revokeObjectURL(url); // Clean up the URL object
       toast.success('Download started');
     } catch (error) {
-      console.error('Download error:', error.response?.data || error.message);
+      // console.error('Download error:', error.response?.data || error.message);
       toast.error('Failed to download file');
     }
   };
+
   const groupedClassworks = classworks.reduce((acc, classwork) => {
     const key = classwork.title;
     if (!acc[key]) {
@@ -503,7 +524,7 @@ const FacultyClasswork = () => {
                 <div className="file-list">
                   {files.map((file, index) => (
                     <div key={index} className="file-item">
-                      <span>{file.name}</span>
+                      <span>{file.name} ({formatFileSize(file.size)})</span>
                       <button onClick={() => handleRemoveFile(index)}>
                         <Trash2 size={16} />
                       </button>
@@ -543,7 +564,10 @@ const FacultyClasswork = () => {
                   <div className="classwork-group-files">
                     {group.map((classwork) => (
                       <div key={classwork._id} className="classwork-file">
-                        <span>{classwork.originalFilename || classwork.filename}</span>
+                        <div className="file-info">
+                          <span>{classwork.originalFilename || classwork.filename}</span>
+                          <span className="file-size">({formatFileSize(classwork.fileSize)})</span>
+                        </div>
                         <div className="action-buttons">
                           {classData?.createdBy && classData.createdBy === user.email && (
                             <button

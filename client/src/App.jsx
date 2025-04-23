@@ -61,7 +61,7 @@ const AppContent = () => {
   );
 
   useEffect(() => {
-    console.log('Current path:', location.pathname, 'User:', user);
+    // console.log('Current path:', location.pathname, 'User:', user);
     const previousPath = sessionStorage.getItem('previousPath');
     const currentPath = location.pathname;
 

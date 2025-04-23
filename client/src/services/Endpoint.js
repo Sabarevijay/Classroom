@@ -10,10 +10,10 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log('Token from localStorage:', token); // Debug token presence
+    // console.log('Token from localStorage:', token); // Debug token presence
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('Authorization header set:', config.headers['Authorization']); // Debug header
+      // console.log('Authorization header set:', config.headers['Authorization']); // Debug header
     } else {
       console.log('No token found in localStorage');
     }
@@ -49,23 +49,8 @@ export const classGet = (url, params) => instance.get(url, { params });
 export const addstudentsPost = (url, data) => instance.post(url, data);
 export const deleteRequest = (url, data) => instance.delete(url, { data });
 
-// Updated downloadFile function to handle binary data from the database
-export const downloadFile = async (url) => {
-  try {
-    const response = await instance.get(url, {
-      responseType: 'arraybuffer', // Use 'arraybuffer' for binary data
-    });
-    return response;
-  } catch (error) {
-    console.error('downloadFile error:', error.response?.data || error.message);
-    if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/';
-      throw new Error('Unauthorized: Please log in again.');
-    }
-    throw error;
-  }
-};
+export const downloadFile = (url) =>
+  instance.get(url, { responseType: 'blob' });
 
 export const getUser = async () => {
   try {
@@ -86,4 +71,6 @@ export const getUser = async () => {
     }
     throw error;
   }
+
+  
 };

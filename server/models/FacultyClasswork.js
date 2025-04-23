@@ -14,12 +14,12 @@ const classworkSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    data: {
-      type: Buffer, // Store the file content as a Buffer
+    path: {
+      type: String,
       required: true,
     },
-    contentType: {
-      type: String, // Store the MIME type of the file (e.g., "application/pdf")
+    fileSize: {
+      type: Number, // Store file size in bytes
       required: true,
     },
     classId: {
@@ -33,7 +33,7 @@ const classworkSchema = new mongoose.Schema(
     },
     createdBy: {
       type: String,
-      required: true,
+      required: true, 
     },
   },
   { timestamps: true, collection: "classworks" }

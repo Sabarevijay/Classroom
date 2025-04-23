@@ -363,7 +363,7 @@ const ArchivedClass = () => {
   };
 
   useEffect(() => {
-    console.log('useEffect triggered, user:', user);
+    // console.log('useEffect triggered, user:', user);
     if (!user) {
       console.log('No user found, redirecting to login');
       navigate('/');
