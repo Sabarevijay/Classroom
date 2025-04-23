@@ -111,10 +111,41 @@ const styles = `
     border: none;
     cursor: pointer;
     transition: background-color 0.2s;
+    position: relative; /* For positioning the sliding animation */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden; /* Ensure the sliding background stays within bounds */
   }
 
-  .upload-button:hover {
+  .upload-button:hover:not(:disabled) {
     background-color: #5a3de6;
+  }
+
+  .upload-button:disabled {
+    background-color: #a3bffa;
+    cursor: not-allowed;
+  }
+
+  /* Sliding animation for the loading state */
+  .upload-button.loading {
+    background: linear-gradient(
+      to right,
+      #6b48ff 0%,
+      #a3bffa 50%,
+      #6b48ff 100%
+    );
+    background-size: 200% 100%;
+    animation: slide 1.5s linear infinite;
+  }
+
+  @keyframes slide {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: 0 0;
+    }
   }
 
   .classwork-group {
@@ -320,6 +351,7 @@ const FacultyClasswork = () => {
   const [title, setTitle] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [isUploading, setIsUploading] = useState(false); // State to track upload progress
   const fileInputRef = useRef(null);
   const user = useSelector((state) => state.auth.user);
 
@@ -390,6 +422,7 @@ const FacultyClasswork = () => {
     formData.append('classId', classId);
 
     try {
+      setIsUploading(true); // Start loading animation
       // console.log('Uploading files with data:', { title, classId, files: files.map(f => f.name) });
       const response = await classPost('/facultyclass/classwork/upload', formData, {
         headers: {
@@ -405,6 +438,8 @@ const FacultyClasswork = () => {
     } catch (error) {
       console.error('Upload error:', error.response?.data || error.message);
       toast.error(`Failed to upload classwork: ${error.response?.data?.message || 'Unknown error'}`);
+    } finally {
+      setIsUploading(false); // Stop loading animation
     }
   };
 
@@ -532,7 +567,13 @@ const FacultyClasswork = () => {
                   ))}
                 </div>
               )}
-              <button type="submit" className="upload-button">Upload Classwork</button>
+              <button
+                type="submit"
+                className={`upload-button ${isUploading ? 'loading' : ''}`}
+                disabled={isUploading}
+              >
+                {isUploading ? 'Uploading...' : 'Upload Classwork'}
+              </button>
             </form>
           )}
 
