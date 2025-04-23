@@ -429,7 +429,7 @@ const FacultyClasswork = () => {
           'Content-Type': 'multipart/form-data',
         },
       });
-      // console.log('Upload response:', response.data);
+      console.log('Upload response:', response.data);
       setClassworks((prev) => [...prev, ...response.data.classworks]);
       setFiles([]);
       setTitle('');
