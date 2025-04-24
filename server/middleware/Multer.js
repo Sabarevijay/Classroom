@@ -19,18 +19,18 @@ const storage = multer.diskStorage({
 });
 
 const upload = multer({
-  storage: storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: 50 * 1024 * 1024 }, // 50MB limit
   fileFilter: function (req, file, cb) {
-    const filetypes = /pdf|jpg|jpeg|png/;
+    const filetypes = /pdf|ppt|pptx|doc|docx|jpg|jpeg|png/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype.toLowerCase());
 
     if (extname && mimetype) {
       return cb(null, true);
     }
-    cb(new Error('Only PDF, JPG, JPEG, and PNG files are allowed'));
-  }
+    cb(new Error("Only PDF, PPT, PPTX, DOC, DOCX, JPG, JPEG, and PNG files are allowed"));
+  },
 });
 
 export default upload;

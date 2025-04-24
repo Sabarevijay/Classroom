@@ -1,9 +1,9 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { useParams } from 'react-router-dom';
-import { useSelector } from 'react-redux';
-import { classGet, classPost, downloadFile } from '../services/Endpoint';
-import toast from 'react-hot-toast';
-import { Trash2, Download, Folder, ChevronDown, ChevronUp } from 'lucide-react';
+import React, { useEffect, useState, useRef } from "react";
+import { useParams } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { classGet, classPost, downloadFile } from "../services/Endpoint";
+import toast from "react-hot-toast";
+import { Trash2, Download, Folder, ChevronDown, ChevronUp } from "lucide-react";
 
 const styles = `
   .page-container {
@@ -111,11 +111,11 @@ const styles = `
     border: none;
     cursor: pointer;
     transition: background-color 0.2s;
-    position: relative; /* For positioning the sliding animation */
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    overflow: hidden; /* Ensure the sliding background stays within bounds */
+    overflow: hidden;
   }
 
   .upload-button:hover:not(:disabled) {
@@ -127,7 +127,6 @@ const styles = `
     cursor: not-allowed;
   }
 
-  /* Sliding animation for the loading state */
   .upload-button.loading {
     background: linear-gradient(
       to right,
@@ -332,13 +331,12 @@ const styles = `
   }
 `;
 
-// Utility function to format file size
 const formatFileSize = (bytes) => {
-  if (bytes === 0) return '0 Bytes';
+  if (bytes === 0) return "0 Bytes";
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 const FacultyClasswork = () => {
@@ -348,10 +346,10 @@ const FacultyClasswork = () => {
   const [error, setError] = useState(null);
   const [classworks, setClassworks] = useState([]);
   const [files, setFiles] = useState([]);
-  const [title, setTitle] = useState('');
+  const [title, setTitle] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
-  const [isUploading, setIsUploading] = useState(false); // State to track upload progress
+  const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
   const user = useSelector((state) => state.auth.user);
 
@@ -360,26 +358,23 @@ const FacultyClasswork = () => {
       try {
         const classResponse = await classGet(`/facultyclass/getclass/${classId}`);
         setClassData(classResponse.data.classData);
-        // console.log('Class Data:', classResponse.data.classData);
 
         const classworkResponse = await classGet(`/facultyclass/classwork/${classId}`);
-        // console.log('Classwork Response:', classworkResponse.data);
         setClassworks(classworkResponse.data.classworks || []);
       } catch (error) {
-        // console.error('Failed to fetch data:', error);
         if (error.response?.status === 404) {
-          setError('No classwork found for this class. Please upload classwork to get started.');
-          toast.error('No classwork found for this class.');
+          setError("No classwork found for this class. Please upload classwork to get started.");
+          toast.error("No classwork found for this class.");
         } else {
-          setError('Failed to load data. Please try again later.');
-          // toast.error('Failed to load data.');
+          setError("Failed to load data. Please try again later.");
+          toast.error("Failed to load data.");
         }
       } finally {
         setIsLoading(false);
       }
     };
 
-    console.log('Current user email:', user?.email);
+    console.log("Current user email:", user?.email);
     fetchData();
   }, [classId, user]);
 
@@ -412,45 +407,48 @@ const FacultyClasswork = () => {
   const handleFileUpload = async (e) => {
     e.preventDefault();
     if (files.length === 0 || !title) {
-      toast.error('Please provide a title and at least one file');
+      toast.error("Please provide a title and at least one file");
       return;
     }
-
+  
     const formData = new FormData();
-    files.forEach((file) => formData.append('files', file));
-    formData.append('title', title);
-    formData.append('classId', classId);
-
+    files.forEach((file) => formData.append("files", file));
+    formData.append("title", title);
+    formData.append("classId", classId);
+  
     try {
-      setIsUploading(true); // Start loading animation
-      // console.log('Uploading files with data:', { title, classId, files: files.map(f => f.name) });
-      const response = await classPost('/facultyclass/classwork/upload', formData, {
+      setIsUploading(true);
+      const response = await classPost("/facultyclass/classwork/upload", formData, {
         headers: {
-          'Content-Type': 'multipart/form-data',
+          "Content-Type": "multipart/form-data",
         },
       });
-      console.log('Upload response:', response.data);
+      console.log("Upload response:", response.data);
       setClassworks((prev) => [...prev, ...response.data.classworks]);
       setFiles([]);
-      setTitle('');
+      setTitle("");
       setError(null);
-      toast.success('Classwork uploaded successfully');
+      toast.success("Classwork uploaded successfully");
     } catch (error) {
-      console.error('Upload error:', error.response?.data || error.message);
-      toast.error(`Failed to upload classwork: ${error.response?.data?.message || 'Unknown error'}`);
+      console.error("Upload error:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      toast.error(`Failed to upload classwork: ${error.response?.data?.message || "Unknown error"}`);
     } finally {
-      setIsUploading(false); // Stop loading animation
+      setIsUploading(false);
     }
   };
 
   const handleDelete = async (classworkId) => {
     try {
       await classPost(`/facultyclass/classwork/delete/${classworkId}`);
-      setClassworks(classworks.filter(cw => cw._id !== classworkId));
-      toast.success('Classwork deleted successfully');
+      setClassworks(classworks.filter((cw) => cw._id !== classworkId));
+      toast.success("Classwork deleted successfully");
     } catch (error) {
-      console.error('Delete error:', error.response?.data || error.message);
-      toast.error('Failed to delete classwork');
+      console.error("Delete error:", error.response?.data || error.message);
+      toast.error("Failed to delete classwork");
     }
   };
 
@@ -461,30 +459,30 @@ const FacultyClasswork = () => {
           await classPost(`/facultyclass/classwork/delete/${classwork._id}`);
         })
       );
-      setClassworks(classworks.filter(cw => !group.some(item => item._id === cw._id)));
-      toast.success('Folder deleted successfully');
+      setClassworks(classworks.filter((cw) => !group.some((item) => item._id === cw._id)));
+      toast.success("Folder deleted successfully");
     } catch (error) {
-      console.error('Delete group error:', error.response?.data || error.message);
-      toast.error('Failed to delete folder');
+      console.error("Delete group error:", error.response?.data || error.message);
+      toast.error("Failed to delete folder");
     }
   };
 
   const handleDownload = async (classworkId, filename) => {
     try {
       const response = await downloadFile(`/facultyclass/classwork/download/${classworkId}`);
-      const blob = new Blob([response.data], { type: response.headers['content-type'] });
+      const blob = new Blob([response.data], { type: response.headers["content-type"] });
       const url = window.URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', filename);
+      link.setAttribute("download", filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      window.URL.revokeObjectURL(url); // Clean up the URL object
-      toast.success('Download started');
+      window.URL.revokeObjectURL(url);
+      toast.success("Download started");
     } catch (error) {
-      // console.error('Download error:', error.response?.data || error.message);
-      toast.error('Failed to download file');
+      console.error("Download error:", error.response?.data || error.message);
+      toast.error("Failed to download file");
     }
   };
 
@@ -516,15 +514,12 @@ const FacultyClasswork = () => {
     <div className="page-container">
       <style>{styles}</style>
       <div className="card-container">
-        <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
+        <h2 className="class-name">{classData ? classData.ClassName : "No class data available"}</h2>
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
 
-          {error && (
-            <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
-          )}
+          {error && <div className="text-red-500 text-center mt-10 mb-4">{error}</div>}
 
-          {/* Show the form only if the user created the class */}
           {classData?.createdBy && classData.createdBy === user.email && (
             <form className="upload-form" onSubmit={handleFileUpload}>
               <input
@@ -535,7 +530,7 @@ const FacultyClasswork = () => {
                 className="file-input"
               />
               <div
-                className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
+                className={`drag-drop-area ${dragOver ? "drag-over" : ""}`}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
                 onDrop={handleDrop}
@@ -550,8 +545,8 @@ const FacultyClasswork = () => {
                   multiple
                   onChange={handleFileChange}
                   className="file-input"
-                  accept=".pdf,.jpg,.jpeg,.png"
-                  style={{ display: 'none' }}
+                  accept=".pdf,.ppt,.pptx,.doc,.docx,.jpg,.jpeg,.png"
+                  style={{ display: "none" }}
                   ref={fileInputRef}
                 />
               </div>
@@ -559,7 +554,9 @@ const FacultyClasswork = () => {
                 <div className="file-list">
                   {files.map((file, index) => (
                     <div key={index} className="file-item">
-                      <span>{file.name} ({formatFileSize(file.size)})</span>
+                      <span>
+                        {file.name} ({formatFileSize(file.size)})
+                      </span>
                       <button onClick={() => handleRemoveFile(index)}>
                         <Trash2 size={16} />
                       </button>
@@ -569,10 +566,10 @@ const FacultyClasswork = () => {
               )}
               <button
                 type="submit"
-                className={`upload-button ${isUploading ? 'loading' : ''}`}
+                className={`upload-button ${isUploading ? "loading" : ""}`}
                 disabled={isUploading}
               >
-                {isUploading ? 'Uploading...' : 'Upload Classwork'}
+                {isUploading ? "Uploading..." : "Upload Classwork"}
               </button>
             </form>
           )}
@@ -598,7 +595,11 @@ const FacultyClasswork = () => {
                         <Trash2 size={20} />
                       </button>
                     )}
-                    {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
+                    {expandedGroups[title] ? (
+                      <ChevronUp size={20} onClick={() => toggleGroup(title)} />
+                    ) : (
+                      <ChevronDown size={20} onClick={() => toggleGroup(title)} />
+                    )}
                   </div>
                 </div>
                 {expandedGroups[title] && (
@@ -606,7 +607,7 @@ const FacultyClasswork = () => {
                     {group.map((classwork) => (
                       <div key={classwork._id} className="classwork-file">
                         <div className="file-info">
-                          <span>{classwork.originalFilename || classwork.filename}</span>
+                          <span>{classwork.originalFilename}</span>
                           <span className="file-size">({formatFileSize(classwork.fileSize)})</span>
                         </div>
                         <div className="action-buttons">
@@ -621,7 +622,7 @@ const FacultyClasswork = () => {
                           )}
                           <button
                             className="download-button"
-                            onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}
+                            onClick={() => handleDownload(classwork._id, classwork.originalFilename)}
                             data-tooltip="Download Classwork"
                           >
                             <Download size={20} />

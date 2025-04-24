@@ -10,10 +10,10 @@ const instance = axios.create({
 instance.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token');
-    console.log('Token from localStorage:', token); // Debug token presence
+    // console.log('Token from localStorage:', token); // Debug token presence
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
-      console.log('Authorization header set:', config.headers['Authorization']); // Debug header
+      // console.log('Authorization header set:', config.headers['Authorization']); // Debug header
     } else {
       console.log('No token found in localStorage');
     }
@@ -28,11 +28,15 @@ instance.interceptors.request.use(
 instance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('Response interceptor error:', error.response?.data || error.message); // Debug server response
+    console.error("Response interceptor error:", {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status,
+    });
     if (error.response?.status === 401) {
-      localStorage.removeItem('token');
-      window.location.href = '/';
-      throw new Error('Unauthorized: Please log in again.');
+      localStorage.removeItem("token");
+      window.location.href = "/";
+      throw new Error("Unauthorized: Please log in again.");
     }
     return Promise.reject(error);
   }

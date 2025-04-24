@@ -6,20 +6,16 @@ const classworkSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    filename: {
-      type: String,
-      required: true,
-    },
     originalFilename: {
       type: String,
       required: true,
     },
-    path: {
-      type: String,
+    fileSize: {
+      type: Number,
       required: true,
     },
-    fileSize: {
-      type: Number, // Store file size in bytes
+    fileMimeType: {
+      type: String,
       required: true,
     },
     classId: {
@@ -28,12 +24,16 @@ const classworkSchema = new mongoose.Schema(
     },
     classType: {
       type: String,
-      enum: ['class', 'faculty'],
+      enum: ["class", "faculty"],
       required: true,
     },
     createdBy: {
       type: String,
-      required: true, 
+      required: true,
+    },
+    gridFsFileId: {
+      type: mongoose.Schema.Types.ObjectId,
+      required: true,
     },
   },
   { timestamps: true, collection: "classworks" }

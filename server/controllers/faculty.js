@@ -3,6 +3,8 @@ import FacultyClassModel from "../models/faculty.js";
 import FacultyClassworkModel from "../models/FacultyClasswork.js";
 import path from "path";
 import fs from "fs";
+import { getGridFSBucket } from "../utils/gridfs.js"; // Ensure correct import
+import { Readable } from "stream";
 
 const CreateFacultyClass = async (req, res) => {
   try {
@@ -323,8 +325,10 @@ const getClassworks = async (req, res) => {
 const uploadClasswork = async (req, res) => {
   try {
     const { classId, title } = req.body;
+    // console.log("Upload request received:", { classId, title, files: req.files?.map(f => f.originalname) });
+    
     if (!classId || !title || !req.files || req.files.length === 0) {
-      console.log('Missing required fields:', { classId, title, files: req.files });
+      console.log("Missing required fields:", { classId, title, files: req.files });
       return res.status(400).json({
         success: false,
         message: "Class ID, title, and at least one file are required",
@@ -333,7 +337,7 @@ const uploadClasswork = async (req, res) => {
 
     const classExists = await FacultyClassModel.findById(classId);
     if (!classExists) {
-      console.log('Class not found for ID:', classId);
+      console.log("Class not found for ID:", classId);
       return res.status(404).json({
         success: false,
         message: "Faculty class not found",
@@ -342,34 +346,40 @@ const uploadClasswork = async (req, res) => {
 
     const createdBy = req.user?.email;
     if (!createdBy) {
-      console.log('User email not found in req.user');
+      console.log("User email not found in req.user");
       return res.status(401).json({
         success: false,
         message: "Unauthorized: User email not found",
       });
     }
 
+    const gridfsBucket = getGridFSBucket();
     const classworks = [];
+
     for (const file of req.files) {
-      // Verify the file exists on the filesystem
-      const filePath = path.resolve(file.path);
-      if (!fs.existsSync(filePath)) {
-        console.log('File not found on server:', filePath);
-        return res.status(500).json({
-          success: false,
-          message: "File not found on server after upload",
-        });
-      }
+      console.log("Processing file:", file.originalname);
+      const readableStream = Readable.from(file.buffer);
+      const uploadStream = gridfsBucket.openUploadStream(file.originalname, {
+        contentType: file.mimetype,
+        metadata: { classId, createdBy },
+      });
+
+      readableStream.pipe(uploadStream);
+
+      const gridFsFileId = await new Promise((resolve, reject) => {
+        uploadStream.on("finish", () => resolve(uploadStream.id));
+        uploadStream.on("error", reject);
+      });
 
       const classwork = await FacultyClassworkModel.create({
         title,
-        filename: file.filename,
         originalFilename: file.originalname,
-        path: file.path,
         fileSize: file.size,
+        fileMimeType: file.mimetype,
         classId,
-        classType: 'faculty',
+        classType: "faculty",
         createdBy,
+        gridFsFileId,
       });
       classworks.push(classwork);
     }
@@ -380,7 +390,12 @@ const uploadClasswork = async (req, res) => {
       classworks,
     });
   } catch (error) {
-    console.error("uploadClasswork error:", error.message, error.stack);
+    console.error("uploadClasswork error:", {
+      message: error.message,
+      stack: error.stack,
+      requestBody: req.body,
+      files: req.files?.map(f => f.originalname),
+    });
     return res.status(500).json({
       success: false,
       message: `Internal server error: ${error.message}`,
@@ -392,7 +407,7 @@ const deleteClasswork = async (req, res) => {
   try {
     const { classworkId } = req.params;
     const classwork = await FacultyClassworkModel.findById(classworkId);
-    if (!classwork || classwork.classType !== 'faculty') {
+    if (!classwork || classwork.classType !== "faculty") {
       return res.status(404).json({
         success: false,
         message: "Classwork not found",
@@ -422,13 +437,13 @@ const deleteClasswork = async (req, res) => {
       });
     }
 
-    // Delete the file from the filesystem
-    const filePath = path.resolve(classwork.path);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    // Delete file from GridFS
+    const gridfsBucket = getGridFSBucket();
+    await gridfsBucket.delete(classwork.gridFsFileId);
 
+    // Delete classwork document
     await FacultyClassworkModel.findByIdAndDelete(classworkId);
+
     return res.status(200).json({
       success: true,
       message: "Classwork deleted successfully",
@@ -446,22 +461,28 @@ const downloadClasswork = async (req, res) => {
   try {
     const { classworkId } = req.params;
     const classwork = await FacultyClassworkModel.findById(classworkId);
-    if (!classwork || classwork.classType !== 'faculty') {
+    if (!classwork || classwork.classType !== "faculty") {
       return res.status(404).json({
         success: false,
         message: "Classwork not found",
       });
     }
 
-    const filePath = path.resolve(classwork.path);
-    if (!fs.existsSync(filePath)) {
-      return res.status(404).json({
-        success: false,
-        message: "File not found on server",
-      });
-    }
+    const gridfsBucket = getGridFSBucket();
+    const downloadStream = gridfsBucket.openDownloadStream(classwork.gridFsFileId);
 
-    res.download(filePath, classwork.originalFilename);
+    res.set("Content-Type", classwork.fileMimeType);
+    res.set("Content-Disposition", `attachment; filename="${classwork.originalFilename}"`);
+
+    downloadStream.pipe(res);
+
+    downloadStream.on("error", (error) => {
+      console.error("Download stream error:", error);
+      res.status(500).json({
+        success: false,
+        message: "Error streaming file",
+      });
+    });
   } catch (error) {
     console.error("downloadClasswork error:", error);
     return res.status(500).json({
