@@ -1,11 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
-import { getUser, post, deleteRequest } from '../services/Endpoint'; // Import APIs
+import { getUser, post, deleteRequest } from '../services/Endpoint';
 import toast from 'react-hot-toast';
 import { Edit, Trash2 } from 'lucide-react';
 
 const styles = `
-  /* Page Background */
   .page-container {
     background-color: #d3d8e0;
     min-height: 100vh;
@@ -16,7 +15,6 @@ const styles = `
     position: relative;
   }
 
-  /* Card Container for all content */
   .card-container {
     background-color: #fff;
     border-radius: 1rem;
@@ -30,7 +28,6 @@ const styles = `
     gap: 1.5rem;
   }
 
-  /* Headings */
   .page-title {
     font-size: 2.5rem;
     font-weight: 800;
@@ -47,7 +44,6 @@ const styles = `
     text-align: center;
   }
 
-  /* User Details Table */
   .user-details-table {
     width: 100%;
     border-collapse: collapse;
@@ -86,7 +82,6 @@ const styles = `
     line-height: 1.5;
   }
 
-  /* Action Buttons */
   .action-buttons {
     display: flex;
     gap: 1rem;
@@ -116,7 +111,6 @@ const styles = `
     transform: scale(1.1);
   }
 
-  /* Pagination */
   .pagination {
     display: flex;
     justify-content: center;
@@ -146,7 +140,6 @@ const styles = `
     transform: scale(1.02);
   }
 
-  /* No Data Message */
   .no-data {
     text-align: center;
     color: #666;
@@ -154,7 +147,6 @@ const styles = `
     margin-top: 2rem;
   }
 
-  /* Loading Spinner */
   .spinner {
     width: 4rem;
     height: 4rem;
@@ -164,7 +156,6 @@ const styles = `
     animation: spin 1s linear infinite;
   }
 
-  /* Modal Overlay */
   .modal-overlay {
     position: fixed;
     top: 0;
@@ -178,7 +169,6 @@ const styles = `
     z-index: 1000;
   }
 
-  /* Modal Content */
   .modal-content {
     background-color: #fff;
     padding: 2rem;
@@ -205,7 +195,8 @@ const styles = `
     color: #333;
   }
 
-  .modal-content input {
+  .modal-content input,
+  .modal-content select {
     width: 100%;
     padding: 0.75rem;
     border: 1px solid #d1d5db;
@@ -215,7 +206,8 @@ const styles = `
     box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
   }
 
-  .modal-content input:focus {
+  .modal-content input:focus,
+  .modal-content select:focus {
     outline: none;
     border-color: #6b48ff;
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
@@ -262,7 +254,6 @@ const styles = `
     }
   }
 
-  /* Responsive adjustments */
   @media (max-width: 768px) {
     .card-container {
       padding: 1rem;
@@ -306,7 +297,7 @@ const UserDetails = () => {
   const [editEmail, setEditEmail] = useState('');
   const [editRole, setEditRole] = useState('');
   const [editRegister, setEditRegister] = useState('');
-  const user = useSelector((state) => state.auth.user); // Get the current logged-in user
+  const user = useSelector((state) => state.auth.user);
 
   const usersPerPage = 8;
 
@@ -328,14 +319,12 @@ const UserDetails = () => {
     fetchUserDetails();
   }, []);
 
-  // Extract and capitalize name from email
   const getNameFromEmail = (email) => {
     if (!email) return 'N/A';
     const namePart = email.split('@')[0];
     return namePart.charAt(0).toUpperCase() + namePart.slice(1).toLowerCase();
   };
 
-  // Pagination logic
   const indexOfLastUser = currentPage * usersPerPage;
   const indexOfFirstUser = indexOfLastUser - usersPerPage;
   const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
@@ -353,7 +342,6 @@ const UserDetails = () => {
     }
   };
 
-  // Edit and Delete Handlers
   const handleEdit = (user) => {
     setSelectedUser(user);
     setEditName(user.name || getNameFromEmail(user.email));
@@ -397,7 +385,6 @@ const UserDetails = () => {
         setUsers(users.filter(u => u.id !== selectedUser.id));
         toast.success('User deleted successfully');
         setShowDeleteModal(false);
-        // Adjust pagination if necessary
         if (currentUsers.length === 1 && currentPage > 1) {
           setCurrentPage(currentPage - 1);
         }
@@ -430,28 +417,26 @@ const UserDetails = () => {
           <h1 className="page-title">User Details</h1>
 
           <div className="w-full">
-            {/* <h3 className="section-title">User Information</h3> */}
-
             {users.length > 0 ? (
               <>
                 <table className="user-details-table">
                   <thead>
                     <tr>
-                      <th>S/No.</th> {/* New Serial No. column */}
+                      <th>S/No.</th>
                       <th>Name</th>
                       <th>Email</th>
                       <th>Role</th>
-                      {user.role === 'admin' && <th>Actions</th>}
+                      {['admin', 'super admin'].includes(user.role) && <th>Actions</th>}
                     </tr>
                   </thead>
                   <tbody>
                     {currentUsers.map((userDetail, index) => (
                       <tr key={userDetail.id}>
-                        <td>{indexOfFirstUser + index + 1}</td> {/* Calculate serial number */}
+                        <td>{indexOfFirstUser + index + 1}</td>
                         <td>{userDetail.name || getNameFromEmail(userDetail.email)}</td>
                         <td>{userDetail.email || 'N/A'}</td>
                         <td>{userDetail.role || 'N/A'}</td>
-                        {user.role === 'admin' && (
+                        {['admin', 'super admin'].includes(user.role) && (
                           <td>
                             <div className="action-buttons">
                               <button
@@ -474,7 +459,6 @@ const UserDetails = () => {
                   </tbody>
                 </table>
 
-                {/* Pagination Controls */}
                 <div className="pagination">
                   <button
                     className="pagination-button"
@@ -502,17 +486,10 @@ const UserDetails = () => {
         </div>
       </div>
 
-      {/* Edit Modal */}
       {showEditModal && selectedUser && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3>Edit User</h3>
-            {/* <label>Name:</label>
-            <input
-              type="text"
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-            /> */}
             <label>Email:</label>
             <input
               type="email"
@@ -526,13 +503,8 @@ const UserDetails = () => {
             >
               <option value="admin">Admin</option>
               <option value="user">User</option>
+              <option value="super admin">Super Admin</option>
             </select>
-            {/* <label>Register Number:</label>
-            <input
-              type="text"
-              value={editRegister}
-              onChange={(e) => setEditRegister(e.target.value)}
-            /> */}
             <div className="modal-buttons">
               <button className="modal-button confirm" onClick={confirmEdit}>
                 Save
@@ -545,7 +517,6 @@ const UserDetails = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
       {showDeleteModal && selectedUser && (
         <div className="modal-overlay">
           <div className="modal-content">

@@ -16,10 +16,10 @@ const UserSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'user'],
+    enum: ['admin', 'user', 'super admin'], // Added superadmin
     default: 'user'
   },
-  googleId: { // Add this field for Google OAuth
+  googleId: {
     type: String,
   }
 }, { timestamps: true });

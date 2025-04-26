@@ -16,17 +16,22 @@ const validateEmailDomain = (email) => {
 
 // Function to determine role based on email
 const determineRole = (email) => {
+  const superAdminEmails = ['svj@bitsathy.ac.in', 'surya@bitsathy.ac.in'];
+  if (superAdminEmails.includes(email.toLowerCase())) {
+    return 'super admin';
+  }
   const charBeforeAt = email.charAt(email.indexOf('@') - 1);
   if (/[a-zA-Z]/.test(charBeforeAt)) {
     return 'admin';
   } else if (/[0-9]/.test(charBeforeAt)) {
     return 'user';
   }
-  return 'user'; // Default role if condition doesn't match
+  return 'user'; // Default role
 };
 
 const Register = async (req, res) => {
   try {
+    console.log("Register request received:", req.body, req.file);
     const { Register, email, password } = req.body;
     if (!Register || !email || !password) {
       return res.status(400).json({
@@ -60,7 +65,8 @@ const Register = async (req, res) => {
       Register,
       email,
       password: hashedPassword,
-      role, // Assign role
+      role,
+      profile: req.file ? req.file.path : undefined, // Handle profile image
     });
     await NewUser.save();
     return res.status(201).json({
@@ -72,10 +78,15 @@ const Register = async (req, res) => {
       },
     });
   } catch (error) {
-    console.log('Register error:', error);
+    console.error('Register error:', {
+      message: error.message,
+      stack: error.stack,
+      body: req.body,
+      file: req.file,
+    });
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: `Internal server error: ${error.message}`,
     });
   }
 };
@@ -158,6 +169,7 @@ const Logout = async (req, res) => {
     });
   }
 };
+
 const editUser = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
@@ -167,12 +179,12 @@ const editUser = async (req, res) => {
       });
     }
 
-    // Check if the authenticated user is an admin
+    // Check if the authenticated user is an admin or super admin
     const authenticatedUser = await UserModel.findById(req.user.id);
-    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+    if (!authenticatedUser || !['admin', 'super admin'].includes(authenticatedUser.role)) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized - Only admins can edit users",
+        message: "Unauthorized - Only admins or super admins can edit users",
       });
     }
 
@@ -196,11 +208,11 @@ const editUser = async (req, res) => {
     }
 
     // Validate role
-    const validRoles = ['admin', 'user'];
+    const validRoles = ['admin', 'user', 'super admin'];
     if (!validRoles.includes(role)) {
       return res.status(400).json({
         success: false,
-        message: "Role must be 'admin' or 'user'",
+        message: "Role must be 'admin', 'user', or 'super admin'",
       });
     }
 
@@ -212,6 +224,7 @@ const editUser = async (req, res) => {
         message: "Email is already in use by another user",
       });
     }
+
     const updatedUser = await UserModel.findByIdAndUpdate(
       id,
       { name, email, role, Register },
@@ -244,6 +257,7 @@ const editUser = async (req, res) => {
     });
   }
 };
+
 const deleteUser = async (req, res) => {
   try {
     if (!req.user || !req.user.id) {
@@ -253,22 +267,22 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    // Check if the authenticated user is an admin
+    // Check if the authenticated user is an admin or super admin
     const authenticatedUser = await UserModel.findById(req.user.id);
-    if (!authenticatedUser || authenticatedUser.role !== 'admin') {
+    if (!authenticatedUser || !['admin', 'super admin'].includes(authenticatedUser.role)) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized - Only admins can delete users",
+        message: "Unauthorized - Only admins or super admins can delete users",
       });
     }
 
     const { id } = req.params;
 
-    // Prevent admin from deleting themselves
+    // Prevent admin or super admin from deleting themselves
     if (id === req.user.id) {
       return res.status(403).json({
         success: false,
-        message: "Admins cannot delete themselves",
+        message: "Admins or super admins cannot delete themselves",
       });
     }
 
@@ -312,9 +326,9 @@ const getUsers = async (req, res) => {
     }
 
     let users;
-    if (authenticatedUser.role === 'admin') {
-      // Admins can see all users
-      users = await UserModel.find().select('-password'); // Exclude passwords
+    if (['admin', 'super admin'].includes(authenticatedUser.role)) {
+      // Admins and super admins can see all users
+      users = await UserModel.find().select('-password');
     } else {
       // Non-admins can only see their own details
       users = [authenticatedUser];
@@ -327,7 +341,7 @@ const getUsers = async (req, res) => {
         name: user.name,
         email: user.email,
         role: user.role,
-        register: user.Register, // Include the Register field if it exists
+        register: user.Register,
       })),
     });
   } catch (error) {
@@ -358,13 +372,7 @@ const googleLogin = async (req, res) => {
       });
     }
 
-    let role = 'user';
-    const charBeforeAt = email.charAt(email.indexOf('@') - 1);
-    if (/[a-zA-Z]/.test(charBeforeAt)) {
-      role = 'admin';
-    } else if (/[0-9]/.test(charBeforeAt)) {
-      role = 'user';
-    }
+    const role = determineRole(email);
 
     let user = await UserModel.findOne({ email });
     if (!user) {
@@ -375,15 +383,19 @@ const googleLogin = async (req, res) => {
         role,
       });
       await user.save();
+    } else if (user.role !== role) {
+      // Update role if it has changed (e.g., super admin assignment)
+      user.role = role;
+      await user.save();
     }
 
     const jwtToken = jwt.sign(
       { id: user._id, email: user.email, role: user.role },
       process.env.JWT_SECRET,
-      // { expiresIn: '24h' }
+      { expiresIn: '24h' }
     );
 
-    const redirectUrl = role === 'admin' ? '/home' : '/home';
+    const redirectUrl = ['admin', 'super admin'].includes(role) ? '/home' : '/home';
     res.status(200).json({
       success: true,
       message: "Google Login successful",
@@ -400,4 +412,4 @@ const googleLogin = async (req, res) => {
   }
 };
 
-export { Register, Login, Logout, getUsers,editUser, deleteUser, googleLogin };
+export { Register, Login, Logout, getUsers, editUser, deleteUser, googleLogin };

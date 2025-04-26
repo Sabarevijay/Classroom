@@ -24,6 +24,7 @@ const styles = `
     padding: 1rem 1rem;
     height: 64px;
     transition: left 0.3s ease-in-out;
+    overflow-y:hidden;
   }
 
   @media (min-width: 768px) {
@@ -885,13 +886,12 @@ const Navbar = () => {
       toast.error("Please enter a subject name");
       return;
     }
-  
-    // Require semester and year for both /home and /admin/faculty
+
     if (!semester || !year) {
       toast.error("Please select both semester and year");
       return;
     }
-  
+
     try {
       setIsLoading(true);
       const endpoint = location.pathname === "/admin/faculty" ? "/facultyclass/createclass" : "/class/createclass";
@@ -899,11 +899,12 @@ const Navbar = () => {
         ClassName: className,
         semester,
         year,
-        createdBy: userEmail, // Include createdBy in the payload
+        createdBy: userEmail,
       };
-  
+
+      console.log('Creating class:', { endpoint, payload });
       const response = await classPost(endpoint, payload);
-  
+
       if (response.status === 201 && response.data.message.includes("created successfully")) {
         closePopup();
         setClassName('');
@@ -915,7 +916,11 @@ const Navbar = () => {
         throw new Error("Unexpected response from server");
       }
     } catch (error) {
-      console.error('Error creating class:', error);
+      console.error('Error creating class:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
       const errorMessage = error.response?.data?.message || error.message || "Failed to create class. Please try again.";
       toast.error(errorMessage);
     } finally {
@@ -926,24 +931,23 @@ const Navbar = () => {
   const handleLogout = async () => {
     try {
       const response = await post(`/auth/logout`);
-      const data = response.data;
-      console.log(data);
       if (response.status === 200) {
         navigate("/");
         dispatch(RemoveUser());
         toast.success("Logout Successfully");
       }
     } catch (error) {
-      console.log(error);
+      console.error('Logout error:', error);
+      toast.error("Failed to logout. Please try again.");
     }
   };
 
   useEffect(() => {
-    function handleClickOutside(event) {
+    const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
       }
-    }
+    };
 
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -981,16 +985,17 @@ const Navbar = () => {
           <span className="navbar-title">BIT ClassRoom</span>
         </div>
         <div className="navbar-right" ref={userMenuRef}>
-          {userRole === "admin" && (location.pathname === "/home" || location.pathname === "/admin/faculty") && (
+          {['admin', 'super admin'].includes(userRole) && (location.pathname === "/home" || location.pathname === "/admin/faculty") && (
             <button
               className="add-classroom-button"
               onClick={openPopup}
+              data-tooltip="Add a new classroom"
             >
               <Plus size={20} />
             </button>
           )}
           <div className="profile-container">
-            <div className="profile-wrapper">
+            <div className="profile-wrapper" data-tooltip="View profile options">
               {profileImage ? (
                 <img
                   src={profileImage}
@@ -1021,6 +1026,7 @@ const Navbar = () => {
                 <button
                   className="dropdown-item"
                   onClick={handleLogout}
+                  data-tooltip="Log out of your account"
                 >
                   Log Out
                 </button>
@@ -1070,7 +1076,7 @@ const Navbar = () => {
                   <Home size={20} className="mobile-nav-icon" />
                   <span className="mobile-nav-text">Classroom</span>
                 </div>
-                {userRole === 'admin' && (
+                {['admin', 'super admin'].includes(userRole) && (
                   <>
                     <div
                       className={`mobile-nav-item ${window.location.pathname === '/admin/students' ? 'active' : ''}`}
@@ -1109,7 +1115,7 @@ const Navbar = () => {
                 )}
               </div>
               <div className="bottom-links">
-                {userRole === 'admin' && (
+                {['admin', 'super admin'].includes(userRole) && (
                   <div
                     className={`mobile-nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
                     onClick={() => {
@@ -1145,75 +1151,75 @@ const Navbar = () => {
         </>
       )}
 
-{isPopupOpen && (
-  <div className="popup-container">
-    <div className="popup">
-      <button
-        onClick={closePopup}
-        className="close-button"
-        data-tooltip="Close popup"
-      >
-        <X size={24} />
-      </button>
-      <h2 className="popup-title">Add Classroom</h2>
-      <div className="mb-4">
-        <label className="block text-sm font-medium text-gray-700 mb-2">
-          Subject Name
-        </label>
-        <input
-          id="class-name"
-          type="text"
-          value={className}
-          onChange={(e) => setClassName(e.target.value)}
-          className="popup-input"
-          placeholder="Enter subject name"
-        />
-      </div>
-      <div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Semester
-  </label>
-  <select
-    id="semester"
-    value={semester}
-    onChange={(e) => setSemester(e.target.value)}
-    className="popup-input"
-  >
-    <option value="">Select semester</option>
-    <option value="Odd">Odd</option>
-    <option value="Even">Even</option>
-  </select>
-</div>
-<div className="mb-4">
-  <label className="block text-sm font-medium text-gray-700 mb-2">
-    Academic Year
-  </label>
-  <select
-    id="year"
-    value={year}
-    onChange={(e) => setYear(e.target.value)} // Note: This was incorrectly setEditYear in the previous code
-    className="popup-input"
-  >
-    <option value="">Select year</option>
-    <option value="2019-20">2019-20</option>
-    <option value="2020-21">2020-21</option>
-    <option value="2021-22">2021-22</option>
-    <option value="2022-23">2022-23</option>
-    <option value="2024-25">2024-25</option>
-    <option value="2025-26">2025-26</option>
-    <option value="2026-27">2026-27</option>
-  </select>
-</div>
-      <button
-        className="popup-button"
-        onClick={handleCreateClass}
-        data-tooltip="Create a new classroom"
-      >
-        Create
-      </button>
-    </div>
-  </div>
-)}
+      {isPopupOpen && (
+        <div className="popup-container">
+          <div className="popup">
+            <button
+              onClick={closePopup}
+              className="close-button"
+              data-tooltip="Close popup"
+            >
+              <X size={24} />
+            </button>
+            <h2 className="popup-title">Add Classroom</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Subject Name
+              </label>
+              <input
+                id="class-name"
+                type="text"
+                value={className}
+                onChange={(e) => setClassName(e.target.value)}
+                className="popup-input"
+                placeholder="Enter subject name"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Semester
+              </label>
+              <select
+                id="semester"
+                value={semester}
+                onChange={(e) => setSemester(e.target.value)}
+                className="popup-input"
+              >
+                <option value="">Select semester</option>
+                <option value="Odd">Odd</option>
+                <option value="Even">Even</option>
+              </select>
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Academic Year
+              </label>
+              <select
+                id="year"
+                value={year}
+                onChange={(e) => setYear(e.target.value)}
+                className="popup-input"
+              >
+                <option value="">Select year</option>
+                <option value="2019-20">2019-20</option>
+                <option value="2020-21">2020-21</option>
+                <option value="2021-22">2021-22</option>
+                <option value="2022-23">2022-23</option>
+                <option value="2024-25">2024-25</option>
+                <option value="2025-26">2025-26</option>
+                <option value="2026-27">2026-27</option>
+              </select>
+            </div>
+            <button
+              className="popup-button"
+              onClick={handleCreateClass}
+              data-tooltip="Create a new classroom"
+            >
+              Create
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 };

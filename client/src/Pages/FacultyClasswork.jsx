@@ -3,7 +3,7 @@ import { useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { classGet, classPost, downloadFile } from "../services/Endpoint";
 import toast from "react-hot-toast";
-import { Trash2, Download, Folder, ChevronDown, ChevronUp } from "lucide-react";
+import { Trash2, Download, Folder, ChevronDown, ChevronUp, Search } from "lucide-react";
 
 const styles = `
   .page-container {
@@ -41,17 +41,56 @@ const styles = `
     font-size: 1.5rem;
     font-weight: 700;
     color: #000;
-    margin-bottom: 1.5rem;
+    margin-bottom: 1rem;
     text-align: center;
   }
 
   .content-container {
     width: 100%;
     padding: 1.5rem;
-    background-color: transparent;
+    background-color: #fff;
     border: none;
     box-shadow: none;
     text-align: center;
+  }
+
+  .groups-container {
+    max-height: 600px;
+    overflow-y: auto;
+    border-radius: 0.5rem;
+  }
+
+  .search-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .search-input {
+    flex: 1;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    outline: none;
+  }
+
+  .search-button {
+    background-color: #6b48ff;
+    color: white;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+  }
+
+  .search-button:hover {
+    background-color: #5a3de6;
   }
 
   .no-classworks {
@@ -76,6 +115,10 @@ const styles = `
   }
 
   @media (max-width: 768px) {
+    .page-container {
+      padding: 20px;
+    }
+
     .card-container {
       padding: 1rem;
       margin-top: 0.5rem;
@@ -83,6 +126,30 @@ const styles = `
 
     .class-name {
       font-size: 1.8rem;
+    }
+
+    .section-title {
+      font-size: 1.2rem;
+    }
+
+    .groups-container {
+      max-height: 400px;
+    }
+
+    .search-container {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .search-input {
+      width: 100%;
+      font-size: 0.9rem;
+      padding: 0.4rem;
+    }
+
+    .search-button {
+      width: 100%;
+      padding: 0.4rem;
     }
 
     .no-classworks {
@@ -350,6 +417,7 @@ const FacultyClasswork = () => {
   const [dragOver, setDragOver] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
   const [isUploading, setIsUploading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const fileInputRef = useRef(null);
   const user = useSelector((state) => state.auth.user);
 
@@ -410,14 +478,15 @@ const FacultyClasswork = () => {
       toast.error("Please provide a title and at least one file");
       return;
     }
-  
+
     const formData = new FormData();
     files.forEach((file) => formData.append("files", file));
     formData.append("title", title);
     formData.append("classId", classId);
-  
+
     try {
       setIsUploading(true);
+      console.log("Sending upload request:", { classId, title, files: files.map(f => f.name) });
       const response = await classPost("/facultyclass/classwork/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -486,6 +555,7 @@ const FacultyClasswork = () => {
     }
   };
 
+  // Filter classwork groups based on search query
   const groupedClassworks = classworks.reduce((acc, classwork) => {
     const key = classwork.title;
     if (!acc[key]) {
@@ -494,6 +564,12 @@ const FacultyClasswork = () => {
     acc[key].push(classwork);
     return acc;
   }, {});
+
+  const filteredGroupedClassworks = Object.fromEntries(
+    Object.entries(groupedClassworks).filter(([title]) =>
+      title.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+  );
 
   const toggleGroup = (title) => {
     setExpandedGroups((prev) => ({
@@ -517,6 +593,19 @@ const FacultyClasswork = () => {
         <h2 className="class-name">{classData ? classData.ClassName : "No class data available"}</h2>
         <div className="content-container">
           <h3 className="section-title">Classwork</h3>
+
+          <div className="search-container">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search classworks..."
+              className="search-input"
+            />
+            <button className="search-button" onClick={() => {}}>
+              <Search size={20} />
+            </button>
+          </div>
 
           {error && <div className="text-red-500 text-center mt-10 mb-4">{error}</div>}
 
@@ -574,69 +663,71 @@ const FacultyClasswork = () => {
             </form>
           )}
 
-          {Object.keys(groupedClassworks).length > 0 ? (
-            Object.entries(groupedClassworks).map(([title, group]) => (
-              <div key={title} className="classwork-group">
-                <div className="classwork-group-header">
-                  <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
-                    <Folder size={20} color="#6b48ff" />
-                    <span>{title}</span>
+          <div className="groups-container">
+            {Object.keys(filteredGroupedClassworks).length > 0 ? (
+              Object.entries(filteredGroupedClassworks).map(([title, group]) => (
+                <div key={title} className="classwork-group">
+                  <div className="classwork-group-header">
+                    <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
+                      <Folder size={20} color="#6b48ff" />
+                      <span>{title}</span>
+                    </div>
+                    <div className="classwork-group-actions">
+                      {classData?.createdBy && classData.createdBy === user.email && (
+                        <button
+                          className="delete-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group);
+                          }}
+                          data-tooltip="Delete Folder"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                      )}
+                      {expandedGroups[title] ? (
+                        <ChevronUp size={20} onClick={() => toggleGroup(title)} />
+                      ) : (
+                        <ChevronDown size={20} onClick={() => toggleGroup(title)} />
+                      )}
+                    </div>
                   </div>
-                  <div className="classwork-group-actions">
-                    {classData?.createdBy && classData.createdBy === user.email && (
-                      <button
-                        className="delete-button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteGroup(group);
-                        }}
-                        data-tooltip="Delete Folder"
-                      >
-                        <Trash2 size={20} />
-                      </button>
-                    )}
-                    {expandedGroups[title] ? (
-                      <ChevronUp size={20} onClick={() => toggleGroup(title)} />
-                    ) : (
-                      <ChevronDown size={20} onClick={() => toggleGroup(title)} />
-                    )}
-                  </div>
-                </div>
-                {expandedGroups[title] && (
-                  <div className="classwork-group-files">
-                    {group.map((classwork) => (
-                      <div key={classwork._id} className="classwork-file">
-                        <div className="file-info">
-                          <span>{classwork.originalFilename}</span>
-                          <span className="file-size">({formatFileSize(classwork.fileSize)})</span>
-                        </div>
-                        <div className="action-buttons">
-                          {classData?.createdBy && classData.createdBy === user.email && (
+                  {expandedGroups[title] && (
+                    <div className="classwork-group-files">
+                      {group.map((classwork) => (
+                        <div key={classwork._id} className="classwork-file">
+                          <div className="file-info">
+                            <span>{classwork.originalFilename}</span>
+                            <span className="file-size">({formatFileSize(classwork.fileSize)})</span>
+                          </div>
+                          <div className="action-buttons">
+                            {classData?.createdBy && classData.createdBy === user.email && (
+                              <button
+                                className="delete-button"
+                                onClick={() => handleDelete(classwork._id)}
+                                data-tooltip="Delete Classwork"
+                              >
+                                <Trash2 size={20} />
+                              </button>
+                            )}
                             <button
-                              className="delete-button"
-                              onClick={() => handleDelete(classwork._id)}
-                              data-tooltip="Delete Classwork"
+                              className="download-button"
+                              onClick={() => handleDownload(classwork._id, classwork.originalFilename)}
+                              data-tooltip="Download Classwork"
                             >
-                              <Trash2 size={20} />
+                              <Download size={20} />
                             </button>
-                          )}
-                          <button
-                            className="download-button"
-                            onClick={() => handleDownload(classwork._id, classwork.originalFilename)}
-                            data-tooltip="Download Classwork"
-                          >
-                            <Download size={20} />
-                          </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))
-          ) : (
-            <p className="no-classworks">No classworks available.</p>
-          )}
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))
+            ) : (
+              <p className="no-classworks">No classworks available.</p>
+            )}
+          </div>
         </div>
       </div>
     </div>

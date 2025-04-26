@@ -55,11 +55,12 @@ const styles = `
     line-height: 1;
     margin-bottom: 0.5rem;
   }
-    .class-allfiles{
+
+  .class-allfiles {
     font-size: 2rem;
     font-weight: 600;
     word-wrap: break-word;
-    text-align:center;
+    text-align: center;
     margin-bottom: 0.25rem;
   }
 
@@ -208,7 +209,7 @@ const styles = `
 
   .modal-button.confirm {
     background-color: #ff4d4f;
-    color: #fff;
+    color:#: #fff;
   }
 
   .modal-button.confirm:hover {
@@ -471,7 +472,7 @@ const Faculty = () => {
   const [editSemester, setEditSemester] = useState('');
   const [editYear, setEditYear] = useState('');
   const [openMenuId, setOpenMenuId] = useState(null);
-  const [showOtherClasses, setShowOtherClasses] = useState(false); // State to toggle views
+  const [showOtherClasses, setShowOtherClasses] = useState(false);
   const menuRefs = useRef({});
   const user = useSelector((state) => state.auth.user);
   const colors = [
@@ -490,15 +491,20 @@ const Faculty = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      if (!user || user.role !== 'admin') {
+      console.log('Fetching faculty classes:', { user: { email: user?.email, role: user?.role } });
+      if (!user || !['admin', 'super admin', 'faculty'].includes(user.role)) {
         throw new Error('User is not authorized');
       }
       const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
       const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setClasses(sortedClass);
     } catch (error) {
-      console.error("Error fetching faculty classes:", error);
-      toast.error("Failed to fetch classes");
+      console.error("Error fetching faculty classes:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      toast.error(error.response?.data?.message || "Failed to fetch classes");
       setClasses([]);
     } finally {
       setIsLoading(false);
@@ -623,7 +629,6 @@ const Faculty = () => {
     return () => window.removeEventListener('facultyClassCreated', handleClassCreated);
   }, []);
 
-  // Split classes into two groups: current user's classes and other users' classes
   const myClasses = classes.filter(cls => cls.createdBy === user.email);
   const otherClasses = classes.filter(cls => cls.createdBy !== user.email);
 
@@ -676,22 +681,20 @@ const Faculty = () => {
             </>
           ) : (
             <div className="class-grid">
-              {/* Render "All Files" card as the first card */}
               {otherClasses.length > 0 && (
                 <div
                   className="class-card"
-                  style={{ backgroundColor: colors[0] }} // Use the first color for consistency
+                  style={{ backgroundColor: colors[0] }}
                   onClick={() => setShowOtherClasses(true)}
                 >
                   <div className="class-allfiles">All Files</div>
                 </div>
               )}
 
-              {/* Render current user's classes as individual cards after "All Files" */}
               {myClasses.length > 0 ? (
                 myClasses.map((cls, index) => {
                   if (!cls || !cls._id || !cls.ClassName) return null;
-                  const color = colors[(index + 1) % colors.length]; // Offset color index to avoid overlap with "All Files"
+                  const color = colors[(index + 1) % colors.length];
                   return (
                     <div
                       key={cls._id}
@@ -758,7 +761,7 @@ const Faculty = () => {
                     </div>
                   );
                 })
-              ) : otherClasses.length === 0 ? ( // If there are no other classes, show "No classes created by you."
+              ) : otherClasses.length === 0 ? (
                 <p className="no-classes">No classes created by you.</p>
               ) : null}
             </div>

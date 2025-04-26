@@ -25,9 +25,9 @@ import Students from './Pages/Students';
 import Faculty from './Pages/Faculty';
 import Mentor from './Pages/Mentor';
 import Setting from './Pages/Setting';
-// import FacultyClass from './Pages/FacultyClass';
-import FacultyClasswork from './Pages/FacultyClasswork'; // New import
+import FacultyClasswork from './Pages/FacultyClasswork';
 import UserDetails from './Pages/UserDetails';
+import StudentPortal from './Pages/StudentPortal';
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
@@ -61,7 +61,6 @@ const AppContent = () => {
   );
 
   useEffect(() => {
-    // console.log('Current path:', location.pathname, 'User:', user);
     const previousPath = sessionStorage.getItem('previousPath');
     const currentPath = location.pathname;
 
@@ -105,7 +104,7 @@ const AppContent = () => {
         <Route 
           path='/home' 
           element={
-            <ProtectedRoute allowedRoles={['user', 'admin']}>
+            <ProtectedRoute allowedRoles={['user', 'admin', 'super admin']}>
               <UserLayout />
             </ProtectedRoute>
           }
@@ -133,7 +132,7 @@ const AppContent = () => {
         <Route 
           path='/admin' 
           element={
-            <ProtectedRoute allowedRoles={['admin', 'faculty']}>
+            <ProtectedRoute allowedRoles={['admin', 'super admin', 'faculty']}>
               <AdminLayout />
             </ProtectedRoute>
           }
@@ -141,15 +140,15 @@ const AppContent = () => {
           <Route 
             path='archived' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <ArchivedClass />
               </ProtectedRoute>
             } 
           />
-           <Route 
+          <Route 
             path='userdetails' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['super admin']}>
                 <UserDetails />
               </ProtectedRoute>
             } 
@@ -157,15 +156,23 @@ const AppContent = () => {
           <Route 
             path='students' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <Students />
+              </ProtectedRoute>
+            } 
+          />
+           <Route 
+            path='studentsportal' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
+                <StudentPortal />
               </ProtectedRoute>
             } 
           />
           <Route 
             path='faculty' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin', 'faculty']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin', 'faculty']}>
                 <Faculty />
               </ProtectedRoute>
             } 
@@ -173,7 +180,7 @@ const AppContent = () => {
           <Route 
             path='mentor' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <Mentor />
               </ProtectedRoute>
             } 
@@ -181,7 +188,7 @@ const AppContent = () => {
           <Route 
             path='setting' 
             element={ 
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <Setting />
               </ProtectedRoute>
             } 
@@ -189,15 +196,15 @@ const AppContent = () => {
           <Route 
             path='faculty/class/:classId' 
             element={
-              <ProtectedRoute allowedRoles={['admin', 'faculty']}>
-                <FacultyClasswork /> {/* Updated to FacultyClasswork */}
+              <ProtectedRoute allowedRoles={['admin', 'super admin', 'faculty']}>
+                <FacultyClasswork />
               </ProtectedRoute>
             }
           />
           <Route
             path='classadmin/:id'
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <ClassAdmin />
               </ProtectedRoute>
             }
@@ -208,7 +215,7 @@ const AppContent = () => {
           <Route 
             path="classadmin/:id/quiz" 
             element={
-              <ProtectedRoute allowedRoles={['admin']}>
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
                 <QuizAdmin />
               </ProtectedRoute>
             }

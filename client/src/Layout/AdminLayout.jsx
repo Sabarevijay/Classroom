@@ -27,7 +27,7 @@ const AdminLayout = () => {
         if (!user) {
           navigate('/')
         }
-        else if(user.role !=='admin'){
+        else if(!['admin', 'super admin'].includes(user.role)){
             navigate('/')
         }
       })

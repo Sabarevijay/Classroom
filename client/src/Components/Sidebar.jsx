@@ -4,9 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useSidebar } from '../context/SidebarContext';
 
-// Updated CSS styles
 const styles = `
-  /* Sidebar */
   .sidebar {
     position: fixed;
     top: 0;
@@ -31,7 +29,6 @@ const styles = `
     }
   }
 
-  /* Menu Button */
   .menu-button {
     padding: 1.25rem;
     display: flex;
@@ -54,7 +51,6 @@ const styles = `
     cursor: pointer;
   }
 
-  /* Animation for menu icon */
   .menu-icon-open {
     animation: rotateToCross 0.3s ease-in-out forwards;
   }
@@ -81,7 +77,6 @@ const styles = `
     }
   }
 
-  /* Classroom Name */
   .classroom-name {
     padding: 1rem 1.25rem;
     display: flex;
@@ -98,7 +93,6 @@ const styles = `
     justify-content: flex-start;
   }
 
-  /* Horizontal Line */
   .horizontal-line {
     width: 80%;
     height: 1px;
@@ -106,7 +100,6 @@ const styles = `
     margin: 0 auto;
   }
 
-  /* Navigation Links */
   .nav-links {
     display: flex;
     flex-direction: column;
@@ -139,7 +132,6 @@ const styles = `
     border-left: 4px solid #3b82f6;
   }
 
-  /* Add bottom margin to the Settings tab */
   .nav-item.settings {
     margin-bottom: -30px;
   }
@@ -163,7 +155,6 @@ const styles = `
     opacity: 1;
   }
 
-  /* Tooltip Styles */
   .nav-item::before {
     content: attr(data-tooltip);
     position: absolute;
@@ -204,7 +195,6 @@ const styles = `
     visibility: visible;
   }
 
-  /* Mobile Backdrop */
   .backdrop {
     position: fixed;
     inset: 0;
@@ -229,6 +219,11 @@ const Sidebar = () => {
   const userRole = user?.role;
   const { setIsSidebarHovered } = useSidebar();
   const classroomName = useSelector((state) => state.classroom?.name) || "Classroom";
+
+  const handleNavigation = (path, tooltip) => {
+    console.log('Navigating to:', path, 'User:', { email: user?.email, role: userRole });
+    navigate(path);
+  };
 
   const toggleSidebar = () => {
     console.log('Toggling sidebar. Current isOpen:', isOpen);
@@ -267,27 +262,21 @@ const Sidebar = () => {
           </button>
         </div>
 
-        {/* Classroom Name and Horizontal Line */}
-        {/* <div className="classroom-name">
-          {classroomName}
-        </div>
-        <div className="horizontal-line"></div> */}
-
         <nav className="nav-links">
           <div className="top-links">
             <div
               className={`nav-item ${window.location.pathname === "/home" ? "active" : ""}`}
-              onClick={() => navigate("/home")}
+              onClick={() => handleNavigation("/home", "View all classrooms")}
               data-tooltip="View all classrooms"
             >
               <Home size={20} className="nav-icon" />
               <span className="nav-text">Classroom</span>
             </div>
-            {userRole === 'admin' && (
+            {['admin', 'super admin'].includes(userRole) && (
               <>
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/students' ? 'active' : ''}`}
-                  onClick={() => navigate('/admin/students')}
+                  onClick={() => handleNavigation('/admin/students', "Manage student records")}
                   data-tooltip="Manage student records"
                 >
                   <Users size={20} className="nav-icon" />
@@ -295,7 +284,7 @@ const Sidebar = () => {
                 </div>
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/faculty' ? 'active' : ''}`}
-                  onClick={() => navigate('/admin/faculty')}
+                  onClick={() => handleNavigation('/admin/faculty', "Manage faculty members")}
                   data-tooltip="Manage faculty members"
                 >
                   <GraduationCap size={20} className="nav-icon" />
@@ -303,7 +292,7 @@ const Sidebar = () => {
                 </div>
                 <div
                   className={`nav-item ${window.location.pathname === '/admin/mentor' ? 'active' : ''}`}
-                  onClick={() => navigate('/admin/mentor')}
+                  onClick={() => handleNavigation('/admin/mentor', "Manage mentors")}
                   data-tooltip="Manage mentors"
                 >
                   <UserCheck size={20} className="nav-icon" />
@@ -313,31 +302,29 @@ const Sidebar = () => {
             )}
           </div>
           <div className="bottom-links">
-            {userRole === 'admin' && (
-              <>
-                            <div
+            {['admin', 'super admin'].includes(userRole) && (
+              <div
                 className={`nav-item ${window.location.pathname === '/admin/archived' ? 'active' : ''}`}
-                onClick={() => navigate('/admin/archived')}
+                onClick={() => handleNavigation('/admin/archived', "View archived classes")}
                 data-tooltip="View archived classes"
               >
                 <Archive size={20} className="nav-icon" />
                 <span className="nav-text">Archived Class</span>
               </div>
-
-               <div
-               className={`nav-item ${window.location.pathname === '/admin/userdetails' ? 'active' : ''}`}
-               onClick={() => navigate('/admin/userdetails')}
-               data-tooltip="View user details"
-             >
-               <Info size={20} className="nav-icon" />
-               <span className="nav-text">User details</span>
-             </div>
-             </>
-
+            )}
+            {userRole === 'super admin' && (
+              <div
+                className={`nav-item ${window.location.pathname === '/admin/userdetails' ? 'active' : ''}`}
+                onClick={() => handleNavigation('/admin/userdetails', "View user details")}
+                data-tooltip="View user details"
+              >
+                <Info size={20} className="nav-icon" />
+                <span className="nav-text">User Details</span>
+              </div>
             )}
             <div
-              className={`nav-item settings ${window.location.pathname === '/settings' ? 'active' : ''}`}
-              onClick={() => navigate('/admin/setting')}
+              className={`nav-item settings ${window.location.pathname === '/admin/setting' ? 'active' : ''}`}
+              onClick={() => handleNavigation('/admin/setting', "Adjust application settings")}
               data-tooltip="Adjust application settings"
             >
               <Settings size={20} className="nav-icon" />

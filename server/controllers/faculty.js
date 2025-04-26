@@ -49,39 +49,44 @@ const CreateFacultyClass = async (req, res) => {
 
 const getFacultyClasses = async (req, res) => {
   try {
-    const userEmail = req.query.email;
-    const userRole = req.user?.role; // Assuming req.user is populated by authMiddleware
-    if (!userEmail || !userRole) {
-      return res.status(400).json({
+    const { email } = req.query;
+    console.log('getClass request:', { user: req.user, email });
+    if (!req.user) {
+      return res.status(401).json({
         success: false,
-        message: "User email and role are required",
+        message: 'No user authenticated',
       });
     }
-
-    let classes;
-    if (userRole === 'admin') {
-      // Admins can see all faculty classes
-      classes = await FacultyClassModel.find({ isArchived: false }).sort({ createdAt: -1 });
-    } else if (userRole === 'faculty') {
-      // Faculty members can only see their own classes
-      classes = await FacultyClassModel.find({ createdBy: userEmail, isArchived: false }).sort({ createdAt: -1 });
-    } else {
+    if (!['admin', 'super admin', 'faculty'].includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: "Unauthorized: Only admins and faculty members can access this endpoint",
+        message: 'User is not authorized',
+      });
+    }
+    if (!email || email !== req.user.email) {
+      return res.status(403).json({
+        success: false,
+        message: 'Email mismatch or missing',
       });
     }
 
+    const classes = await FacultyClassModel.find({ createdBy: email });
+    console.log('getClass response:', { classes: classes.length });
     return res.status(200).json({
       success: true,
-      message: "Faculty classes retrieved successfully",
+      message: 'Classes retrieved successfully',
       getclass: classes,
     });
   } catch (error) {
-    console.error("getFacultyClasses error:", error);
+    console.error('getClass error:', {
+      message: error.message,
+      stack: error.stack,
+      user: req.user,
+      query: req.query,
+    });
     return res.status(500).json({
       success: false,
-      message: "Internal server error",
+      message: 'Internal server error',
     });
   }
 };
