@@ -9,7 +9,7 @@ const styles = `
     min-height: 100vh;
     background-color: #f5f5f5;
     padding: 20px;
-    margin-top:50px;
+    margin-top: 50px;
     text-align: center;
   }
 
@@ -56,7 +56,7 @@ const styles = `
     box-shadow: 0 0 5px rgba(30, 136, 229, 0.3);
   }
 
-  .internship-form {
+  .internship-form, .placement-form {
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -104,6 +104,27 @@ const styles = `
     min-height: 100px;
   }
 
+  .form-field input[type="file"] {
+    padding: 0.2rem;
+    border: none;
+    background-color: transparent;
+  }
+
+  .form-field input[type="file"]::-webkit-file-upload-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+    color: #fff;
+    background-color: #1E88E5;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s;
+  }
+
+  .form-field input[type="file"]::-webkit-file-upload-button:hover {
+    background-color: #1565C0;
+  }
+
   .submit-button {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
@@ -133,18 +154,29 @@ const StudentPortal = () => {
     setSelectedOption(event.target.value);
   };
 
-  const handleFormSubmit = (event) => {
+  const handleInternshipFormSubmit = (event) => {
     event.preventDefault();
-    // Placeholder for form submission logic
-    console.log('Form submitted with values:', {
+    console.log('Internship Form submitted with values:', {
       companyName: event.target.companyName.value,
       role: event.target.role.value,
       startDate: event.target.startDate.value,
       endDate: event.target.endDate.value,
       description: event.target.description.value,
     });
-    // Reset form or show success message as needed
     alert('Internship details submitted!');
+  };
+
+  const handlePlacementFormSubmit = (event) => {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    console.log('Placement Form submitted with values:', {
+      companyName: formData.get('companyName'),
+      location: formData.get('location'),
+      jobRole: formData.get('jobRole'),
+      salary: formData.get('salary'),
+      proof: formData.get('proof') ? formData.get('proof').name : 'No file uploaded',
+    });
+    alert('Placement details submitted!');
   };
 
   return (
@@ -183,7 +215,7 @@ const StudentPortal = () => {
         )}
 
         {className === 'Placement' && selectedOption === 'Internship' && (
-          <form className="internship-form" onSubmit={handleFormSubmit}>
+          <form className="internship-form" onSubmit={handleInternshipFormSubmit}>
             <div className="form-field">
               <label htmlFor="companyName">Company Name</label>
               <input
@@ -228,6 +260,65 @@ const StudentPortal = () => {
                 id="description"
                 name="description"
                 placeholder="Enter internship description"
+              />
+            </div>
+            <button type="submit" className="submit-button">
+              Submit
+            </button>
+          </form>
+        )}
+
+        {className === 'Placement' && selectedOption === 'Placement' && (
+          <form className="placement-form" onSubmit={handlePlacementFormSubmit}>
+            <div className="form-field">
+              <label htmlFor="companyName">Company Name</label>
+              <input
+                type="text"
+                id="companyName"
+                name="companyName"
+                required
+                placeholder="Enter company name"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="location">Location</label>
+              <input
+                type="text"
+                id="location"
+                name="location"
+                required
+                placeholder="Enter job location"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="jobRole">Job Role</label>
+              <input
+                type="text"
+                id="jobRole"
+                name="jobRole"
+                required
+                placeholder="Enter job role"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="salary">Salary</label>
+              <input
+                type="number"
+                id="salary"
+                name="salary"
+                required
+                placeholder="Enter annual salary"
+                min="0"
+                step="0.01"
+              />
+            </div>
+            <div className="form-field">
+              <label htmlFor="proof">Proof Upload</label>
+              <input
+                type="file"
+                id="proof"
+                name="proof"
+                accept=".pdf,.doc,.docx,.jpg,.png"
               />
             </div>
             <button type="submit" className="submit-button">

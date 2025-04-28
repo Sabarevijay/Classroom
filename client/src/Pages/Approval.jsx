@@ -1,7 +1,6 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import MentorNav from '../Components/MentorNav';
-
+import MentorNav from '../Components/MentorNav'; // Adjust path based on your project structure
 
 const styles = `
   /* Page Background */
@@ -65,8 +64,8 @@ const styles = `
   }
 `;
 
-const Mentor = () => {
-  const { classId } = useParams(); // Extract classId from URL
+const Approval = () => {
+  const { classId } = useParams();
 
   return (
     <>
@@ -76,13 +75,11 @@ const Mentor = () => {
           <div className="second-nav">
             <MentorNav classId={classId} />
           </div>
-          <h2 className="class-name">Mentor Dashboard</h2>
-         
-          
+          <h1 className="class-name">Approval</h1>
         </div>
       </div>
     </>
   );
 };
 
-export default Mentor;
+export default Approval;

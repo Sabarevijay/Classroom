@@ -1,7 +1,6 @@
-import React from 'react';
+import React from 'react'
 import { useParams } from 'react-router-dom';
-import MentorNav from '../Components/MentorNav';
-
+import MentorNav from '../Components/MentorNav'; // Adjust path based on your project structure
 
 const styles = `
   /* Page Background */
@@ -65,24 +64,22 @@ const styles = `
   }
 `;
 
-const Mentor = () => {
-  const { classId } = useParams(); // Extract classId from URL
+const Report = () => {
+    const { classId } = useParams();
 
-  return (
-    <>
-      <style>{styles}</style>
-      <div className="page-container">
-        <div className="card-container">
-          <div className="second-nav">
-            <MentorNav classId={classId} />
+    return (
+      <>
+        <style>{styles}</style>
+        <div className="page-container">
+          <div className="card-container">
+            <div className="second-nav">
+              <MentorNav classId={classId} />
+            </div>
+            <h1 className="class-name">Report</h1>
           </div>
-          <h2 className="class-name">Mentor Dashboard</h2>
-         
-          
         </div>
-      </div>
-    </>
-  );
-};
+      </>
+    );
+}
 
-export default Mentor;
+export default Report

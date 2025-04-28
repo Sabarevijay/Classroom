@@ -1,5 +1,5 @@
 import React, { useEffect, useState, Component } from 'react';
-import { BrowserRouter, Route, Routes, useLocation } from 'react-router-dom';
+import { BrowserRouter, Route, Routes, useLocation, Outlet, Navigate } from 'react-router-dom';
 import Login from './Pages/Login';
 import Home from './Pages/Home';
 import Register from './Pages/Register';
@@ -28,6 +28,10 @@ import Setting from './Pages/Setting';
 import FacultyClasswork from './Pages/FacultyClasswork';
 import UserDetails from './Pages/UserDetails';
 import StudentPortal from './Pages/StudentPortal';
+import Approval from './Pages/Approval';
+import StudentAchives from './Pages/StudentAchives';
+import Report from './Pages/Report';
+import AddStudentMentor from './Pages/AddStudentMentor';
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
@@ -52,6 +56,14 @@ class ErrorBoundary extends Component {
   }
 }
 
+const MentorLayout = () => {
+  return (
+    <AdminLayout>
+      <Outlet />
+    </AdminLayout>
+  );
+};
+
 const AppContent = () => {
   const location = useLocation();
   const user = useSelector((state) => state.auth.user);
@@ -63,6 +75,8 @@ const AppContent = () => {
   useEffect(() => {
     const previousPath = sessionStorage.getItem('previousPath');
     const currentPath = location.pathname;
+
+    console.log('Current Path:', currentPath); // Debug navigation
 
     sessionStorage.setItem('previousPath', currentPath);
 
@@ -161,14 +175,6 @@ const AppContent = () => {
               </ProtectedRoute>
             } 
           />
-           <Route 
-            path='studentsportal' 
-            element={ 
-              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
-                <StudentPortal />
-              </ProtectedRoute>
-            } 
-          />
           <Route 
             path='faculty' 
             element={ 
@@ -181,7 +187,7 @@ const AppContent = () => {
             path='mentor' 
             element={ 
               <ProtectedRoute allowedRoles={['admin', 'super admin']}>
-                <Mentor />
+                <Navigate to="/mentor/classadmin/default" replace />
               </ProtectedRoute>
             } 
           />
@@ -220,6 +226,22 @@ const AppContent = () => {
               </ProtectedRoute>
             }
           />
+        </Route>
+
+        <Route 
+          path='/mentor/classadmin/:classId' 
+          element={
+            <ProtectedRoute allowedRoles={['admin', 'super admin']}>
+              <MentorLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Mentor />} />
+          <Route path="studentsportal" element={<StudentPortal />} />
+          <Route path="approval" element={<Approval />} />
+          <Route path="achievement" element={<StudentAchives />} />
+          <Route path="report" element={<Report />} />
+          <Route path="addstudents" element={<AddStudentMentor />} />
         </Route>
       </Routes>
     </>

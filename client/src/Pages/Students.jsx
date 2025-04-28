@@ -1,5 +1,5 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const styles = `
   .page-container {
@@ -31,7 +31,6 @@ const styles = `
     gap: 1.5rem;
     padding: 1rem;
     justify-items: center;
-    
   }
 
   .class-card {
@@ -103,16 +102,18 @@ const styles = `
     }
 
     .class-title {
-      font-size: 1.rem;
+      font-size: 1.2rem;
     }
   }
 `;
 
 const Students = () => {
   const navigate = useNavigate();
+  const classId = 'default'; // Replace with dynamic classId (e.g., from context or backend)
 
   const handleNavigate = (className) => {
-    navigate(`/admin/studentsportal`, { state: { className } });
+    console.log('Navigating to StudentPortal with classId:', classId, 'className:', className);
+    navigate(`/mentor/classadmin/${classId}/studentsportal`, { state: { className } });
   };
 
   const colors = [
@@ -130,7 +131,7 @@ const Students = () => {
       <style>{styles}</style>
       <div className="page-container">
         <div className="content-area">
-          <h1 className="page-title"><u>Student Portal</u></h1>
+          <h1 className="page-title">Student Portal</h1>
           <div className="class-grid">
             {classNames.map((className, index) => (
               <div
