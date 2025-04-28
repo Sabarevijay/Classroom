@@ -65,7 +65,7 @@ const MentorNav = ({ classId }) => {
           to={`${basePath}/achievement`}
           className={`nav-tab ${currentPath === `${basePath}/achievement` ? 'active' : ''}`}
         >
-          Student Achievement
+          Student Details
         </Link>
         <Link
           to={`${basePath}/report`}

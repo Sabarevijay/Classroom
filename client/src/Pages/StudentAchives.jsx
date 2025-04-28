@@ -1,6 +1,6 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import MentorNav from '../Components/MentorNav';
+import MentorNav from '../Components/MentorNav'; // Adjust path based on your project structure
 
 const styles = `
   /* Page Background */
@@ -46,6 +46,59 @@ const styles = `
     text-align: center;
   }
 
+  /* Student Cards */
+  .student-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+  }
+
+  .student-card {
+    background-color: #f9f9f9;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    transition: transform 0.2s;
+  }
+
+  .student-card:hover {
+    transform: scale(1.05);
+  }
+
+  .student-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 0.5rem;
+  }
+
+  .student-name {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.25rem;
+  }
+
+  .student-email,
+  .student-mobile {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 0.25rem;
+  }
+
+  /* No Data Message */
+  .no-data {
+    text-align: center;
+    color: #666;
+    font-size: 1.1rem;
+    margin-top: 2rem;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .card-container {
@@ -61,26 +114,67 @@ const styles = `
     .class-name {
       font-size: 1.8rem;
     }
+
+    .student-grid {
+      grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+
+    .student-photo {
+      width: 60px;
+      height: 60px;
+    }
+
+    .student-name {
+      font-size: 1rem;
+    }
+
+    .student-email,
+    .student-mobile {
+      font-size: 0.8rem;
+    }
   }
 `;
 
 const StudentAchives = () => {
-    const { classId } = useParams();
+  const { classId } = useParams();
+  const [students, setStudents] = useState([]);
 
-    return (
-      <>
-        <style>{styles}</style>
-        <div className="page-container">
-          <div className="card-container">
-            <div className="second-nav">
-              <MentorNav classId={classId} />
-            </div>
-            <h1 className="class-name">Student Achievement</h1>
+  // Load students from localStorage on mount
+  useEffect(() => {
+    const savedStudents = JSON.parse(localStorage.getItem('students')) || [];
+    setStudents(savedStudents);
+  }, []);
+
+  return (
+    <>
+      <style>{styles}</style>
+      <div className="page-container">
+        <div className="card-container">
+          <div className="second-nav">
+            <MentorNav classId={classId} />
           </div>
+          <h1 className="class-name">Student Details</h1>
+
+          {students.length === 0 ? (
+            <div className="no-data">
+              <p>No students found. Add students in the Add Students page.</p>
+            </div>
+          ) : (
+            <div className="student-grid">
+              {students.map((student, index) => (
+                <div key={index} className="student-card">
+                  <img src={student.photo} alt={student.name} className="student-photo" />
+                  <div className="student-name">{student.name}</div>
+                  <div className="student-email">{student.email}</div>
+                  <div className="student-mobile">{student.mobile}</div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
-      </>
-    );
-}
+      </div>
+    </>
+  );
+};
 
-export default StudentAchives
-
+export default StudentAchives;
