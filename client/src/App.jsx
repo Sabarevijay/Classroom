@@ -32,6 +32,7 @@ import Approval from './Pages/Approval';
 import StudentAchives from './Pages/StudentAchives';
 import Report from './Pages/Report';
 import AddStudentMentor from './Pages/AddStudentMentor';
+import StudentProfile from './Pages/StudentProfile'; // Add import
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
@@ -176,6 +177,14 @@ const AppContent = () => {
             } 
           />
           <Route 
+            path='studentsportal' 
+            element={ 
+              <ProtectedRoute allowedRoles={['admin', 'super admin']}>
+                <Navigate to="/mentor/classadmin/default/studentsportal" replace />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
             path='faculty' 
             element={ 
               <ProtectedRoute allowedRoles={['admin', 'super admin', 'faculty']}>
@@ -187,7 +196,7 @@ const AppContent = () => {
             path='mentor' 
             element={ 
               <ProtectedRoute allowedRoles={['admin', 'super admin']}>
-                <Navigate to="/mentor/classadmin/default" replace />
+                <Navigate to="/mentor/classadmin/default/approval" replace />
               </ProtectedRoute>
             } 
           />
@@ -236,8 +245,9 @@ const AppContent = () => {
             </ProtectedRoute>
           }
         >
-          <Route index element={<Mentor />} />
+          <Route index element={<Navigate to="approval" replace />} />
           <Route path="studentsportal" element={<StudentPortal />} />
+          <Route path="studentprofile" element={<StudentProfile />} />
           <Route path="approval" element={<Approval />} />
           <Route path="achievement" element={<StudentAchives />} />
           <Route path="report" element={<Report />} />

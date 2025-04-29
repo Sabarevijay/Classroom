@@ -112,8 +112,12 @@ const Students = () => {
   const classId = 'default'; // Replace with dynamic classId (e.g., from context or backend)
 
   const handleNavigate = (className) => {
-    console.log('Navigating to StudentPortal with classId:', classId, 'className:', className);
-    navigate(`/mentor/classadmin/${classId}/studentsportal`, { state: { className } });
+    console.log('Navigating with classId:', classId, 'className:', className);
+    if (className === 'Students Profile') {
+      navigate(`/mentor/classadmin/${classId}/studentprofile`);
+    } else {
+      navigate(`/mentor/classadmin/${classId}/studentsportal`, { state: { className } });
+    }
   };
 
   const colors = [
