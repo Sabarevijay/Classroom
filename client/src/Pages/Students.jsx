@@ -1,157 +1,103 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useLocation, Outlet } from 'react-router-dom';
+import StudentProfileNav from '../Components/StudentProfileNav';
 
 const styles = `
+  /* Page Container */
   .page-container {
+    background-color: #d3d8e0;
     min-height: 100vh;
-    background-color: #f5f5f5;
     display: flex;
     flex-direction: column;
-    padding: 70px 20px 20px;
-  }
-
-  .content-area {
-    flex: 1;
-    padding-top: 0;
-    padding-left: 80px;
-    transition: padding-left 0.3s ease;
-  }
-
-  .page-title {
-    font-size: 2rem;
-    font-weight: 700;
-    color: #333;
-    text-align: center;
-    margin-bottom: 2rem;
-  }
-
-  .class-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1.5rem;
-    padding: 1rem;
-    justify-items: center;
-  }
-
-  .class-card {
+    align-items: center;
+    padding: 20px;
     position: relative;
-    width: 100%;
-    max-width: 300px;
-    height: 180px;
+  }
+
+  /* Card Container for content and StudentProfileNav */
+  .card-container {
+    background-color: #fff;
     border-radius: 1rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 700px;
+    padding: 0 2rem; /* Removed bottom padding */
+    margin-top: 1rem;
     display: flex;
     flex-direction: column;
-    justify-content: center;
-    padding: 1rem;
-    color: #fff;
-    transition: transform 0.2s, box-shadow 0.2s;
-    cursor: pointer;
+    gap: 1.5rem;
   }
 
-  .class-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+  /* Style for StudentProfileNav to merge with the top of the card */
+  .second-nav {
+    background-color: #fff;
+    border-top-left-radius: 1rem;
+    border-top-right-radius: 1rem;
+    padding: 0rem 0;
+    margin: 0 -2rem;
   }
 
-  .class-title {
-    font-size: 1.7rem;
-    font-weight: 600;
-    word-wrap: break-word;
-    margin-bottom: 0.25rem;
+  /* Heading */
+  .class-name {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: #6b48ff;
+    margin-bottom: 1rem;
     text-align: center;
   }
 
+  /* Responsive adjustments */
   @media (max-width: 768px) {
     .page-container {
-      padding: 60px 10px 10px;
+      padding: 10px;
     }
 
-    .content-area {
-      padding-left: 0;
+    .card-container {
+      padding: 0 1rem;
+      margin-top: 0.5rem;
     }
 
-    .page-title {
-      font-size: 1.5rem;
+    .second-nav {
+      margin: 0 -1rem;
+      padding: 0.75rem 0;
     }
 
-    .class-grid {
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1rem;
-      padding: 2rem 0.5rem 0.5rem;
-    }
-
-    .class-card {
-      max-width: 100%;
-      height: 180px;
-    }
-
-    .class-title {
-      font-size: 1rem;
-    }
-  }
-
-  @media (max-width: 480px) {
-    .class-grid {
-      grid-template-columns: 1fr;
-      padding: 2.5rem 0.5rem 0.5rem;
-    }
-
-    .class-card {
-      height: 160px;
-    }
-
-    .class-title {
-      font-size: 1.2rem;
+    .class-name {
+      font-size: 1.8rem;
     }
   }
 `;
 
-const Students = () => {
-  const navigate = useNavigate();
-  const classId = 'default'; // Replace with dynamic classId (e.g., from context or backend)
+const StudentProfile = () => {
+  const { classId } = useParams();
+  const location = useLocation();
+  const currentPath = location.pathname.toLowerCase();
+  const basePath = `/mentor/classadmin/${classId}/studentprofile`;
 
-  const handleNavigate = (className) => {
-    console.log('Navigating with classId:', classId, 'className:', className);
-    if (className === 'Students Profile') {
-      navigate(`/mentor/classadmin/${classId}/studentprofile`);
-    } else {
-      navigate(`/mentor/classadmin/${classId}/studentsportal`, { state: { className } });
-    }
-  };
+  let pageTitle = 'Leave Apply';
+  if (currentPath === `${basePath}/academic`) {
+    pageTitle = 'Academic';
+  } else if (currentPath === `${basePath}/achievements`) {
+    pageTitle = 'Achievements';
+  }
 
-  const colors = [
-    '#FF6F61', '#6B48FF', '#4CAF50', '#FFCA28', '#1E88E5',
-    '#009688', '#795548', '#FF9800', '#3F51B5'
-  ];
-
-  const classNames = [
-    'Students Profile', 'Academic', 'Technical Skill', 'Co-curricular',
-    'Extra Curricular', 'Placement', 'Satisfaction Report'
-  ];
+  // Conditionally render the title (hide for "Leave Apply")
+  const showTitle = pageTitle !== 'Leave Apply';
 
   return (
     <>
       <style>{styles}</style>
       <div className="page-container">
-        <div className="content-area">
-          <h1 className="page-title">Student Portal</h1>
-          <div className="class-grid">
-            {classNames.map((className, index) => (
-              <div
-                key={className}
-                className="class-card"
-                style={{ backgroundColor: colors[index % colors.length] }}
-                onClick={() => handleNavigate(className)}
-              >
-                <div className="class-title">{className}</div>
-              </div>
-            ))}
+        <div className="card-container">
+          <div className="second-nav">
+            <StudentProfileNav classId={classId} />
           </div>
+          {showTitle && <h2 className="class-name">{pageTitle}</h2>}
+          <Outlet />
         </div>
       </div>
     </>
   );
 };
 
-export default Students;
+export default StudentProfile;

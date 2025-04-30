@@ -32,7 +32,10 @@ import Approval from './Pages/Approval';
 import StudentAchives from './Pages/StudentAchives';
 import Report from './Pages/Report';
 import AddStudentMentor from './Pages/AddStudentMentor';
-import StudentProfile from './Pages/StudentProfile'; // Add import
+import StudentProfile from './Pages/StudentProfile';
+import Leave from './Pages/Leave'; // Added import
+import Academic from './Pages/Academic'; // Added import
+import Achievements from './Pages/Achievements'; // Added import
 
 const GOOGLE_CLIENT_ID = import.meta.env.REACT_APP_GOOGLE_CLIENT_ID || "your-google-client-id-here";
 
@@ -247,7 +250,12 @@ const AppContent = () => {
         >
           <Route index element={<Navigate to="approval" replace />} />
           <Route path="studentsportal" element={<StudentPortal />} />
-          <Route path="studentprofile" element={<StudentProfile />} />
+          <Route path="studentprofile" element={<StudentProfile />}>
+            <Route index element={<Navigate to="leave" replace />} /> {/* Default route for studentprofile */}
+            <Route path="leave" element={<Leave />} />
+            <Route path="academic" element={<Academic />} />
+            <Route path="achievements" element={<Achievements />} />
+          </Route>
           <Route path="approval" element={<Approval />} />
           <Route path="achievement" element={<StudentAchives />} />
           <Route path="report" element={<Report />} />

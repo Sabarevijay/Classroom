@@ -1,18 +1,17 @@
 import React from 'react';
-import { useParams, useLocation } from 'react-router-dom'; // Added useLocation
-import StudentProfileNav from '../Components/StudentProfileNav'; // Adjust path based on your project structure
+import { useParams, useLocation, Outlet } from 'react-router-dom'; // Added Outlet import
+import StudentProfileNav from '../Components/StudentProfileNav';
 
 const styles = `
   /* Page Container */
-  .portal-container {
+  .page-container {
+    background-color: #d3d8e0;
+    min-height: 100vh;
     display: flex;
     flex-direction: column;
     align-items: center;
-    min-height: 100vh;
-    background-color: #d3d8e0;
     padding: 20px;
-    margin-top: 50px;
-    text-align: center;
+    position: relative;
   }
 
   /* Card Container for content and StudentProfileNav */
@@ -23,11 +22,10 @@ const styles = `
     width: 100%;
     max-width: 700px;
     padding: 0 2rem 2rem 2rem;
+    margin-top: 4.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
-    align-items: center;
-    margin-top:50px;
   }
 
   /* Style for StudentProfileNav to merge with the top of the card */
@@ -37,11 +35,10 @@ const styles = `
     border-top-right-radius: 1rem;
     padding: 0rem 0;
     margin: 0 -2rem;
-    width:110%;
   }
 
   /* Heading */
-  .portal-title {
+  .class-name {
     font-size: 2.5rem;
     font-weight: 800;
     color: #6b48ff;
@@ -51,13 +48,13 @@ const styles = `
 
   /* Responsive adjustments */
   @media (max-width: 768px) {
-    .portal-container {
+    .page-container {
       padding: 10px;
-      margin-top: 30px;
     }
 
     .card-container {
       padding: 0 1rem 1rem 1rem;
+      margin-top: 0.5rem;
     }
 
     .second-nav {
@@ -65,7 +62,7 @@ const styles = `
       padding: 0.75rem 0;
     }
 
-    .portal-title {
+    .class-name {
       font-size: 1.8rem;
     }
   }
@@ -75,27 +72,25 @@ const StudentProfile = () => {
   const { classId } = useParams();
   const location = useLocation();
   const currentPath = location.pathname.toLowerCase();
-  const basePath = `/mentor/classadmin/${classId}`;
+  const basePath = `/mentor/classadmin/${classId}/studentprofile`;
 
-  // Determine the title based on the current route
-  let pageTitle = 'Approval'; // Default title
-  if (currentPath === `${basePath}/achievement`) {
-    pageTitle = 'Student Details';
-  } else if (currentPath === `${basePath}/report`) {
-    pageTitle = 'Report';
-  } else if (currentPath === `${basePath}/addstudents`) {
-    pageTitle = 'Add Students';
+  let pageTitle = 'Leave Apply';
+  if (currentPath === `${basePath}/academic`) {
+    pageTitle = 'Academic';
+  } else if (currentPath === `${basePath}/achievements`) {
+    pageTitle = 'Achievements';
   }
 
   return (
     <>
       <style>{styles}</style>
-      <div className="portal-container">
+      <div className="page-container">
         <div className="card-container">
           <div className="second-nav">
             <StudentProfileNav classId={classId} />
           </div>
-          <h2 className="portal-title">Student Profile</h2>
+          {/* <h2 className="class-name">{pageTitle}</h2> */}
+          <Outlet /> {/* Added Outlet to render child routes */}
         </div>
       </div>
     </>

@@ -49,15 +49,15 @@ const StudentProfileNav = ({ classId }) => {
   console.log("Class ID in StudentProfileNav:", classId);
   const location = useLocation();
   const currentPath = location.pathname.toLowerCase();
-  const basePath = `/mentor/classadmin/${classId}`;
+  const basePath = `/mentor/classadmin/${classId}/studentprofile`; // Updated basePath to include /studentprofile
 
   return (
     <>
       <style>{styles}</style>
       <div className="nav-bar">
         <Link
-          to={`${basePath}/leaveapply`}
-          className={`nav-tab ${currentPath === `${basePath}/leaveapply` ? 'active' : ''}`}
+          to={`${basePath}/leave`}
+          className={`nav-tab ${currentPath === `${basePath}/leave` ? 'active' : ''}`}
         >
           Leave Apply
         </Link>
