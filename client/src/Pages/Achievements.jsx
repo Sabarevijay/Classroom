@@ -97,6 +97,41 @@ const styles = `
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
   }
 
+  /* Custom file input wrapper */
+  .file-input-wrapper {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+  }
+
+  .file-input-wrapper input[type="file"] {
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
+    cursor: pointer;
+  }
+
+  .file-input-label {
+    display: block;
+    padding: 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    color: #333;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    text-align: left;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+
+  .file-input-wrapper input[type="file"]:focus + .file-input-label {
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
   /* Submit button */
   .submit-button {
     background-color: #6b48ff;
@@ -123,7 +158,7 @@ const styles = `
     }
 
     .card-container {
-    //   padding: 0.75rem; /* Slightly increased padding for better spacing */
+      padding: 0.75rem; /* Slightly increased padding for better spacing */
       margin-top: 4.5rem;
       padding-top: 0;
       padding-bottom: 0.75rem; /* Adjusted for submit button */
@@ -155,6 +190,11 @@ const styles = `
       min-height: 80px; /* Reduced textarea height for mobile */
     }
 
+    .file-input-label {
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
     .submit-button {
       padding: 8px 16px; /* Slightly smaller padding for mobile */
       font-size: 0.9rem; /* Smaller font size for mobile */
@@ -183,24 +223,30 @@ const Achievements = () => {
       description: '',
     },
     competitions: {
-      date: '',
+      startDate: '',
+      endDate: '',
       upload: null,
       description: '',
     },
     internship: {
       companyName: '',
       role: '',
-      date: '',
+      startDate: '',
+      endDate: '',
+      certificate: null,
       description: '',
     },
     onlineCourse: {
       courseName: '',
-      duration: '',
+      startDate: '',
+      endDate: '',
       certifications: null,
     },
     productDevelopment: {
       productName: '',
       details: '',
+      startDate: '',
+      endDate: '',
       upload: null,
     },
     languages: {
@@ -279,13 +325,16 @@ const Achievements = () => {
                   />
                 </div>
                 <div className="form-field">
-                  <input
-                    type="file"
-                    className="form-input"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange('personalDetails', 'photo', e)}
-                    required
-                  />
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept="image/*"
+                      onChange={(e) => handleFileChange('personalDetails', 'photo', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload your photo</span>
+                  </div>
                 </div>
                 <div className="form-field">
                   <input
@@ -389,13 +438,16 @@ const Achievements = () => {
                   />
                 </div>
                 <div className="form-field">
-                  <input
-                    type="file"
-                    className="form-input"
-                    accept=".pdf,.doc,.docx"
-                    onChange={(e) => handleFileChange('projectDetails', 'document', e)}
-                    required
-                  />
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept=".pdf,.doc,.docx"
+                      onChange={(e) => handleFileChange('projectDetails', 'document', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload report</span>
+                  </div>
                 </div>
                 <div className="form-field">
                   <textarea
@@ -424,20 +476,33 @@ const Achievements = () => {
                   <input
                     type="date"
                     className="form-input"
-                    placeholder="Select date"
-                    value={formData.competitions.date}
-                    onChange={(e) => handleInputChange('competitions', 'date', e.target.value)}
+                    placeholder="Select start date"
+                    value={formData.competitions.startDate}
+                    onChange={(e) => handleInputChange('competitions', 'startDate', e.target.value)}
                     required
                   />
                 </div>
                 <div className="form-field">
                   <input
-                    type="file"
+                    type="date"
                     className="form-input"
-                    accept=".pdf,.doc,.docx,.jpg,.png"
-                    onChange={(e) => handleFileChange('competitions', 'upload', e)}
+                    placeholder="Select end date"
+                    value={formData.competitions.endDate}
+                    onChange={(e) => handleInputChange('competitions', 'endDate', e.target.value)}
                     required
                   />
+                </div>
+                <div className="form-field">
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept=".pdf,.doc,.docx,.jpg,.png"
+                      onChange={(e) => handleFileChange('competitions', 'upload', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload file</span>
+                  </div>
                 </div>
                 <div className="form-field">
                   <textarea
@@ -486,11 +551,33 @@ const Achievements = () => {
                   <input
                     type="date"
                     className="form-input"
-                    placeholder="Select date"
-                    value={formData.internship.date}
-                    onChange={(e) => handleInputChange('internship', 'date', e.target.value)}
+                    placeholder="Select start date"
+                    value={formData.internship.startDate}
+                    onChange={(e) => handleInputChange('internship', 'startDate', e.target.value)}
                     required
                   />
+                </div>
+                <div className="form-field">
+                  <input
+                    type="date"
+                    className="form-input"
+                    placeholder="Select end date"
+                    value={formData.internship.endDate}
+                    onChange={(e) => handleInputChange('internship', 'endDate', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept=".pdf,.jpg,.png"
+                      onChange={(e) => handleFileChange('internship', 'certificate', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload certificate</span>
+                  </div>
                 </div>
                 <div className="form-field">
                   <textarea
@@ -527,22 +614,35 @@ const Achievements = () => {
                 </div>
                 <div className="form-field">
                   <input
-                    type="text"
+                    type="date"
                     className="form-input"
-                    placeholder="Enter duration (e.g., 3 months)"
-                    value={formData.onlineCourse.duration}
-                    onChange={(e) => handleInputChange('onlineCourse', 'duration', e.target.value)}
+                    placeholder="Select start date"
+                    value={formData.onlineCourse.startDate}
+                    onChange={(e) => handleInputChange('onlineCourse', 'startDate', e.target.value)}
                     required
                   />
                 </div>
                 <div className="form-field">
                   <input
-                    type="file"
+                    type="date"
                     className="form-input"
-                    accept=".pdf,.jpg,.png"
-                    onChange={(e) => handleFileChange('onlineCourse', 'certifications', e)}
+                    placeholder="Select end date"
+                    value={formData.onlineCourse.endDate}
+                    onChange={(e) => handleInputChange('onlineCourse', 'endDate', e.target.value)}
                     required
                   />
+                </div>
+                <div className="form-field">
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept=".pdf,.jpg,.png"
+                      onChange={(e) => handleFileChange('onlineCourse', 'certifications', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload certificate</span>
+                  </div>
                 </div>
               </div>
             )}
@@ -569,6 +669,26 @@ const Achievements = () => {
                   />
                 </div>
                 <div className="form-field">
+                  <input
+                    type="date"
+                    className="form-input"
+                    placeholder="Select start date"
+                    value={formData.productDevelopment.startDate}
+                    onChange={(e) => handleInputChange('productDevelopment', 'startDate', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-field">
+                  <input
+                    type="date"
+                    className="form-input"
+                    placeholder="Select end date"
+                    value={formData.productDevelopment.endDate}
+                    onChange={(e) => handleInputChange('productDevelopment', 'endDate', e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-field">
                   <textarea
                     className="form-textarea"
                     placeholder="Enter product details"
@@ -578,13 +698,16 @@ const Achievements = () => {
                   />
                 </div>
                 <div className="form-field">
-                  <input
-                    type="file"
-                    className="form-input"
-                    accept=".pdf,.jpg,.png"
-                    onChange={(e) => handleFileChange('productDevelopment', 'upload', e)}
-                    required
-                  />
+                  <div className="file-input-wrapper">
+                    <input
+                      type="file"
+                      className="form-input"
+                      accept=".pdf,.jpg,.png"
+                      onChange={(e) => handleFileChange('productDevelopment', 'upload', e)}
+                      required
+                    />
+                    <span className="file-input-label">Upload report</span>
+                  </div>
                 </div>
               </div>
             )}
