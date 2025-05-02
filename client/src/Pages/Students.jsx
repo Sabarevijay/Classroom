@@ -1,5 +1,5 @@
 import React from 'react';
-import { useParams, useLocation, Outlet } from 'react-router-dom';
+import { useParams, Outlet } from 'react-router-dom';
 import StudentProfileNav from '../Components/StudentProfileNav';
 
 const styles = `
@@ -21,8 +21,8 @@ const styles = `
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
     width: 100%;
     max-width: 700px;
-    padding: 0 2rem; /* Removed bottom padding */
-    margin-top: 1rem;
+    padding: 0 2rem 2rem 2rem;
+    margin-top: 4.5rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -53,7 +53,7 @@ const styles = `
     }
 
     .card-container {
-      padding: 0 1rem;
+      padding: 0 1rem 1rem 1rem;
       margin-top: 0.5rem;
     }
 
@@ -68,21 +68,8 @@ const styles = `
   }
 `;
 
-const StudentProfile = () => {
+const Students = () => {
   const { classId } = useParams();
-  const location = useLocation();
-  const currentPath = location.pathname.toLowerCase();
-  const basePath = `/mentor/classadmin/${classId}/studentprofile`;
-
-  let pageTitle = 'Leave Apply';
-  if (currentPath === `${basePath}/academic`) {
-    pageTitle = 'Academic';
-  } else if (currentPath === `${basePath}/achievements`) {
-    pageTitle = 'Achievements';
-  }
-
-  // Conditionally render the title (hide for "Leave Apply")
-  const showTitle = pageTitle !== 'Leave Apply';
 
   return (
     <>
@@ -92,12 +79,12 @@ const StudentProfile = () => {
           <div className="second-nav">
             <StudentProfileNav classId={classId} />
           </div>
-          {showTitle && <h2 className="class-name">{pageTitle}</h2>}
-          <Outlet />
+          <h2 className="class-name">Students</h2>
+          <Outlet /> {/* Added Outlet to render child routes, if any */}
         </div>
       </div>
     </>
   );
 };
 
-export default StudentProfile;
+export default Students;

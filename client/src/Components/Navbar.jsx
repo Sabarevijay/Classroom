@@ -48,7 +48,7 @@ const styles = `
     background: linear-gradient(to right, #3b82f6, #2563eb);
     -webkit-background-clip: text;
     background-clip: text;
-    color: transparent;
+    color:  #6b48ff;
     margin-left: 0.75rem;
     display: none;
   }
