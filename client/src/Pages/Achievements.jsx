@@ -302,6 +302,14 @@ const styles = `
     flex-wrap: wrap;
   }
 
+  /* Nested container for Preview and Download buttons */
+  .secondary-buttons {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
   /* Submit button */
   .submit-button {
     background-color: #6b48ff;
@@ -406,7 +414,7 @@ const styles = `
   .preview-modal {
     background-color: #fff;
     width: 900px;
-    height: 90vh; /* Changed from 100vh to 90vh */
+    height: 90vh;
     overflow-y: auto;
     border-radius: 0.5rem;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
@@ -549,7 +557,7 @@ const styles = `
     }
 
     .card-container {
-      padding: 0.75rem;
+      // padding: 0.75rem;
       margin-top: 4.5rem;
       padding-top: 0;
       padding-bottom: 0.75rem;
@@ -665,23 +673,36 @@ const styles = `
       margin-bottom: 0.4rem;
     }
 
+    /* Updated button layout for mobile */
     .button-container {
       flex-direction: column;
+      align-items: center;
       gap: 0.5rem;
     }
 
-    .submit-button,
-    .preview-button,
-    .download-button {
+    .submit-button {
       padding: 8px 16px;
       font-size: 0.9rem;
       width: 100%;
       max-width: 200px;
     }
 
+    .secondary-buttons {
+      flex-direction: row;
+      gap: 0.5rem;
+    }
+
+    .preview-button,
+    .download-button {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: 100px; /* Reduced width for side-by-side layout */
+    }
+
     .preview-modal {
       width: 90%;
-      height: 90vh; /* Already set to 90vh for mobile */
+      height: 90vh;
       padding: 0.5rem;
     }
 
@@ -1339,7 +1360,7 @@ const Achievements = () => {
                             id={"internship-end-date-" + index}
                             className="form-input"
                             placeholder="Select end date"
-                            placasceholder={competition.endDate}
+                            value={internship.endDate}
                             onChange={(e) => handleInputChange('internship', 'endDate', e.target.value, index)}
                             required
                           />
@@ -1587,12 +1608,14 @@ const Achievements = () => {
             <button className="submit-button" onClick={handleSubmit}>
               Submit
             </button>
-            <button className="preview-button" onClick={handlePreview}>
-              Preview
-            </button>
-            <button className="download-button" onClick={handleDownload}>
-              Download
-            </button>
+            <div className="secondary-buttons">
+              <button className="preview-button" onClick={handlePreview}>
+                Preview
+              </button>
+              <button className="download-button" onClick={handleDownload}>
+                Download
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1616,13 +1639,13 @@ const Achievements = () => {
                 {/* Header Section */}
                 <div className="resume-header">
                   <h1>{formData.personalDetails.name || 'Your Name'}</h1>
-                  {/* <h2>Professional Profile</h2> */}
+                  <h2>Professional Profile</h2>
                   {photoUrl && <img src={photoUrl} alt="Profile" className="resume-photo" />}
                   <div className="resume-contact">
                     <p>{formData.personalDetails.phoneNumber || '+123-456-7890'}</p>
                     <p>{formData.personalDetails.email || 'your.email@example.com'}</p>
-                    {/* <p>123 Anywhere St., Any City</p> */}
-                    {/* <p>www.yourwebsite.com</p> */}
+                    <p>123 Anywhere St., Any City</p>
+                    <p>www.yourwebsite.com</p>
                   </div>
                 </div>
 
@@ -1646,17 +1669,6 @@ const Achievements = () => {
                     <p>Area of Interest: {formData.academicDetails.areaOfInterest || 'N/A'}</p>
                   </div>
                 </div>
-                {/* Skills Section */}
-                {skills.length > 0 && (
-                  <div className="resume-section">
-                    <h3>Skills</h3>
-                    <ul>
-                      {skills.map((skill, index) => (
-                        <li key={index}>{skill}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
 
                 {/* Work Experience Section */}
                 {(formData.internship.length > 0 || formData.productDevelopment.length > 0) && (
@@ -1736,7 +1748,17 @@ const Achievements = () => {
                   </div>
                 )}
 
-                
+                {/* Skills Section */}
+                {skills.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Skills</h3>
+                    <ul>
+                      {skills.map((skill, index) => (
+                        <li key={index}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Languages Section */}
                 {languages.length > 0 && (
@@ -1744,7 +1766,7 @@ const Achievements = () => {
                     <h3>Languages</h3>
                     <ul>
                       {languages.map((lang, index) => (
-                        <li key={index}>{lang} </li>
+                        <li key={index}>{lang} (Fluent)</li>
                       ))}
                     </ul>
                   </div>
