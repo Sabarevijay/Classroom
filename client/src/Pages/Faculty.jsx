@@ -209,7 +209,7 @@ const styles = `
 
   .modal-button.confirm {
     background-color: #ff4d4f;
-    color:#: #fff;
+    color: #fff;
   }
 
   .modal-button.confirm:hover {
@@ -491,11 +491,12 @@ const Faculty = () => {
   const getClass = async () => {
     setIsLoading(true);
     try {
-      console.log('Fetching faculty classes:', { user: { email: user?.email, role: user?.role } });
+      console.log('Fetching all faculty classes:', { user: { email: user?.email, role: user?.role } });
       if (!user || !['admin', 'super admin', 'faculty'].includes(user.role)) {
         throw new Error('User is not authorized');
       }
-      const response = await classGet(`/facultyclass/getclass?email=${user.email}`);
+      // Fetch all classes, not just those created by the user
+      const response = await classGet(`/facultyclass/getallclasses`);
       const sortedClass = response.data.getclass.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setClasses(sortedClass);
     } catch (error) {

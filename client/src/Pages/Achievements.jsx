@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Upload, Plus, Trash2 } from 'lucide-react'; // Import icons from Lucide React
 
 const styles = `
   /* Container for the Achievements page */
@@ -23,13 +24,13 @@ const styles = `
     flex-direction: column;
     gap: 1.5rem;
     padding-top: 0;
-    padding-bottom: 1rem; /* Added padding-bottom for submit button spacing */
+    padding-bottom: 1rem;
   }
 
   /* Collapsible section header */
   .collapsible-header {
-    background-color: #6b48ff; /* Blue background */
-    color: #fff; /* White text for contrast */
+    background-color: #6b48ff;
+    color: #fff;
     padding: 10px 15px;
     border-radius: 0.5rem;
     display: flex;
@@ -41,13 +42,13 @@ const styles = `
   }
 
   .collapsible-header:hover {
-    background-color: #7c5aff; /* Lighter blue for hover */
+    background-color: #7c5aff;
   }
 
   .collapsible-arrow {
     font-size: 1.2rem;
     transition: transform 0.3s ease;
-    color: #fff; /* White arrow for contrast */
+    color: #fff;
   }
 
   .collapsible-arrow.open {
@@ -62,7 +63,7 @@ const styles = `
     padding: 1rem;
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Space between entries and other top-level elements */
+    gap: 1rem;
   }
 
   /* Form fields */
@@ -77,14 +78,28 @@ const styles = `
     display: flex;
     flex-direction: row;
     align-items: center;
-    gap: 1rem; /* Space between elements */
+    gap: 1rem;
+  }
+
+  /* Date field wrapper for Start Date and End Date */
+  .date-field-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    flex: 1;
+  }
+
+  /* Add margin-bottom to form-field-row containing date fields */
+  .form-field-row.date-row {
+    margin-bottom: 1rem;
   }
 
   .form-label {
     font-size: 1rem;
     font-weight: 600;
     color: #333;
-    white-space: nowrap; /* Prevent label text from wrapping */
+    white-space: nowrap;
   }
 
   .form-input,
@@ -97,37 +112,54 @@ const styles = `
     color: #333;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: border-color 0.2s, box-shadow 0.2s;
-    width: 100%; /* Ensure input takes remaining space */
+    width: 100%;
   }
 
   /* Specific widths for "Enter your name" and "Upload your photo" */
   .form-field-row .name-input {
-    flex: 0 0 60%; /* 60% width for "Enter your name" */
+    flex: 0 0 60%;
   }
 
   .form-field-row .photo-upload {
-    flex: 0 0 35%; /* 35% width for "Upload your photo" */
+    flex: 0 0 35%;
   }
 
   /* Specific widths for "Enter your email" and "Enter your phone number" */
   .form-field-row .email-input {
-    flex: 0 0 60%; /* 60% width for "Enter your email" */
+    flex: 0 0 60%;
   }
 
   .form-field-row .phone-input {
-    flex: 0 0 35%; /* 35% width for "Enter your phone number", matching "Upload your photo" */
+    flex: 0 0 35%;
+  }
+
+  /* Specific widths for file upload inputs in various sections */
+  .form-field-row .report-upload,
+  .form-field-row .competition-upload,
+  .form-field-row .internship-upload,
+  .form-field-row .course-upload,
+  .form-field-row .product-upload {
+    flex: 0 0 60%;
+  }
+
+  /* Style for the status label */
+  .status-label {
+    color: #ff0000;
+    font-size: 1rem;
+    font-weight: 600;
+    white-space: nowrap;
   }
 
   /* Specific widths for "Start Date" and "End Date" labels and inputs */
   .form-field-row .start-date-label,
   .form-field-row .end-date-label {
-    flex: 0 0 48.5%; /* Slightly less than 50% to account for the gap */
-    text-align: left; /* Align labels to the left */
+    flex: 0 0 20%;
+    text-align: left;
   }
 
   .form-field-row .start-date-input,
   .form-field-row .end-date-input {
-    flex: 0 0 48.5%; /* Slightly less than 50% to account for the gap */
+    flex: 0 0 30%;
   }
 
   .form-textarea {
@@ -161,7 +193,8 @@ const styles = `
   }
 
   .file-input-label {
-    display: block;
+    display: flex;
+    align-items: center;
     padding: 0.75rem;
     border: 1px solid #d1d5db;
     border-radius: 0.5rem;
@@ -171,11 +204,19 @@ const styles = `
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     text-align: left;
     transition: border-color 0.2s, box-shadow 0.2s;
+    gap: 0.5rem;
   }
 
   .file-input-wrapper input[type="file"]:focus + .file-input-label {
     border-color: #6b48ff;
     box-shadow: 0 0 0 3px rgba(107, 72, 255, 0.2);
+  }
+
+  /* Style for the upload icon */
+  .upload-icon {
+    width: 1.2rem;
+    height: 1.2rem;
+    color: #333;
   }
 
   /* Generic Add button (used for Add Project, Add Competition, etc.) */
@@ -186,7 +227,7 @@ const styles = `
     border: none;
     padding: 0;
     font-size: 1rem;
-    color: #6b48ff; /* Blue text to match theme */
+    color: #6b48ff;
     cursor: pointer;
     margin-top: 0.5rem;
   }
@@ -198,11 +239,9 @@ const styles = `
     width: 1.2rem;
     height: 1.2rem;
     margin-right: 0.5rem;
-    background-color: #6b48ff; /* Blue background for the icon */
-    color: #fff; /* White plus sign */
-    border-radius: 50%; /* Circular icon */
-    font-size: 0.9rem;
-    font-weight: 700;
+    background-color: #6b48ff;
+    color: #fff;
+    border-radius: 50%;
   }
 
   /* Generic Remove button (used for Remove Project, Remove Competition, etc.) */
@@ -213,7 +252,7 @@ const styles = `
     border: none;
     padding: 0;
     font-size: 1rem;
-    color: #ff0000; /* Red text */
+    color: #ff0000;
     cursor: pointer;
     margin-bottom: 0.5rem;
   }
@@ -225,10 +264,9 @@ const styles = `
     width: 1.2rem;
     height: 1.2rem;
     margin-right: 0.5rem;
-    background-color: #ff0000; /* Red background for the icon */
-    color: #fff; /* White trash icon */
-    border-radius: 50%; /* Circular icon */
-    font-size: 0.9rem;
+    background-color: #ff0000;
+    color: #fff;
+    border-radius: 50%;
   }
 
   /* Entry container (for visual separation in sections with multiple entries) */
@@ -247,12 +285,21 @@ const styles = `
 
   /* Add margin-bottom to form fields within entries */
   .entry .form-field {
-    margin-bottom: 1rem; /* Add spacing below each field */
+    margin-bottom: 1rem;
   }
 
   /* Remove margin-bottom from the last form field in each entry to avoid extra spacing */
   .entry .form-field:last-child {
     margin-bottom: 0;
+  }
+
+  /* Button container for Submit, Preview, and Download */
+  .button-container {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-top: 1rem;
+    flex-wrap: wrap;
   }
 
   /* Submit button */
@@ -266,12 +313,44 @@ const styles = `
     font-weight: 600;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    align-self: center;
-    margin-top: 1rem;
   }
 
   .submit-button:hover {
     background-color: #7c5aff;
+  }
+
+  /* Preview button */
+  .preview-button {
+    background-color: #28a745;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .preview-button:hover {
+    background-color: #218838;
+  }
+
+  /* Download button */
+  .download-button {
+    background-color: #17a2b8;
+    color: #fff;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+
+  .download-button:hover {
+    background-color: #138496;
   }
 
   /* Success Modal */
@@ -310,6 +389,138 @@ const styles = `
     color: #333;
   }
 
+  /* Preview Modal */
+  .preview-modal-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+  }
+
+  .preview-modal {
+    background-color: #fff;
+    width: 900px;
+    height: 90vh; /* Changed from 100vh to 90vh */
+    overflow-y: auto;
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    position: relative;
+    padding: 1rem;
+  }
+
+  .preview-modal-close {
+    position: absolute;
+    top: 0.75rem;
+    right: 0.75rem;
+    background-color: #ff4d4f;
+    color: #fff;
+    padding: 0.25rem;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+  }
+
+  .preview-modal-close:hover {
+    background-color: #e63946;
+    transform: scale(1.1);
+  }
+
+  /* Resume Template Styles (Blue Simple Professional CV) */
+  .resume-container {
+    font-family: Arial, sans-serif;
+    color: #333;
+    line-height: 1.6;
+    padding: 20px;
+    background-color: #fff;
+  }
+
+  .resume-header {
+    text-align: center;
+    margin-bottom: 2rem;
+    border-bottom: 2px solid #1e88e5; /* Blue accent */
+    padding-bottom: 1rem;
+  }
+
+  .resume-header h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: #1e88e5;
+    text-transform: uppercase;
+  }
+
+  .resume-header h2 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0.5rem 0 0;
+    color: #666;
+  }
+
+  .resume-photo {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #1e88e5;
+    margin: 1rem auto;
+    display: block;
+  }
+
+  .resume-section {
+    margin-bottom: 1.5rem;
+  }
+
+  .resume-section h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1e88e5;
+    text-transform: uppercase;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #d1d5db;
+    padding-bottom: 0.5rem;
+  }
+
+  .resume-section h4 {
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin: 0.5rem 0;
+  }
+
+  .resume-section p {
+    font-size: 1rem;
+    margin: 0.2rem 0;
+  }
+
+  .resume-section ul {
+    list-style-type: disc;
+    margin-left: 20px;
+    padding-left: 10px;
+  }
+
+  .resume-section ul li {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .resume-contact {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+
+  .resume-contact p {
+    font-size: 1rem;
+    margin: 0;
+  }
+
   /* Animations */
   @keyframes fadeIn {
     from {
@@ -334,55 +545,104 @@ const styles = `
   /* Responsive adjustments */
   @media (max-width: 768px) {
     .achievements-container {
-      padding: 8px; /* Reduced padding for mobile */
+      padding: 8px;
     }
 
     .card-container {
-      padding: 0.75rem; /* Slightly increased padding for better spacing */
+      padding: 0.75rem;
       margin-top: 4.5rem;
       padding-top: 0;
-      padding-bottom: 0.75rem; /* Adjusted for submit button */
-      gap: 0.5rem; /* Reduced gap between headers */
+      padding-bottom: 0.75rem;
+      gap: 0.5rem;
     }
 
     .collapsible-header {
-      padding: 8px 12px; /* Reduced padding for mobile */
-      font-size: 1rem; /* Reduced font size for mobile */
+      padding: 8px 12px;
+      font-size: 1rem;
     }
 
     .collapsible-arrow {
-      font-size: 1rem; /* Match font size reduction */
+      font-size: 1rem;
     }
 
     .collapsible-content {
-      padding: 0.75rem; /* Reduced padding for mobile */
-      gap: 0.5rem; /* Reduced gap between form fields */
+      padding: 0.75rem;
+      gap: 0.5rem;
     }
 
     .form-field-row {
-      flex-direction: column; /* Stack label and input vertically on mobile */
+      flex-direction: column;
       align-items: flex-start;
-      gap: 0.5rem; /* Match column layout gap */
+      gap: 0.5rem;
+    }
+
+    .form-field-row.date-row {
+      margin-bottom: 0.75rem;
+    }
+
+    .date-field-wrapper {
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+    }
+
+    .form-field-row .report-upload,
+    .form-field-row .competition-upload,
+    .form-field-row .internship-upload,
+    .form-field-row .course-upload,
+    .form-field-row .product-upload {
+      flex: 1;
+      width: 100%;
+    }
+
+    .form-field-row .name-input,
+    .form-field-row .photo-upload,
+    .form-field-row .email-input,
+    .form-field-row .phone-input {
+      flex: 1;
+      width: 100%;
+    }
+
+    .form-field-row .status-label {
+      font-size: 0.9rem;
     }
 
     .form-input,
     .form-textarea,
     .form-select {
-      padding: 0.5rem; /* Slightly reduced padding for inputs */
-      font-size: 0.9rem; /* Slightly smaller font size for mobile */
+      padding: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .form-field-row .start-date-input,
+    .form-field-row .end-date-input {
+      flex: 1;
+      width: 100%;
+    }
+
+    .form-field-row .start-date-label,
+    .form-field-row .end-date-label {
+      flex: 1;
+      width: 100%;
     }
 
     .form-textarea {
-      min-height: 80px; /* Reduced textarea height for mobile */
+      min-height: 80px;
     }
 
     .file-input-label {
       padding: 0.5rem;
       font-size: 0.9rem;
+      gap: 0.4rem;
+    }
+
+    .upload-icon {
+      width: 1rem;
+      height: 1rem;
     }
 
     .form-label {
-      font-size: 0.9rem; /* Match mobile font size */
+      font-size: 0.9rem;
     }
 
     .add-button,
@@ -394,22 +654,66 @@ const styles = `
     .remove-button .trash-icon {
       width: 1rem;
       height: 1rem;
-      font-size: 0.7rem;
       margin-right: 0.4rem;
     }
 
     .entry .form-field {
-      margin-bottom: 0.75rem; /* Reduced margin-bottom for mobile */
+      margin-bottom: 0.75rem;
     }
 
     .remove-button {
-      margin-bottom: 0.4rem; /* Reduced margin for mobile */
+      margin-bottom: 0.4rem;
     }
 
-    .submit-button {
-      padding: 8px 16px; /* Slightly smaller padding for mobile */
-      font-size: 0.9rem; /* Smaller font size for mobile */
-      margin-top: 0.75rem; /* Reduced margin for mobile */
+    .button-container {
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .submit-button,
+    .preview-button,
+    .download-button {
+      padding: 8px 16px;
+      font-size: 0.9rem;
+      width: 100%;
+      max-width: 200px;
+    }
+
+    .preview-modal {
+      width: 90%;
+      height: 90vh; /* Already set to 90vh for mobile */
+      padding: 0.5rem;
+    }
+
+    .resume-header h1 {
+      font-size: 1.5rem;
+    }
+
+    .resume-header h2 {
+      font-size: 1rem;
+    }
+
+    .resume-photo {
+      width: 80px;
+      height: 80px;
+    }
+
+    .resume-contact {
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .resume-section h3 {
+      font-size: 1.2rem;
+    }
+
+    .resume-section h4 {
+      font-size: 1rem;
+    }
+
+    .resume-section p,
+    .resume-section ul li {
+      font-size: 0.9rem;
     }
   }
 `;
@@ -421,6 +725,9 @@ const Achievements = () => {
       photo: null,
       email: '',
       phoneNumber: '',
+    },
+    profileSummary: {
+      description: '',
     },
     academicDetails: {
       skills: '',
@@ -478,6 +785,7 @@ const Achievements = () => {
 
   const [openSection, setOpenSection] = useState(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [showPreview, setShowPreview] = useState(false);
 
   const toggleSection = (section) => {
     setOpenSection(openSection === section ? null : section);
@@ -651,8 +959,35 @@ const Achievements = () => {
     setTimeout(() => setShowSuccess(false), 2000);
   };
 
+  const handlePreview = () => {
+    setShowPreview(true);
+  };
+
+  const handleClosePreview = () => {
+    setShowPreview(false);
+  };
+
+  const handleDownload = () => {
+    const element = document.getElementById('resume-preview');
+    const opt = {
+      margin: 0.5,
+      filename: 'resume.pdf',
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+    };
+    window.html2pdf().set(opt).from(element).save();
+  };
+
+  const photoUrl = formData.personalDetails.photo ? URL.createObjectURL(formData.personalDetails.photo) : null;
+
+  // Split skills and languages into arrays for display
+  const skills = formData.academicDetails.skills ? formData.academicDetails.skills.split(',').map(skill => skill.trim()) : [];
+  const languages = formData.languages.language ? formData.languages.language.split(',').map(lang => lang.trim()) : [];
+
   return (
     <>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
       <style>{styles}</style>
       <div className="achievements-container">
         <div className="card-container">
@@ -685,7 +1020,10 @@ const Achievements = () => {
                       onChange={(e) => handleFileChange('personalDetails', 'photo', e)}
                       required
                     />
-                    <span className="file-input-label">Upload your photo</span>
+                    <span className="file-input-label">
+                      <Upload className="upload-icon" />
+                      Upload photo
+                    </span>
                   </div>
                 </div>
                 <div className="form-field-row">
@@ -703,12 +1041,35 @@ const Achievements = () => {
                     <input
                       type="tel"
                       className="form-input"
-                      placeholder="Enter your phone number"
+                      placeholder="Enter phone number"
                       value={formData.personalDetails.phoneNumber}
                       onChange={(e) => handleInputChange('personalDetails', 'phoneNumber', e.target.value)}
                       required
                     />
                   </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Profile Summary Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('profileSummary')}>
+              <span>Profile Summary</span>
+              <span className={`collapsible-arrow ${openSection === 'profileSummary' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'profileSummary' && (
+              <div className="collapsible-content">
+                <div className="form-field">
+                  <textarea
+                    className="form-textarea"
+                    placeholder="Enter your profile summary for the resume"
+                    value={formData.profileSummary.description}
+                    onChange={(e) => handleInputChange('profileSummary', 'description', e.target.value)}
+                    required
+                  />
                 </div>
               </div>
             )}
@@ -775,7 +1136,7 @@ const Achievements = () => {
                   <div key={index} className="entry">
                     {formData.projectDetails.length > 1 && (
                       <button className="remove-button" onClick={() => removeProject(index)}>
-                        <span className="trash-icon">🗑️</span>
+                        <Trash2 className="trash-icon" />
                         Remove Project
                       </button>
                     )}
@@ -808,8 +1169,8 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field">
-                      <div className="file-input-wrapper">
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper report-upload">
                         <input
                           type="file"
                           className="form-input"
@@ -817,13 +1178,17 @@ const Achievements = () => {
                           onChange={(e) => handleFileChange('projectDetails', 'document', e, index)}
                           required
                         />
-                        <span className="file-input-label">Upload report</span>
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload report
+                        </span>
                       </div>
+                      <span className="status-label">Status: Pending</span>
                     </div>
                   </div>
                 ))}
                 <button className="add-button" onClick={addProject}>
-                  <span className="add-icon">+</span>
+                  <Plus className="add-icon" />
                   Add Project
                 </button>
               </div>
@@ -844,36 +1209,38 @@ const Achievements = () => {
                   <div key={index} className="entry">
                     {formData.competitions.length > 1 && (
                       <button className="remove-button" onClick={() => removeCompetition(index)}>
-                        <span className="trash-icon">🗑️</span>
+                        <Trash2 className="trash-icon" />
                         Remove Competition
                       </button>
                     )}
-                    <div className="form-field-row">
-                      <label htmlFor={"competitions-start-date-" + index} className="form-label start-date-label">Start Date:</label>
-                      <label htmlFor={"competitions-end-date-" + index} className="form-label end-date-label">End Date:</label>
-                    </div>
-                    <div className="form-field-row">
-                      <div className="form-field start-date-input">
-                        <input
-                          type="date"
-                          id={"competitions-start-date-" + index}
-                          className="form-input"
-                          placeholder="Select start date"
-                          value={competition.startDate}
-                          onChange={(e) => handleInputChange('competitions', 'startDate', e.target.value, index)}
-                          required
-                        />
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"competitions-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"competitions-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={competition.startDate}
+                            onChange={(e) => handleInputChange('competitions', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="form-field end-date-input">
-                        <input
-                          type="date"
-                          id={"competitions-end-date-" + index}
-                          className="form-input"
-                          placeholder="Select end date"
-                          value={competition.endDate}
-                          onChange={(e) => handleInputChange('competitions', 'endDate', e.target.value, index)}
-                          required
-                        />
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"competitions-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"competitions-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={competition.endDate}
+                            onChange={(e) => handleInputChange('competitions', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="form-field">
@@ -885,8 +1252,8 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field">
-                      <div className="file-input-wrapper">
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper competition-upload">
                         <input
                           type="file"
                           className="form-input"
@@ -894,13 +1261,17 @@ const Achievements = () => {
                           onChange={(e) => handleFileChange('competitions', 'upload', e, index)}
                           required
                         />
-                        <span className="file-input-label">Upload file</span>
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload file
+                        </span>
                       </div>
+                      <span className="status-label">Status: Pending</span>
                     </div>
                   </div>
                 ))}
                 <button className="add-button" onClick={addCompetition}>
-                  <span className="add-icon">+</span>
+                  <Plus className="add-icon" />
                   Add Competition
                 </button>
               </div>
@@ -921,7 +1292,7 @@ const Achievements = () => {
                   <div key={index} className="entry">
                     {formData.internship.length > 1 && (
                       <button className="remove-button" onClick={() => removeInternship(index)}>
-                        <span className="trash-icon">🗑️</span>
+                        <Trash2 className="trash-icon" />
                         Remove Internship
                       </button>
                     )}
@@ -945,32 +1316,34 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field-row">
-                      <label htmlFor={"internship-start-date-" + index} className="form-label start-date-label">Start Date:</label>
-                      <label htmlFor={"internship-end-date-" + index} className="form-label end-date-label">End Date:</label>
-                    </div>
-                    <div className="form-field-row">
-                      <div className="form-field start-date-input">
-                        <input
-                          type="date"
-                          id={"internship-start-date-" + index}
-                          className="form-input"
-                          placeholder="Select start date"
-                          value={internship.startDate}
-                          onChange={(e) => handleInputChange('internship', 'startDate', e.target.value, index)}
-                          required
-                        />
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"internship-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"internship-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={internship.startDate}
+                            onChange={(e) => handleInputChange('internship', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="form-field end-date-input">
-                        <input
-                          type="date"
-                          id={"internship-end-date-" + index}
-                          className="form-input"
-                          placeholder="Select end date"
-                          value={internship.endDate}
-                          onChange={(e) => handleInputChange('internship', 'endDate', e.target.value, index)}
-                          required
-                        />
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"internship-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"internship-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            placasceholder={competition.endDate}
+                            onChange={(e) => handleInputChange('internship', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="form-field">
@@ -982,8 +1355,8 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field">
-                      <div className="file-input-wrapper">
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper internship-upload">
                         <input
                           type="file"
                           className="form-input"
@@ -991,13 +1364,17 @@ const Achievements = () => {
                           onChange={(e) => handleFileChange('internship', 'certificate', e, index)}
                           required
                         />
-                        <span className="file-input-label">Upload certificate</span>
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload certificate
+                        </span>
                       </div>
+                      <span className="status-label">Status: Pending</span>
                     </div>
                   </div>
                 ))}
                 <button className="add-button" onClick={addInternship}>
-                  <span className="add-icon">+</span>
+                  <Plus className="add-icon" />
                   Add Internship
                 </button>
               </div>
@@ -1018,7 +1395,7 @@ const Achievements = () => {
                   <div key={index} className="entry">
                     {formData.onlineCourse.length > 1 && (
                       <button className="remove-button" onClick={() => removeOnlineCourse(index)}>
-                        <span className="trash-icon">🗑️</span>
+                        <Trash2 className="trash-icon" />
                         Remove Online Course
                       </button>
                     )}
@@ -1032,36 +1409,38 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field-row">
-                      <label htmlFor={"online-course-start-date-" + index} className="form-label start-date-label">Start Date:</label>
-                      <label htmlFor={"online-course-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"online-course-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"online-course-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={course.startDate}
+                            onChange={(e) => handleInputChange('onlineCourse', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"online-course-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"online-course-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={course.endDate}
+                            onChange={(e) => handleInputChange('onlineCourse', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className="form-field-row">
-                      <div className="form-field start-date-input">
-                        <input
-                          type="date"
-                          id={"online-course-start-date-" + index}
-                          className="form-input"
-                          placeholder="Select start date"
-                          value={course.startDate}
-                          onChange={(e) => handleInputChange('onlineCourse', 'startDate', e.target.value, index)}
-                          required
-                        />
-                      </div>
-                      <div className="form-field end-date-input">
-                        <input
-                          type="date"
-                          id={"online-course-end-date-" + index}
-                          className="form-input"
-                          placeholder="Select end date"
-                          value={course.endDate}
-                          onChange={(e) => handleInputChange('onlineCourse', 'endDate', e.target.value, index)}
-                          required
-                        />
-                      </div>
-                    </div>
-                    <div className="form-field">
-                      <div className="file-input-wrapper">
+                      <div className="form-field file-input-wrapper course-upload">
                         <input
                           type="file"
                           className="form-input"
@@ -1069,13 +1448,17 @@ const Achievements = () => {
                           onChange={(e) => handleFileChange('onlineCourse', 'certifications', e, index)}
                           required
                         />
-                        <span className="file-input-label">Upload certificate</span>
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload certificate
+                        </span>
                       </div>
+                      <span className="status-label">Status: Pending</span>
                     </div>
                   </div>
                 ))}
                 <button className="add-button" onClick={addOnlineCourse}>
-                  <span className="add-icon">+</span>
+                  <Plus className="add-icon" />
                   Add Online Course
                 </button>
               </div>
@@ -1096,7 +1479,7 @@ const Achievements = () => {
                   <div key={index} className="entry">
                     {formData.productDevelopment.length > 1 && (
                       <button className="remove-button" onClick={() => removeProductDevelopment(index)}>
-                        <span className="trash-icon">🗑️</span>
+                        <Trash2 className="trash-icon" />
                         Remove Product Development
                       </button>
                     )}
@@ -1110,32 +1493,34 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field-row">
-                      <label htmlFor={"product-development-start-date-" + index} className="form-label start-date-label">Start Date:</label>
-                      <label htmlFor={"product-development-end-date-" + index} className="form-label end-date-label">End Date:</label>
-                    </div>
-                    <div className="form-field-row">
-                      <div className="form-field start-date-input">
-                        <input
-                          type="date"
-                          id={"product-development-start-date-" + index}
-                          className="form-input"
-                          placeholder="Select start date"
-                          value={product.startDate}
-                          onChange={(e) => handleInputChange('productDevelopment', 'startDate', e.target.value, index)}
-                          required
-                        />
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"product-development-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"product-development-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={product.startDate}
+                            onChange={(e) => handleInputChange('productDevelopment', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
-                      <div className="form-field end-date-input">
-                        <input
-                          type="date"
-                          id={"product-development-end-date-" + index}
-                          className="form-input"
-                          placeholder="Select end date"
-                          value={product.endDate}
-                          onChange={(e) => handleInputChange('productDevelopment', 'endDate', e.target.value, index)}
-                          required
-                        />
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"product-development-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"product-development-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={product.endDate}
+                            onChange={(e) => handleInputChange('productDevelopment', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
                       </div>
                     </div>
                     <div className="form-field">
@@ -1147,8 +1532,8 @@ const Achievements = () => {
                         required
                       />
                     </div>
-                    <div className="form-field">
-                      <div className="file-input-wrapper">
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper product-upload">
                         <input
                           type="file"
                           className="form-input"
@@ -1156,13 +1541,17 @@ const Achievements = () => {
                           onChange={(e) => handleFileChange('productDevelopment', 'upload', e, index)}
                           required
                         />
-                        <span className="file-input-label">Upload report</span>
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload report
+                        </span>
                       </div>
+                      <span className="status-label">Status: Pending</span>
                     </div>
                   </div>
                 ))}
                 <button className="add-button" onClick={addProductDevelopment}>
-                  <span className="add-icon">+</span>
+                  <Plus className="add-icon" />
                   Add Product Development
                 </button>
               </div>
@@ -1189,28 +1578,22 @@ const Achievements = () => {
                     required
                   />
                 </div>
-                {/* <div className="form-field">
-                  <select
-                    className="form-select"
-                    value={formData.languages.level}
-                    onChange={(e) => handleInputChange('languages', 'level', e.target.value)}
-                    required
-                  >
-                    <option value="">Select level</option>
-                    <option value="Beginner">Beginner</option>
-                    <option value="Intermediate">Intermediate</option>
-                    <option value="Advanced">Advanced</option>
-                    <option value="Fluent">Fluent</option>
-                  </select>
-                </div> */}
               </div>
             )}
           </div>
 
-          {/* Submit Button */}
-          <button className="submit-button" onClick={handleSubmit}>
-            Submit
-          </button>
+          {/* Button Container for Submit, Preview, and Download */}
+          <div className="button-container">
+            <button className="submit-button" onClick={handleSubmit}>
+              Submit
+            </button>
+            <button className="preview-button" onClick={handlePreview}>
+              Preview
+            </button>
+            <button className="download-button" onClick={handleDownload}>
+              Download
+            </button>
+          </div>
         </div>
 
         {/* Success Notification Card */}
@@ -1219,6 +1602,155 @@ const Achievements = () => {
             <div className="success-checkmark">✔</div>
             <div className="success-title">Success!</div>
             <div className="success-message">Achievements submitted successfully.</div>
+          </div>
+        )}
+
+        {/* Preview Modal */}
+        {showPreview && (
+          <div className="preview-modal-container">
+            <div className="preview-modal">
+              <button className="preview-modal-close" onClick={handleClosePreview}>
+                ✕
+              </button>
+              <div id="resume-preview" className="resume-container">
+                {/* Header Section */}
+                <div className="resume-header">
+                  <h1>{formData.personalDetails.name || 'Your Name'}</h1>
+                  {/* <h2>Professional Profile</h2> */}
+                  {photoUrl && <img src={photoUrl} alt="Profile" className="resume-photo" />}
+                  <div className="resume-contact">
+                    <p>{formData.personalDetails.phoneNumber || '+123-456-7890'}</p>
+                    <p>{formData.personalDetails.email || 'your.email@example.com'}</p>
+                    {/* <p>123 Anywhere St., Any City</p> */}
+                    {/* <p>www.yourwebsite.com</p> */}
+                  </div>
+                </div>
+
+                {/* Profile Section */}
+                <div className="resume-section">
+                  <h3>Profile</h3>
+                  <p>
+                    {formData.profileSummary.description ||
+                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation.'}
+                  </p>
+                </div>
+
+                {/* Education Section */}
+                <div className="resume-section">
+                  <h3>Education</h3>
+                  <div className="resume-item">
+                    <h4>Wardiere University (Assumed)</h4>
+                    <p>2025 - Present</p>
+                    <p>Bachelor's Degree (Assumed)</p>
+                    <p>GPA: {formData.academicDetails.cgpa || 'N/A'}</p>
+                    <p>Area of Interest: {formData.academicDetails.areaOfInterest || 'N/A'}</p>
+                  </div>
+                </div>
+                {/* Skills Section */}
+                {skills.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Skills</h3>
+                    <ul>
+                      {skills.map((skill, index) => (
+                        <li key={index}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
+                {/* Work Experience Section */}
+                {(formData.internship.length > 0 || formData.productDevelopment.length > 0) && (
+                  <div className="resume-section">
+                    <h3>Work Experience</h3>
+                    {formData.internship.map((internship, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>{internship.companyName || 'Company'} - {internship.role || 'Role'}</h4>
+                        <p>
+                          {internship.startDate || 'N/A'} - {internship.endDate || 'Present'}
+                        </p>
+                        <ul>
+                          <li>{internship.description || 'Contributed to company projects.'}</li>
+                        </ul>
+                      </div>
+                    ))}
+                    {formData.productDevelopment.map((product, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>{product.productName || 'Product'} - Product Developer</h4>
+                        <p>
+                          {product.startDate || 'N/A'} - {product.endDate || 'Present'}
+                        </p>
+                        <ul>
+                          <li>{product.details || 'Developed and launched a product.'}</li>
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Projects Section */}
+                {formData.projectDetails.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Projects</h3>
+                    {formData.projectDetails.map((project, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>{project.title || 'Untitled Project'}</h4>
+                        <p>URL: {project.url || 'N/A'}</p>
+                        <ul>
+                          <li>{project.description || 'N/A'}</li>
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Competitions Section */}
+                {formData.competitions.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Competitions</h3>
+                    {formData.competitions.map((competition, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>Competition {index + 1}</h4>
+                        <p>
+                          {competition.startDate || 'N/A'} - {competition.endDate || 'N/A'}
+                        </p>
+                        <ul>
+                          <li>{competition.description || 'Participated in a competition.'}</li>
+                        </ul>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Online Courses Section */}
+                {formData.onlineCourse.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Online Courses</h3>
+                    {formData.onlineCourse.map((course, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>{course.courseName || 'Untitled Course'}</h4>
+                        <p>
+                          {course.startDate || 'N/A'} - {course.endDate || 'N/A'}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                
+
+                {/* Languages Section */}
+                {languages.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Languages</h3>
+                    <ul>
+                      {languages.map((lang, index) => (
+                        <li key={index}>{lang} </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         )}
       </div>
