@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Upload, Plus, Trash2 } from 'lucide-react'; // Import icons from Lucide React
+import { Upload, Plus, Trash2, X } from 'lucide-react'; // Import X icon for removing files
 
 const styles = `
   /* Container for the Achievements page */
@@ -133,12 +133,24 @@ const styles = `
     flex: 0 0 35%;
   }
 
+  /* Specific widths for "Github URL" and "LinkedIn URL" */
+  .form-field-row .github-input {
+    flex: 0 0 60%;
+  }
+
+  .form-field-row .linkedin-input {
+    flex: 0 0 35%;
+  }
+
   /* Specific widths for file upload inputs in various sections */
   .form-field-row .report-upload,
   .form-field-row .competition-upload,
   .form-field-row .internship-upload,
   .form-field-row .course-upload,
-  .form-field-row .product-upload {
+  .form-field-row .product-upload,
+  .form-field-row .patent-upload,
+  .form-field-row .entrepreneurship-upload,
+  .form-field-row .placement-upload {
     flex: 0 0 60%;
   }
 
@@ -291,6 +303,49 @@ const styles = `
   /* Remove margin-bottom from the last form field in each entry to avoid extra spacing */
   .entry .form-field:last-child {
     margin-bottom: 0;
+  }
+
+  /* Uploaded file display */
+  .uploaded-file {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background-color: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    color: #374151;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Remove file button with cross symbol */
+  .remove-file-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #ff4d4f;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 1.5rem;
+    height: 1.5rem;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+  }
+
+  .remove-file-button:hover {
+    background-color: #e63946;
+    transform: scale(1.1);
+  }
+
+  .remove-file-button .cross-icon {
+    width: 1rem;
+    height: 1rem;
   }
 
   /* Button container for Submit, Preview, and Download */
@@ -557,7 +612,7 @@ const styles = `
     }
 
     .card-container {
-      // padding: 0.75rem;
+      padding: 0.75rem;
       margin-top: 4.5rem;
       padding-top: 0;
       padding-bottom: 0.75rem;
@@ -598,7 +653,10 @@ const styles = `
     .form-field-row .competition-upload,
     .form-field-row .internship-upload,
     .form-field-row .course-upload,
-    .form-field-row .product-upload {
+    .form-field-row .product-upload,
+    .form-field-row .patent-upload,
+    .form-field-row .entrepreneurship-upload,
+    .form-field-row .placement-upload {
       flex: 1;
       width: 100%;
     }
@@ -606,7 +664,9 @@ const styles = `
     .form-field-row .name-input,
     .form-field-row .photo-upload,
     .form-field-row .email-input,
-    .form-field-row .phone-input {
+    .form-field-row .phone-input,
+    .form-field-row .github-input,
+    .form-field-row .linkedin-input {
       flex: 1;
       width: 100%;
     }
@@ -736,6 +796,21 @@ const styles = `
     .resume-section ul li {
       font-size: 0.9rem;
     }
+
+    .uploaded-file {
+      font-size: 0.8rem;
+      padding: 0.4rem 0.8rem;
+    }
+
+    .remove-file-button {
+      width: 1.2rem;
+      height: 1.2rem;
+    }
+
+    .remove-file-button .cross-icon {
+      width: 0.8rem;
+      height: 0.8rem;
+    }
   }
 `;
 
@@ -746,25 +821,79 @@ const Achievements = () => {
       photo: null,
       email: '',
       phoneNumber: '',
+      githubUrl: '',
+      linkedinUrl: '',
     },
     profileSummary: {
       description: '',
     },
-    academicDetails: {
+    academicDetails: [
+      {
+        institutionName: '',
+        yearOfPassing: '',
+        percentage: '',
+        degreeOrClass: '',
+      },
+    ],
+    skills: {
       skills: '',
-      cgpa: '',
       areaOfInterest: '',
     },
+    paperPresentations: [
+      {
+        title: '',
+        startDate: '',
+        endDate: '',
+        description: '',
+        collegeName: '',
+        conferenceName: '',
+      },
+    ],
+    publications: [
+      {
+        title: '',
+        journalName: '',
+        category: '',
+      },
+    ],
+    patents: [
+      {
+        title: '',
+        proof: null,
+      },
+    ],
+    entrepreneurship: [
+      {
+        title: '',
+        companyName: '',
+        website: '',
+        proof: null,
+        product: '',
+      },
+    ],
+    placement: [
+      {
+        companyName: '',
+        salary: '',
+        proof: null,
+        dateOfPlacement: '',
+      },
+    ],
     projectDetails: [
       {
         title: '',
         url: '',
         document: null,
         description: '',
+        startDate: '',
+        endDate: '',
       },
     ],
     competitions: [
       {
+        title: '',
+        organizer: '',
+        winningDetails: '',
         startDate: '',
         endDate: '',
         upload: null,
@@ -861,117 +990,193 @@ const Achievements = () => {
     }
   };
 
-  const addProject = () => {
+  const removeFile = (section, field, index = null) => {
+    if (index !== null) {
+      setFormData((prev) => {
+        const updatedEntries = [...prev[section]];
+        updatedEntries[index] = {
+          ...updatedEntries[index],
+          [field]: null,
+        };
+        return {
+          ...prev,
+          [section]: updatedEntries,
+        };
+      });
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [section]: {
+          ...prev[section],
+          [field]: null,
+        },
+      }));
+    }
+  };
+
+  const addEntry = (section, initialEntry) => {
     setFormData((prev) => ({
       ...prev,
-      projectDetails: [
-        ...prev.projectDetails,
-        {
-          title: '',
-          url: '',
-          document: null,
-          description: '',
-        },
-      ],
+      [section]: [...prev[section], initialEntry],
     }));
+  };
+
+  const removeEntry = (section, index) => {
+    setFormData((prev) => ({
+      ...prev,
+      [section]: prev[section].filter((_, i) => i !== index),
+    }));
+  };
+
+  const addAcademicDetail = () => {
+    addEntry('academicDetails', {
+      institutionName: '',
+      yearOfPassing: '',
+      percentage: '',
+      degreeOrClass: '',
+    });
+  };
+
+  const removeAcademicDetail = (index) => {
+    removeEntry('academicDetails', index);
+  };
+
+  const addPaperPresentation = () => {
+    addEntry('paperPresentations', {
+      title: '',
+      startDate: '',
+      endDate: '',
+      description: '',
+      collegeName: '',
+      conferenceName: '',
+    });
+  };
+
+  const removePaperPresentation = (index) => {
+    removeEntry('paperPresentations', index);
+  };
+
+  const addPublication = () => {
+    addEntry('publications', {
+      title: '',
+      journalName: '',
+      category: '',
+    });
+  };
+
+  const removePublication = (index) => {
+    removeEntry('publications', index);
+  };
+
+  const addPatent = () => {
+    addEntry('patents', {
+      title: '',
+      proof: null,
+    });
+  };
+
+  const removePatent = (index) => {
+    removeEntry('patents', index);
+  };
+
+  const addEntrepreneurship = () => {
+    addEntry('entrepreneurship', {
+      title: '',
+      companyName: '',
+      website: '',
+      proof: null,
+      product: '',
+    });
+  };
+
+  const removeEntrepreneurship = (index) => {
+    removeEntry('entrepreneurship', index);
+  };
+
+  const addPlacement = () => {
+    addEntry('placement', {
+      companyName: '',
+      salary: '',
+      proof: null,
+      dateOfPlacement: '',
+    });
+  };
+
+  const removePlacement = (index) => {
+    removeEntry('placement', index);
+  };
+
+  const addProject = () => {
+    addEntry('projectDetails', {
+      title: '',
+      url: '',
+      document: null,
+      description: '',
+      startDate: '',
+      endDate: '',
+    });
   };
 
   const removeProject = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      projectDetails: prev.projectDetails.filter((_, i) => i !== index),
-    }));
+    removeEntry('projectDetails', index);
   };
 
   const addCompetition = () => {
-    setFormData((prev) => ({
-      ...prev,
-      competitions: [
-        ...prev.competitions,
-        {
-          startDate: '',
-          endDate: '',
-          upload: null,
-          description: '',
-        },
-      ],
-    }));
+    addEntry('competitions', {
+      title: '',
+      organizer: '',
+      winningDetails: '',
+      startDate: '',
+      endDate: '',
+      upload: null,
+      description: '',
+    });
   };
 
   const removeCompetition = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      competitions: prev.competitions.filter((_, i) => i !== index),
-    }));
+    removeEntry('competitions', index);
   };
 
   const addInternship = () => {
-    setFormData((prev) => ({
-      ...prev,
-      internship: [
-        ...prev.internship,
-        {
-          companyName: '',
-          role: '',
-          startDate: '',
-          endDate: '',
-          certificate: null,
-          description: '',
-        },
-      ],
-    }));
+    addEntry('internship', {
+      companyName: '',
+      role: '',
+      startDate: '',
+      endDate: '',
+      certificate: null,
+      description: '',
+    });
   };
 
   const removeInternship = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      internship: prev.internship.filter((_, i) => i !== index),
-    }));
+    removeEntry('internship', index);
   };
 
   const addOnlineCourse = () => {
-    setFormData((prev) => ({
-      ...prev,
-      onlineCourse: [
-        ...prev.onlineCourse,
-        {
-          courseName: '',
-          startDate: '',
-          endDate: '',
-          certifications: null,
-        },
-      ],
-    }));
+    addEntry('onlineCourse', {
+      courseName: '',
+      startDate: '',
+      endDate: '',
+      certifications: null,
+    });
   };
 
   const removeOnlineCourse = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      onlineCourse: prev.onlineCourse.filter((_, i) => i !== index),
-    }));
+    removeEntry('onlineCourse', index);
   };
 
   const addProductDevelopment = () => {
-    setFormData((prev) => ({
-      ...prev,
-      productDevelopment: [
-        ...prev.productDevelopment,
-        {
-          productName: '',
-          details: '',
-          startDate: '',
-          endDate: '',
-          upload: null,
-        },
-      ],
-    }));
+    addEntry('productDevelopment', {
+      productName: '',
+      details: '',
+      startDate: '',
+      endDate: '',
+      upload: null,
+    });
   };
 
   const removeProductDevelopment = (index) => {
-    setFormData((prev) => ({
-      ...prev,
-      productDevelopment: prev.productDevelopment.filter((_, i) => i !== index),
-    }));
+    removeEntry('productDevelopment', index);
   };
 
   const handleSubmit = () => {
@@ -1003,7 +1208,7 @@ const Achievements = () => {
   const photoUrl = formData.personalDetails.photo ? URL.createObjectURL(formData.personalDetails.photo) : null;
 
   // Split skills and languages into arrays for display
-  const skills = formData.academicDetails.skills ? formData.academicDetails.skills.split(',').map(skill => skill.trim()) : [];
+  const skills = formData.skills.skills ? formData.skills.skills.split(',').map(skill => skill.trim()) : [];
   const languages = formData.languages.language ? formData.languages.language.split(',').map(lang => lang.trim()) : [];
 
   return (
@@ -1012,6 +1217,9 @@ const Achievements = () => {
       <style>{styles}</style>
       <div className="achievements-container">
         <div className="card-container">
+          {/* From these onwards the form section begins*/}
+          
+          <div></div>
           {/* Personal Details Section */}
           <div>
             <div className="collapsible-header" onClick={() => toggleSection('personalDetails')}>
@@ -1047,6 +1255,17 @@ const Achievements = () => {
                     </span>
                   </div>
                 </div>
+                {formData.personalDetails.photo && (
+                  <div className="uploaded-file">
+                    <span>{formData.personalDetails.photo.name}</span>
+                    <button
+                      className="remove-file-button"
+                      onClick={() => removeFile('personalDetails', 'photo')}
+                    >
+                      <X className="cross-icon" />
+                    </button>
+                  </div>
+                )}
                 <div className="form-field-row">
                   <div className="form-field email-input">
                     <input
@@ -1069,6 +1288,28 @@ const Achievements = () => {
                     />
                   </div>
                 </div>
+                <div className="form-field-row">
+                  <div className="form-field github-input">
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="Enter your Github URL"
+                      value={formData.personalDetails.githubUrl}
+                      onChange={(e) => handleInputChange('personalDetails', 'githubUrl', e.target.value)}
+                      required
+                    />
+                  </div>
+                  <div className="form-field linkedin-input">
+                    <input
+                      type="url"
+                      className="form-input"
+                      placeholder="Enter LinkedIn URL"
+                      value={formData.personalDetails.linkedinUrl}
+                      onChange={(e) => handleInputChange('personalDetails', 'linkedinUrl', e.target.value)}
+                      required
+                    />
+                  </div>
+                </div>
               </div>
             )}
           </div>
@@ -1086,7 +1327,7 @@ const Achievements = () => {
                 <div className="form-field">
                   <textarea
                     className="form-textarea"
-                    placeholder="Enter your profile summary for the resume"
+                    placeholder="Enter your profile summary "
                     value={formData.profileSummary.description}
                     onChange={(e) => handleInputChange('profileSummary', 'description', e.target.value)}
                     required
@@ -1106,26 +1347,84 @@ const Achievements = () => {
             </div>
             {openSection === 'academicDetails' && (
               <div className="collapsible-content">
+                {formData.academicDetails.map((academic, index) => (
+                  <div key={index} className="entry">
+                    {formData.academicDetails.length > 1 && (
+                      <button className="remove-button" onClick={() => removeAcademicDetail(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Academic Detail
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter name of the institution"
+                        value={academic.institutionName}
+                        onChange={(e) => handleInputChange('academicDetails', 'institutionName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter degree or class (e.g., B.Tech, Class XII)"
+                        value={academic.degreeOrClass}
+                        onChange={(e) => handleInputChange('academicDetails', 'degreeOrClass', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Enter year of passing"
+                        value={academic.yearOfPassing}
+                        onChange={(e) => handleInputChange('academicDetails', 'yearOfPassing', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Enter percentage"
+                        step="0.1"
+                        min="0"
+                        max="100"
+                        value={academic.percentage}
+                        onChange={(e) => handleInputChange('academicDetails', 'percentage', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button className="add-button" onClick={addAcademicDetail}>
+                  <Plus className="add-icon" />
+                  Add Academic Detail
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Skills Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('skills')}>
+              <span>Skills</span>
+              <span className={`collapsible-arrow ${openSection === 'skills' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'skills' && (
+              <div className="collapsible-content">
                 <div className="form-field">
                   <input
                     type="text"
                     className="form-input"
                     placeholder="Enter your skills (e.g., JavaScript, React)"
-                    value={formData.academicDetails.skills}
-                    onChange={(e) => handleInputChange('academicDetails', 'skills', e.target.value)}
-                    required
-                  />
-                </div>
-                <div className="form-field">
-                  <input
-                    type="number"
-                    className="form-input"
-                    placeholder="Enter your CGPA"
-                    step="0.1"
-                    min="0"
-                    max="10"
-                    value={formData.academicDetails.cgpa}
-                    onChange={(e) => handleInputChange('academicDetails', 'cgpa', e.target.value)}
+                    value={formData.skills.skills}
+                    onChange={(e) => handleInputChange('skills', 'skills', e.target.value)}
                     required
                   />
                 </div>
@@ -1134,11 +1433,413 @@ const Achievements = () => {
                     type="text"
                     className="form-input"
                     placeholder="Enter your area of interest (e.g., Full-stack, Embedded)"
-                    value={formData.academicDetails.areaOfInterest}
-                    onChange={(e) => handleInputChange('academicDetails', 'areaOfInterest', e.target.value)}
+                    value={formData.skills.areaOfInterest}
+                    onChange={(e) => handleInputChange('skills', 'areaOfInterest', e.target.value)}
                     required
                   />
                 </div>
+              </div>
+            )}
+          </div>
+
+          {/* Paper Presentation Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('paperPresentations')}>
+              <span>Paper Presentations</span>
+              <span className={`collapsible-arrow ${openSection === 'paperPresentations' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'paperPresentations' && (
+              <div className="collapsible-content">
+                {formData.paperPresentations.map((presentation, index) => (
+                  <div key={index} className="entry">
+                    {formData.paperPresentations.length > 1 && (
+                      <button className="remove-button" onClick={() => removePaperPresentation(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Paper Presentation
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter presentation title"
+                        value={presentation.title}
+                        onChange={(e) => handleInputChange('paperPresentations', 'title', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"paper-presentation-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"paper-presentation-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={presentation.startDate}
+                            onChange={(e) => handleInputChange('paperPresentations', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"paper-presentation-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"paper-presentation-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={presentation.endDate}
+                            onChange={(e) => handleInputChange('paperPresentations', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="form-field">
+                      <textarea
+                        className="form-textarea"
+                        placeholder="Enter presentation description"
+                        value={presentation.description}
+                        onChange={(e) => handleInputChange('paperPresentations', 'description', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter college name"
+                        value={presentation.collegeName}
+                        onChange={(e) => handleInputChange('paperPresentations', 'collegeName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter conference name"
+                        value={presentation.conferenceName}
+                        onChange={(e) => handleInputChange('paperPresentations', 'conferenceName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button className="add-button" onClick={addPaperPresentation}>
+                  <Plus className="add-icon" />
+                  Add Paper Presentation
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Publication Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('publications')}>
+              <span>Publications</span>
+              <span className={`collapsible-arrow ${openSection === 'publications' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'publications' && (
+              <div className="collapsible-content">
+                {formData.publications.map((publication, index) => (
+                  <div key={index} className="entry">
+                    {formData.publications.length > 1 && (
+                      <button className="remove-button" onClick={() => removePublication(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Publication
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter publication title"
+                        value={publication.title}
+                        onChange={(e) => handleInputChange('publications', 'title', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter journal name"
+                        value={publication.journalName}
+                        onChange={(e) => handleInputChange('publications', 'journalName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter category"
+                        value={publication.category}
+                        onChange={(e) => handleInputChange('publications', 'category', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button className="add-button" onClick={addPublication}>
+                  <Plus className="add-icon" />
+                  Add Publication
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Patent Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('patents')}>
+              <span>Patents</span>
+              <span className={`collapsible-arrow ${openSection === 'patents' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'patents' && (
+              <div className="collapsible-content">
+                {formData.patents.map((patent, index) => (
+                  <div key={index} className="entry">
+                    {formData.patents.length > 1 && (
+                      <button className="remove-button" onClick={() => removePatent(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Patent
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter patent title"
+                        value={patent.title}
+                        onChange={(e) => handleInputChange('patents', 'title', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper patent-upload">
+                        <input
+                          type="file"
+                          className="form-input"
+                          accept=".pdf,.jpg,.png"
+                          onChange={(e) => handleFileChange('patents', 'proof', e, index)}
+                          required
+                        />
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload proof
+                        </span>
+                      </div>
+                      <span className="status-label">Status: Pending</span>
+                    </div>
+                    {patent.proof && (
+                      <div className="uploaded-file">
+                        <span>{patent.proof.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('patents', 'proof', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                <button className="add-button" onClick={addPatent}>
+                  <Plus className="add-icon" />
+                  Add Patent
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Entrepreneurship Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('entrepreneurship')}>
+              <span>Entrepreneurship</span>
+              <span className={`collapsible-arrow ${openSection === 'entrepreneurship' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'entrepreneurship' && (
+              <div className="collapsible-content">
+                {formData.entrepreneurship.map((entry, index) => (
+                  <div key={index} className="entry">
+                    {formData.entrepreneurship.length > 1 && (
+                      <button className="remove-button" onClick={() => removeEntrepreneurship(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Entrepreneurship Entry
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter entrepreneurship title"
+                        value={entry.title}
+                        onChange={(e) => handleInputChange('entrepreneurship', 'title', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter company name"
+                        value={entry.companyName}
+                        onChange={(e) => handleInputChange('entrepreneurship', 'companyName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="url"
+                        className="form-input"
+                        placeholder="Enter website URL"
+                        value={entry.website}
+                        onChange={(e) => handleInputChange('entrepreneurship', 'website', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper entrepreneurship-upload">
+                        <input
+                          type="file"
+                          className="form-input"
+                          accept=".pdf,.jpg,.png"
+                          onChange={(e) => handleFileChange('entrepreneurship', 'proof', e, index)}
+                          required
+                        />
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload proof
+                        </span>
+                      </div>
+                      <span className="status-label">Status: Pending</span>
+                    </div>
+                    {entry.proof && (
+                      <div className="uploaded-file">
+                        <span>{entry.proof.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('entrepreneurship', 'proof', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter product name"
+                        value={entry.product}
+                        onChange={(e) => handleInputChange('entrepreneurship', 'product', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button className="add-button" onClick={addEntrepreneurship}>
+                  <Plus className="add-icon" />
+                  Add Entrepreneurship Entry
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Placement Section */}
+          <div>
+            <div className="collapsible-header" onClick={() => toggleSection('placement')}>
+              <span>Placement</span>
+              <span className={`collapsible-arrow ${openSection === 'placement' ? 'open' : ''}`}>
+                ▼
+              </span>
+            </div>
+            {openSection === 'placement' && (
+              <div className="collapsible-content">
+                {formData.placement.map((placement, index) => (
+                  <div key={index} className="entry">
+                    {formData.placement.length > 1 && (
+                      <button className="remove-button" onClick={() => removePlacement(index)}>
+                        <Trash2 className="trash-icon" />
+                        Remove Placement
+                      </button>
+                    )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter company name"
+                        value={placement.companyName}
+                        onChange={(e) => handleInputChange('placement', 'companyName', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="number"
+                        className="form-input"
+                        placeholder="Enter salary"
+                        value={placement.salary}
+                        onChange={(e) => handleInputChange('placement', 'salary', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper placement-upload">
+                        <input
+                          type="file"
+                          className="form-input"
+                          accept=".pdf,.jpg,.png"
+                          onChange={(e) => handleFileChange('placement', 'proof', e, index)}
+                          required
+                        />
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload proof
+                        </span>
+                      </div>
+                      <span className="status-label">Status: Pending</span>
+                    </div>
+                    {placement.proof && (
+                      <div className="uploaded-file">
+                        <span>{placement.proof.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('placement', 'proof', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
+                    <div className="form-field">
+                      <label htmlFor={"placement-date-" + index} className="form-label">Date of Placement:</label>
+                      <input
+                        type="date"
+                        id={"placement-date-" + index}
+                        className="form-input"
+                        placeholder="Select date of placement"
+                        value={placement.dateOfPlacement}
+                        onChange={(e) => handleInputChange('placement', 'dateOfPlacement', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                  </div>
+                ))}
+                <button className="add-button" onClick={addPlacement}>
+                  <Plus className="add-icon" />
+                  Add Placement
+                </button>
               </div>
             )}
           </div>
@@ -1181,6 +1882,36 @@ const Achievements = () => {
                         required
                       />
                     </div>
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"project-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"project-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={project.startDate}
+                            onChange={(e) => handleInputChange('projectDetails', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"project-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"project-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={project.endDate}
+                            onChange={(e) => handleInputChange('projectDetails', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
                     <div className="form-field">
                       <textarea
                         className="form-textarea"
@@ -1206,6 +1937,17 @@ const Achievements = () => {
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
+                    {project.document && (
+                      <div className="uploaded-file">
+                        <span>{project.document.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('projectDetails', 'document', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addProject}>
@@ -1234,6 +1976,36 @@ const Achievements = () => {
                         Remove Competition
                       </button>
                     )}
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter competition title"
+                        value={competition.title}
+                        onChange={(e) => handleInputChange('competitions', 'title', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter organizer name"
+                        value={competition.organizer}
+                        onChange={(e) => handleInputChange('competitions', 'organizer', e.target.value, index)}
+                        required
+                      />
+                    </div>
+                    <div className="form-field">
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Enter winning details (e.g., 1st Place, Special Mention)"
+                        value={competition.winningDetails}
+                        onChange={(e) => handleInputChange('competitions', 'winningDetails', e.target.value, index)}
+                        required
+                      />
+                    </div>
                     <div className="form-field-row date-row">
                       <div className="date-field-wrapper">
                         <label htmlFor={"competitions-start-date-" + index} className="form-label start-date-label">Start Date:</label>
@@ -1289,6 +2061,17 @@ const Achievements = () => {
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
+                    {competition.upload && (
+                      <div className="uploaded-file">
+                        <span>{competition.upload.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('competitions', 'upload', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addCompetition}>
@@ -1392,6 +2175,17 @@ const Achievements = () => {
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
+                    {internship.certificate && (
+                      <div className="uploaded-file">
+                        <span>{internship.certificate.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('internship', 'certificate', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addInternship}>
@@ -1476,6 +2270,17 @@ const Achievements = () => {
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
+                    {course.certifications && (
+                      <div className="uploaded-file">
+                        <span>{course.certifications.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('onlineCourse', 'certifications', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addOnlineCourse}>
@@ -1569,6 +2374,17 @@ const Achievements = () => {
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
+                    {product.upload && (
+                      <div className="uploaded-file">
+                        <span className="uploaded-file-name">{product.upload.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('productDevelopment', 'upload', index)}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addProductDevelopment}>
@@ -1629,7 +2445,7 @@ const Achievements = () => {
         )}
 
         {/* Preview Modal */}
-        {showPreview && (
+       {showPreview && (
           <div className="preview-modal-container">
             <div className="preview-modal">
               <button className="preview-modal-close" onClick={handleClosePreview}>
@@ -1644,8 +2460,10 @@ const Achievements = () => {
                   <div className="resume-contact">
                     <p>{formData.personalDetails.phoneNumber || '+123-456-7890'}</p>
                     <p>{formData.personalDetails.email || 'your.email@example.com'}</p>
-                    <p>123 Anywhere St., Any City</p>
-                    <p>www.yourwebsite.com</p>
+                    <p>{formData.personalDetails.githubUrl || 'github.com/yourusername'}</p>
+                    <p>{formData.personalDetails.linkedinUrl || 'linkedin.com/in/yourusername'}</p>
+                    {/* <p>123 Anywhere St., Any City</p> */}
+                    {/* <p>www.yourwebsite.com</p> */}
                   </div>
                 </div>
 
@@ -1654,21 +2472,35 @@ const Achievements = () => {
                   <h3>Profile</h3>
                   <p>
                     {formData.profileSummary.description ||
-                      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam quis nostrud exercitation.'}
+                      'Dynamic and creative Software developer with a degree in Mechatronics Engineering and one year of hands-on experience. Eager to leverage my technical expertise, programming skills and creative problemsolving abilities in a challenging environment that fosters growth and innovation.'}
                   </p>
                 </div>
 
                 {/* Education Section */}
-                <div className="resume-section">
-                  <h3>Education</h3>
-                  <div className="resume-item">
-                    <h4>Wardiere University (Assumed)</h4>
-                    <p>2025 - Present</p>
-                    <p>Bachelor's Degree (Assumed)</p>
-                    <p>GPA: {formData.academicDetails.cgpa || 'N/A'}</p>
-                    <p>Area of Interest: {formData.academicDetails.areaOfInterest || 'N/A'}</p>
+                {formData.academicDetails.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Education</h3>
+                    {formData.academicDetails.map((academic, index) => (
+                      <div key={index} className="resume-item">
+                        <h4>{academic.institutionName || 'Bannari Amman Institute of Technology'}</h4>
+                        <p>Year of Passing: {academic.yearOfPassing || '2025'}</p>
+                        <p>Percentage: {academic.percentage || 'N/A'}%</p>
+                      </div>
+                    ))}
                   </div>
-                </div>
+                )}
+
+                {/* Skills Section */}
+                {skills.length > 0 && (
+                  <div className="resume-section">
+                    <h3>Skills</h3>
+                    <ul>
+                      {skills.map((skill, index) => (
+                        <li key={index}>{skill}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* Work Experience Section */}
                 {(formData.internship.length > 0 || formData.productDevelopment.length > 0) && (
@@ -1685,7 +2517,7 @@ const Achievements = () => {
                         </ul>
                       </div>
                     ))}
-                    {formData.productDevelopment.map((product, index) => (
+                    {/* {formData.productDevelopment.map((product, index) => (
                       <div key={index} className="resume-item">
                         <h4>{product.productName || 'Product'} - Product Developer</h4>
                         <p>
@@ -1695,7 +2527,7 @@ const Achievements = () => {
                           <li>{product.details || 'Developed and launched a product.'}</li>
                         </ul>
                       </div>
-                    ))}
+                    ))} */}
                   </div>
                 )}
 
@@ -1721,7 +2553,9 @@ const Achievements = () => {
                     <h3>Competitions</h3>
                     {formData.competitions.map((competition, index) => (
                       <div key={index} className="resume-item">
-                        <h4>Competition {index + 1}</h4>
+                        <h4>{competition.title || `Competition ${index + 1}`}</h4>
+                        <p>Organizer: {competition.organizer || 'N/A'}</p>
+                        <p>Winning Details: {competition.winningDetails || 'N/A'}</p>
                         <p>
                           {competition.startDate || 'N/A'} - {competition.endDate || 'N/A'}
                         </p>
@@ -1745,18 +2579,6 @@ const Achievements = () => {
                         </p>
                       </div>
                     ))}
-                  </div>
-                )}
-
-                {/* Skills Section */}
-                {skills.length > 0 && (
-                  <div className="resume-section">
-                    <h3>Skills</h3>
-                    <ul>
-                      {skills.map((skill, index) => (
-                        <li key={index}>{skill}</li>
-                      ))}
-                    </ul>
                   </div>
                 )}
 
