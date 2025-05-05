@@ -612,7 +612,7 @@ const styles = `
     }
 
     .card-container {
-      padding: 0.75rem;
+      // padding: 0.75rem;
       margin-top: 4.5rem;
       padding-top: 0;
       padding-bottom: 0.75rem;
@@ -847,6 +847,7 @@ const Achievements = () => {
         description: '',
         collegeName: '',
         conferenceName: '',
+        proof: null,
       },
     ],
     publications: [
@@ -854,11 +855,16 @@ const Achievements = () => {
         title: '',
         journalName: '',
         category: '',
+        startDate: '', // New field for start date
+        endDate: '',   // New field for end date
+        proof: null,
       },
     ],
     patents: [
       {
         title: '',
+        startDate: '', // New field for start date
+        endDate: '',   // New field for end date
         proof: null,
       },
     ],
@@ -1049,6 +1055,7 @@ const Achievements = () => {
       description: '',
       collegeName: '',
       conferenceName: '',
+      proof: null,
     });
   };
 
@@ -1061,6 +1068,9 @@ const Achievements = () => {
       title: '',
       journalName: '',
       category: '',
+      startDate: '',
+      endDate: '',
+      proof: null,
     });
   };
 
@@ -1071,6 +1081,8 @@ const Achievements = () => {
   const addPatent = () => {
     addEntry('patents', {
       title: '',
+      startDate: '',
+      endDate: '',
       proof: null,
     });
   };
@@ -1529,6 +1541,33 @@ const Achievements = () => {
                         required
                       />
                     </div>
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper presentation-upload">
+                        <input
+                          type="file"
+                          className="form-input"
+                          accept=".pdf,.jpg,.png"
+                          onChange={(e) => handleFileChange('paperPresentations', 'proof', e, index)}
+                          required
+                        />
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload paper
+                        </span>
+                      </div>
+                      <span className="status-label">Status: Pending</span>
+                    </div>
+                    {presentation.proof && (
+                      <div className="uploaded-file">
+                        <span>{presentation.proof.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('paperPresentations', 'proof', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addPaperPresentation}>
@@ -1587,6 +1626,63 @@ const Achievements = () => {
                         required
                       />
                     </div>
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"publication-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"publication-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={publication.startDate}
+                            onChange={(e) => handleInputChange('publications', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"publication-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"publication-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={publication.endDate}
+                            onChange={(e) => handleInputChange('publications', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <div className="form-field-row">
+                      <div className="form-field file-input-wrapper publication-upload">
+                        <input
+                          type="file"
+                          className="form-input"
+                          accept=".pdf,.jpg,.png"
+                          onChange={(e) => handleFileChange('publications', 'proof', e, index)}
+                          required
+                        />
+                        <span className="file-input-label">
+                          <Upload className="upload-icon" />
+                          Upload paper
+                        </span>
+                      </div>
+                      <span className="status-label">Status: Pending</span>
+                    </div>
+                    {publication.proof && (
+                      <div className="uploaded-file">
+                        <span>{publication.proof.name}</span>
+                        <button
+                          className="remove-file-button"
+                          onClick={() => removeFile('publications', 'proof', index)}
+                        >
+                          <X className="cross-icon" />
+                        </button>
+                      </div>
+                    )}
                   </div>
                 ))}
                 <button className="add-button" onClick={addPublication}>
@@ -1624,6 +1720,36 @@ const Achievements = () => {
                         onChange={(e) => handleInputChange('patents', 'title', e.target.value, index)}
                         required
                       />
+                    </div>
+                    <div className="form-field-row date-row">
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"patent-start-date-" + index} className="form-label start-date-label">Start Date:</label>
+                        <div className="form-field start-date-input">
+                          <input
+                            type="date"
+                            id={"patent-start-date-" + index}
+                            className="form-input"
+                            placeholder="Select start date"
+                            value={patent.startDate}
+                            onChange={(e) => handleInputChange('patents', 'startDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
+                      <div className="date-field-wrapper">
+                        <label htmlFor={"patent-end-date-" + index} className="form-label end-date-label">End Date:</label>
+                        <div className="form-field end-date-input">
+                          <input
+                            type="date"
+                            id={"patent-end-date-" + index}
+                            className="form-input"
+                            placeholder="Select end date"
+                            value={patent.endDate}
+                            onChange={(e) => handleInputChange('patents', 'endDate', e.target.value, index)}
+                            required
+                          />
+                        </div>
+                      </div>
                     </div>
                     <div className="form-field-row">
                       <div className="form-field file-input-wrapper patent-upload">
@@ -1806,8 +1932,9 @@ const Achievements = () => {
                         />
                         <span className="file-input-label">
                           <Upload className="upload-icon" />
-                          Upload proof
+                          Upload Offer letter
                         </span>
+                        
                       </div>
                       <span className="status-label">Status: Pending</span>
                     </div>
@@ -2081,7 +2208,6 @@ const Achievements = () => {
               </div>
             )}
           </div>
-
           {/* Internship Section */}
           <div>
             <div className="collapsible-header" onClick={() => toggleSection('internship')}>
