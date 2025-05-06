@@ -494,94 +494,106 @@ const styles = `
     transform: scale(1.1);
   }
 
-  /* Resume Template Styles (Blue Simple Professional CV) */
+   /* Resume Template Styles (Modern Professional CV) */
   .resume-container {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     color: #333;
-    line-height: 1.6;
-    padding: 20px;
+    line-height: 1.8;
+    padding: 30px;
     background-color: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
 
   .resume-header {
     text-align: center;
-    margin-bottom: 2rem;
-    border-bottom: 2px solid #1e88e5; /* Blue accent */
-    padding-bottom: 1rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 3px solid #005555; /* Teal accent matching PDF */
   }
 
   .resume-header h1 {
-    font-size: 2rem;
+    font-size: 2.4rem;
     font-weight: 700;
     margin: 0;
-    color: #1e88e5;
+    color: #005555;
     text-transform: uppercase;
+    letter-spacing: 1.5px;
   }
 
   .resume-header h2 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0.5rem 0 0;
-    color: #666;
+    font-size: 1.3rem;
+    font-weight: 500;
+    margin: 0.6rem 0 0;
+    color: #555;
   }
 
   .resume-photo {
-    width: 100px;
-    height: 100px;
+    width: 120px;
+    height: 120px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #1e88e5;
-    margin: 1rem auto;
+    border: 3px solid #005555;
+    margin: 1.5rem auto;
     display: block;
-  }
-
-  .resume-section {
-    margin-bottom: 1.5rem;
-  }
-
-  .resume-section h3 {
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #1e88e5;
-    text-transform: uppercase;
-    margin-bottom: 1rem;
-    border-bottom: 1px solid #d1d5db;
-    padding-bottom: 0.5rem;
-  }
-
-  .resume-section h4 {
-    font-size: 1.2rem;
-    font-weight: 600;
-    margin: 0.5rem 0;
-  }
-
-  .resume-section p {
-    font-size: 1rem;
-    margin: 0.2rem 0;
-  }
-
-  .resume-section ul {
-    list-style-type: disc;
-    margin-left: 20px;
-    padding-left: 10px;
-  }
-
-  .resume-section ul li {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
   }
 
   .resume-contact {
     display: flex;
     flex-wrap: wrap;
-    gap: 1rem;
+    gap: 1.5rem;
     justify-content: center;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
   }
 
   .resume-contact p {
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin: 0;
+    color: #444;
+  }
+
+  .resume-section {
+    margin-bottom: 2rem;
+  }
+
+  .resume-section h3 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: #005555;
+    text-transform: uppercase;
+    margin-bottom: 1.2rem;
+    border-bottom: 2px solid #e0e0e0;
+    padding-bottom: 0.6rem;
+  }
+
+  .resume-section h4 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0.6rem 0;
+    color: #333;
+  }
+
+  .resume-section p {
+    font-size: 0.95rem;
+    margin: 0.4rem 0;
+    color: #444;
+  }
+
+  .resume-section ul {
+    list-style-type: disc;
+    margin-left: 25px;
+    padding-left: 10px;
+  }
+
+  .resume-section ul li {
+    font-size: 0.95rem;
+    margin-bottom: 0.6rem;
+    color: #444;
+  }
+
+  .resume-item {
+    margin-bottom: 1.5rem;
   }
 
   /* Animations */
@@ -766,30 +778,35 @@ const styles = `
       padding: 0.5rem;
     }
 
+    .resume-container {
+      padding: 15px;
+    }
+
     .resume-header h1 {
-      font-size: 1.5rem;
+      font-size: 1.9rem;
     }
 
     .resume-header h2 {
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
 
     .resume-photo {
-      width: 80px;
-      height: 80px;
+      width: 90px;
+      height: 90px;
     }
 
     .resume-contact {
       flex-direction: column;
       align-items: center;
+      gap: 0.8rem;
     }
 
     .resume-section h3 {
-      font-size: 1.2rem;
+      font-size: 1.3rem;
     }
 
     .resume-section h4 {
-      font-size: 1rem;
+      font-size: 1.1rem;
     }
 
     .resume-section p,
@@ -855,16 +872,16 @@ const Achievements = () => {
         title: '',
         journalName: '',
         category: '',
-        startDate: '', // New field for start date
-        endDate: '',   // New field for end date
+        startDate: '',
+        endDate: '',
         proof: null,
       },
     ],
     patents: [
       {
         title: '',
-        startDate: '', // New field for start date
-        endDate: '',   // New field for end date
+        startDate: '',
+        endDate: '',
         proof: null,
       },
     ],
@@ -922,6 +939,7 @@ const Achievements = () => {
         startDate: '',
         endDate: '',
         certifications: null,
+        description: '',
       },
     ],
     productDevelopment: [
@@ -1170,6 +1188,7 @@ const Achievements = () => {
       startDate: '',
       endDate: '',
       certifications: null,
+      description: '',
     });
   };
 
@@ -1219,7 +1238,6 @@ const Achievements = () => {
 
   const photoUrl = formData.personalDetails.photo ? URL.createObjectURL(formData.personalDetails.photo) : null;
 
-  // Split skills and languages into arrays for display
   const skills = formData.skills.skills ? formData.skills.skills.split(',').map(skill => skill.trim()) : [];
   const languages = formData.languages.language ? formData.languages.language.split(',').map(lang => lang.trim()) : [];
 
@@ -2322,8 +2340,8 @@ const Achievements = () => {
             )}
           </div>
 
-          {/* Online Course Section */}
-          <div>
+         {/* Online Course Section */}
+         <div>
             <div className="collapsible-header" onClick={() => toggleSection('onlineCourse')}>
               <span>Online Course</span>
               <span className={`collapsible-arrow ${openSection === 'onlineCourse' ? 'open' : ''}`}>
@@ -2379,6 +2397,15 @@ const Achievements = () => {
                           />
                         </div>
                       </div>
+                    </div>
+                    <div className="form-field">
+                      <textarea
+                        className="form-textarea"
+                        placeholder="Enter course description"
+                        value={course.description}
+                        onChange={(e) => handleInputChange('onlineCourse', 'description', e.target.value, index)}
+                        required
+                      />
                     </div>
                     <div className="form-field-row">
                       <div className="form-field file-input-wrapper course-upload">
@@ -2598,7 +2625,7 @@ const Achievements = () => {
                   <h3>Profile</h3>
                   <p>
                     {formData.profileSummary.description ||
-                      'Dynamic and creative Software developer with a degree in Mechatronics Engineering and one year of hands-on experience. Eager to leverage my technical expertise, programming skills and creative problemsolving abilities in a challenging environment that fosters growth and innovation.'}
+                      'Dynamic and creative Software developer with a degree in Mechatronics Engineering. Eager to leverage my technical expertise, programming skills and creative problemsolving abilities in a challenging environment that fosters growth and innovation.'}
                   </p>
                 </div>
 
@@ -2693,20 +2720,23 @@ const Achievements = () => {
                   </div>
                 )}
 
-                {/* Online Courses Section */}
-                {formData.onlineCourse.length > 0 && (
-                  <div className="resume-section">
-                    <h3>Online Courses</h3>
-                    {formData.onlineCourse.map((course, index) => (
-                      <div key={index} className="resume-item">
-                        <h4>{course.courseName || 'Untitled Course'}</h4>
-                        <p>
-                          {course.startDate || 'N/A'} - {course.endDate || 'N/A'}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                )}
+               {/* Online Courses Section */}
+          {formData.onlineCourse.length > 0 && (
+            <div className="resume-section">
+              <h3>Online Courses</h3>
+              {formData.onlineCourse.map((course, index) => (
+                <div key={index} className="resume-item">
+                  <h4>{course.courseName || 'Untitled Course'}</h4>
+                  <p>
+                    {course.startDate || 'N/A'} - {course.endDate || 'N/A'}
+                  </p>
+                  <ul>
+                    <li>{course.description || 'Completed an online course.'}</li>
+                  </ul>
+                </div>
+              ))}
+            </div>
+          )}
 
                 {/* Languages Section */}
                 {languages.length > 0 && (
@@ -2714,7 +2744,7 @@ const Achievements = () => {
                     <h3>Languages</h3>
                     <ul>
                       {languages.map((lang, index) => (
-                        <li key={index}>{lang} (Fluent)</li>
+                        <li key={index}>{lang} </li>
                       ))}
                     </ul>
                   </div>
