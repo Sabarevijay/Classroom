@@ -63,6 +63,7 @@ const styles = `
     align-items: center;
     text-align: center;
     transition: transform 0.2s;
+    cursor: pointer;
   }
 
   .student-card:hover {
@@ -89,6 +90,31 @@ const styles = `
     font-size: 0.9rem;
     color: #666;
     margin-bottom: 0.25rem;
+  }
+
+  /* Selected Student Container */
+  .selected-student-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  /* Back Button */
+  .back-button {
+    background-color: #6b48ff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    transition: background-color 0.2s;
+  }
+
+  .back-button:hover {
+    background-color: #5a3de6;
   }
 
   /* No Data Message */
@@ -132,18 +158,32 @@ const styles = `
     .student-mobile {
       font-size: 0.8rem;
     }
+
+    .back-button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+    }
   }
 `;
 
 const StudentAchives = () => {
   const { classId } = useParams();
   const [students, setStudents] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
 
   // Load students from localStorage on mount
   useEffect(() => {
     const savedStudents = JSON.parse(localStorage.getItem('students')) || [];
     setStudents(savedStudents);
   }, []);
+
+  const handleStudentClick = (student) => {
+    setSelectedStudent(student);
+  };
+
+  const handleBackClick = () => {
+    setSelectedStudent(null);
+  };
 
   return (
     <>
@@ -159,10 +199,26 @@ const StudentAchives = () => {
             <div className="no-data">
               <p>No students found. Add students in the Add Students page.</p>
             </div>
+          ) : selectedStudent ? (
+            <div className="selected-student-container">
+              <div className="student-card">
+                <img src={selectedStudent.photo} alt={selectedStudent.name} className="student-photo" />
+                <div className="student-name">{selectedStudent.name}</div>
+                <div className="student-email">{selectedStudent.email}</div>
+                <div className="student-mobile">{selectedStudent.mobile}</div>
+              </div>
+              <button className="back-button" onClick={handleBackClick}>
+                Back to All Students
+              </button>
+            </div>
           ) : (
             <div className="student-grid">
               {students.map((student, index) => (
-                <div key={index} className="student-card">
+                <div
+                  key={index}
+                  className="student-card"
+                  onClick={() => handleStudentClick(student)}
+                >
                   <img src={student.photo} alt={student.name} className="student-photo" />
                   <div className="student-name">{student.name}</div>
                   <div className="student-email">{student.email}</div>

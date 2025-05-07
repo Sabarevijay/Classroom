@@ -57,6 +57,43 @@ const styles = `
     text-align: center;
   }
 
+  /* Navigation Cards */
+  .nav-cards-container {
+    display: flex;
+    justify-content: space-around;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+
+  .nav-card {
+    background-color: #f9f9f9;
+    border-radius: 0.5rem;
+    padding: 1rem;
+    text-align: center;
+    cursor: pointer;
+    flex: 1;
+    min-width: 120px;
+    transition: background-color 0.2s, transform 0.2s;
+    border: 1px solid #e5e7eb;
+  }
+
+  .nav-card:hover {
+    background-color: #e0e7ff;
+    transform: scale(1.05);
+  }
+
+  .nav-card.active {
+    background-color: #6b48ff;
+    color: white;
+    border-color: #6b48ff;
+  }
+
+  .nav-card-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+  }
+
   /* Content Container */
   .content-container {
     width: 100%;
@@ -108,6 +145,10 @@ const styles = `
 
     .class-name {
       font-size: 1.8rem;
+    }
+
+    .nav-card {
+      min-width: 100px;
     }
 
     .no-classworks {
@@ -317,6 +358,98 @@ const styles = `
     color: #d32f2f;
     transform: scale(1.1);
   }
+
+  /* Table Styles for Marks */
+  .marks-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+    background-color: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .marks-table th,
+  .marks-table td {
+    padding: 0.75rem;
+    text-align: center;
+    border-bottom: 1px solid #e5e7eb;
+  }
+
+  .marks-table th {
+    background-color: #6b48ff;
+    color: white;
+    font-weight: 600;
+    font-size: 1rem;
+  }
+
+  .marks-table td {
+    color: #333;
+    font-size: 0.95rem;
+  }
+
+  .marks-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+
+  .marks-table tr:hover {
+    background-color: #e0e7ff;
+  }
+
+  /* Editable Input for Marks */
+  .marks-input {
+    width: 60px;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.95rem;
+    text-align: center;
+  }
+
+  .marks-input:focus {
+    outline: none;
+    border-color: #6b48ff;
+    box-shadow: 0 0 0 2px rgba(107, 72, 255, 0.2);
+  }
+
+  /* Submit Button for Marks */
+  .submit-marks-button {
+    background-color: #6b48ff;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 500;
+    margin-top: 1rem;
+    transition: background-color 0.2s;
+  }
+
+  .submit-marks-button:hover {
+    background-color: #5a3de6;
+  }
+
+  /* Responsive adjustments for table and inputs */
+  @media (max-width: 768px) {
+    .marks-table th,
+    .marks-table td {
+      padding: 0.5rem;
+      font-size: 0.85rem;
+    }
+
+    .marks-input {
+      width: 50px;
+      padding: 0.4rem;
+      font-size: 0.85rem;
+    }
+
+    .submit-marks-button {
+      padding: 0.4rem 0.8rem;
+      font-size: 0.9rem;
+    }
+  }
 `;
 
 const Classwork = () => {
@@ -329,6 +462,12 @@ const Classwork = () => {
   const [title, setTitle] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [expandedGroups, setExpandedGroups] = useState({});
+  const [activeTab, setActiveTab] = useState('Course Material');
+  const [marksData, setMarksData] = useState([
+    { name: 'Renesh', pt1: 49, pt2: 50, pt3: 35 },
+    { name: 'Jinesh', pt1: 39, pt2: 62, pt3: 51 },
+    { name: 'Surya', pt1: 45, pt2: 85, pt3: 29 },
+  ]);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -345,7 +484,6 @@ const Classwork = () => {
         if (error.response?.status === 404) {
           setError('No classwork found for this class. Please upload classwork to get started.');
           console.log("Setting error for 404:", 'No classwork found for this class. Please upload classwork to get started.');
-          // toast.error('No classwork found for this class.');
         } else {
           setError('Failed to load data. Please try again later.');
           toast.error('Failed to load data.');
@@ -407,7 +545,7 @@ const Classwork = () => {
       setClassworks((prev) => [...prev, ...response.data.classworks]);
       setFiles([]);
       setTitle('');
-      setError(null); // Clear the error state after successful upload
+      setError(null);
       toast.success('Classwork uploaded successfully');
     } catch (error) {
       console.error('Upload error:', error.response?.data || error.message);
@@ -458,6 +596,19 @@ const Classwork = () => {
     }
   };
 
+  const handleMarkChange = (index, field, value) => {
+    const updatedMarks = [...marksData];
+    updatedMarks[index][field] = parseInt(value) || 0; // Convert to number, default to 0 if invalid
+    setMarksData(updatedMarks);
+  };
+
+  const handleSubmitMarks = () => {
+    console.log('Updated Marks:', marksData);
+    toast.success('Marks saved successfully');
+    // Replace with actual API call if needed, e.g.:
+    // await classPost('/class/marks/update', { classId: id, marks: marksData });
+  };
+
   // Group classworks by title
   const groupedClassworks = classworks.reduce((acc, classwork) => {
     const key = classwork.title;
@@ -491,111 +642,172 @@ const Classwork = () => {
           <SecondNav classId={id} />
         </div>
         <h2 className="class-name">{classData ? classData.ClassName : 'No class data available'}</h2>
-        <div className="content-container">
-          <h3 className="section-title">Classwork</h3>
-          
-          {/* Display error message if it exists, but continue rendering the form
-          {error && (
-            <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
-          )} */}
-
-          {/* Upload Form */}
-          <form className="upload-form" onSubmit={handleFileUpload}>
-            <input
-              type="text"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Classwork title"
-              className="file-input"
-            />
+        <div className="nav-cards-container">
+          {['Course Material', 'Assignment', 'Marks'].map((tab) => (
             <div
-              className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
-              onDragOver={handleDragOver}
-              onDragLeave={handleDragLeave}
-              onDrop={handleDrop}
-              onClick={() => fileInputRef.current.click()}
+              key={tab}
+              className={`nav-card ${activeTab === tab ? 'active' : ''}`}
+              onClick={() => setActiveTab(tab)}
             >
-              <p className="drag-drop-text">
-                Drag and drop files here or click to select files
-              </p>
-              <input
-                type="file"
-                name="files"
-                multiple
-                onChange={handleFileChange}
-                className="file-input"
-                accept=".pdf,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                ref={fileInputRef}
-              />
+              <h3 className="nav-card-title">{tab}</h3>
             </div>
-            {files.length > 0 && (
-              <div className="file-list">
-                {files.map((file, index) => (
-                  <div key={index} className="file-item">
-                    <span>{file.name}</span>
-                    <button onClick={() => handleRemoveFile(index)}>
-                      <Trash2 size={16} />
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <button type="submit" className="upload-button">Upload Classwork</button>
-          </form>
-
-          {/* Classwork List (Grouped by Title) */}
-          {Object.keys(groupedClassworks).length > 0 ? (
-            Object.entries(groupedClassworks).map(([title, group]) => (
-              <div key={title} className="classwork-group">
-                <div className="classwork-group-header">
-                  <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
-                    <Folder size={20} color="#6b48ff" />
-                    <span>{title}</span>
-                  </div>
-                  <div className="classwork-group-actions">
-                    <button
-                      className="delete-button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteGroup(group);
-                      }}
-                      data-tooltip="Delete Folder"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                    {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
-                  </div>
+          ))}
+        </div>
+        <div className="content-container">
+          {['Course Material', 'Assignment'].includes(activeTab) ? (
+            <>
+              <h3 className="section-title">{activeTab}</h3>
+              {/* Display error message if it exists, but continue rendering the form */}
+              {/* {error && (
+                <div className="text-red-500 text-center mt-10 mb-4">{error}</div>
+              )} */}
+              {/* Upload Form */}
+              <form className="upload-form" onSubmit={handleFileUpload}>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Classwork title"
+                  className="file-input"
+                />
+                <div
+                  className={`drag-drop-area ${dragOver ? 'drag-over' : ''}`}
+                  onDragOver={handleDragOver}
+                  onDragLeave={handleDragLeave}
+                  onDrop={handleDrop}
+                  onClick={() => fileInputRef.current.click()}
+                >
+                  <p className="drag-drop-text">
+                    Drag and drop files here or click to select files
+                  </p>
+                  <input
+                    type="file"
+                    name="files"
+                    multiple
+                    onChange={handleFileChange}
+                    className="file-input"
+                    accept=".pdf,.jpg,.jpeg,.png"
+                    style={{ display: 'none' }}
+                    ref={fileInputRef}
+                  />
                 </div>
-                {expandedGroups[title] && (
-                  <div className="classwork-group-files">
-                    {group.map((classwork) => (
-                      <div key={classwork._id} className="classwork-file">
-                        <span>{classwork.originalFilename || classwork.filename}</span>
-                        <div className="action-buttons">
-                          <button
-                            className="delete-button"
-                            onClick={() => handleDelete(classwork._id)}
-                            data-tooltip="Delete Classwork"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                          <button
-                            className="download-button"
-                            onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}
-                            data-tooltip="Download Classwork"
-                          >
-                            <Download size={20} />
-                          </button>
-                        </div>
+                {files.length > 0 && (
+                  <div className="file-list">
+                    {files.map((file, index) => (
+                      <div key={index} className="file-item">
+                        <span>{file.name}</span>
+                        <button onClick={() => handleRemoveFile(index)}>
+                          <Trash2 size={16} />
+                        </button>
                       </div>
                     ))}
                   </div>
                 )}
-              </div>
-            ))
+                <button type="submit" className="upload-button">Upload Classwork</button>
+              </form>
+              {/* Classwork List (Grouped by Title) */}
+              {Object.keys(groupedClassworks).length > 0 ? (
+                Object.entries(groupedClassworks).map(([title, group]) => (
+                  <div key={title} className="classwork-group">
+                    <div className="classwork-group-header">
+                      <div className="classwork-group-title" onClick={() => toggleGroup(title)}>
+                        <Folder size={20} color="#6b48ff" />
+                        <span>{title}</span>
+                      </div>
+                      <div className="classwork-group-actions">
+                        <button
+                          className="delete-button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteGroup(group);
+                          }}
+                          data-tooltip="Delete Folder"
+                        >
+                          <Trash2 size={20} />
+                        </button>
+                        {expandedGroups[title] ? <ChevronUp size={20} onClick={() => toggleGroup(title)} /> : <ChevronDown size={20} onClick={() => toggleGroup(title)} />}
+                      </div>
+                    </div>
+                    {expandedGroups[title] && (
+                      <div className="classwork-group-files">
+                        {group.map((classwork) => (
+                          <div key={classwork._id} className="classwork-file">
+                            <span>{classwork.originalFilename || classwork.filename}</span>
+                            <div className="action-buttons">
+                              <button
+                                className="delete-button"
+                                onClick={() => handleDelete(classwork._id)}
+                                data-tooltip="Delete Classwork"
+                              >
+                                <Trash2 size={20} />
+                              </button>
+                              <button
+                                className="download-button"
+                                onClick={() => handleDownload(classwork._id, classwork.originalFilename || classwork.filename)}
+                                data-tooltip="Download Classwork"
+                              >
+                                <Download size={20} />
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <p className="no-classworks">No classworks available.</p>
+              )}
+            </>
           ) : (
-            <p className="no-classworks">No classworks available.</p>
+            <>
+              <h3 className="section-title">{activeTab}</h3>
+              {/* The Table diplays the marks of the all students for an admin , and for user or students only their respective marks will be displayed  */}
+              <table className="marks-table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>PT1</th>
+                    <th>PT2</th>
+                    <th>Optional</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {marksData.map((student, index) => (
+                    <tr key={index}>
+                      <td>{student.name}</td>
+                      <td>
+                        <input
+                          type="number"
+                          className="marks-input"
+                          value={student.pt1}
+                          onChange={(e) => handleMarkChange(index, 'pt1', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="marks-input"
+                          value={student.pt2}
+                          onChange={(e) => handleMarkChange(index, 'pt2', e.target.value)}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="number"
+                          className="marks-input"
+                          value={student.pt3}
+                          onChange={(e) => handleMarkChange(index, 'pt3', e.target.value)}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              <button className="submit-marks-button" onClick={handleSubmitMarks}>
+                Submit
+              </button>
+            </>
           )}
         </div>
       </div>
